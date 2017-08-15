@@ -50,6 +50,7 @@
 #include <string.h>
 #include "nordic_common.h"
 #include "nrf_sdh.h"
+#include "nrf_sdh_soc.h"
 #include "nrf_sdh_ble.h"
 #include "app_timer.h"
 #include "bsp_btn_ble.h"
@@ -62,6 +63,7 @@
 #include "ble_lbs_c.h"
 #include "ble_conn_state.h"
 #include "nrf_ble_gatt.h"
+#include "ble_nus.h"
 
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
@@ -71,30 +73,50 @@
 #define APP_BLE_CONN_CFG_TAG      1                                     /**< A tag that refers to the BLE stack configuration we set with @ref sd_ble_cfg_set. Default tag is @ref APP_BLE_CONN_CFG_TAG. */
 #define APP_BLE_OBSERVER_PRIO     1                                     /**< Application's BLE observer priority. You shouldn't need to modify this value. */
 
-#define CENTRAL_SCANNING_LED      BSP_BOARD_LED_0
-#define CENTRAL_CONNECTED_LED     BSP_BOARD_LED_1
-#define LEDBUTTON_LED             BSP_BOARD_LED_2                       /**< LED to indicate a change of state of the the Button characteristic on the peer. */
+// Peripheral parameters
+#define DEVICE_NAME                  "MultiLinkDemo"                    /**< Name of device. Will be included in the advertising data. */
+#define NUS_SERVICE_UUID_TYPE        BLE_UUID_TYPE_VENDOR_BEGIN         /**< UUID type for the Nordic UART Service (vendor specific). */
+#define MIN_PERIPHERAL_CON_INT       MSEC_TO_UNITS(20, UNIT_1_25_MS)    /**< Determines minimum connection interval in milliseconds. */
+#define MAX_PERIPHERAL_CON_INT       MSEC_TO_UNITS(200, UNIT_1_25_MS)   /**< Determines maximum connection interval in milliseconds. */
+#define PERIPHERAL_SLAVE_LATENCY     0                                  /**< Slave latency. */
+#define PERIPHERAL_CONN_SUP_TIMEOUT  MSEC_TO_UNITS(4000, UNIT_10_MS)    /**< Connection supervisory timeout (4 seconds), Supervision Timeout uses 10 ms units. */
 
-#define LEDBUTTON_BUTTON          BSP_BUTTON_0                          /**< Button that will write to the LED characteristic of the peer. */
-#define BUTTON_DETECTION_DELAY    APP_TIMER_TICKS(50)                   /**< Delay from a GPIOTE event until a button is reported as pushed (in number of timer ticks). */
+#define PERIPHERAL_ADV_INTERVAL                300                      /**< The advertising interval (in units of 0.625 ms. This value corresponds to 40 ms). */
+#define PERIPHERAL_ADV_TIMEOUT_IN_SECONDS      180                      /**< The advertising timeout (in units of seconds). */
 
-#define SCAN_INTERVAL             0x00A0                                /**< Determines scan interval in units of 0.625 millisecond. */
-#define SCAN_WINDOW               0x0050                                /**< Determines scan window in units of 0.625 millisecond. */
-#define SCAN_TIMEOUT              0x0000                                /**< Timout when scanning. 0x0000 disables timeout. */
+#define CENTRAL_SCANNING_LED        BSP_BOARD_LED_0
+#define CENTRAL_CONNECTED_LED       BSP_BOARD_LED_1
+#define LEDBUTTON_LED               BSP_BOARD_LED_2                     /**< LED to indicate a change of state of the the Button characteristic on the peer. */
 
-#define MIN_CONNECTION_INTERVAL   MSEC_TO_UNITS(7.5, UNIT_1_25_MS)      /**< Determines minimum connection interval in milliseconds. */
-#define MAX_CONNECTION_INTERVAL   MSEC_TO_UNITS(30, UNIT_1_25_MS)       /**< Determines maximum connection interval in milliseconds. */
-#define SLAVE_LATENCY             0                                     /**< Determines slave latency in terms of connection events. */
-#define SUPERVISION_TIMEOUT       MSEC_TO_UNITS(4000, UNIT_10_MS)       /**< Determines supervision time-out in units of 10 milliseconds. */
+#define LEDBUTTON_BUTTON            BSP_BUTTON_0                        /**< Button that will write to the LED characteristic of the peer. */
+#define BUTTON_DETECTION_DELAY      APP_TIMER_TICKS(50)                 /**< Delay from a GPIOTE event until a button is reported as pushed (in number of timer ticks). */
 
-#define UUID16_SIZE               2                                     /**< Size of a UUID, in bytes. */
+#define SCAN_INTERVAL               0x00A0                              /**< Determines scan interval in units of 0.625 millisecond. */
+#define SCAN_WINDOW                 0x0050                              /**< Determines scan window in units of 0.625 millisecond. */
+#define SCAN_TIMEOUT                0x0000                              /**< Timout when scanning. 0x0000 disables timeout. */
+
+#define MIN_CONNECTION_INTERVAL     MSEC_TO_UNITS(7.5, UNIT_1_25_MS)    /**< Determines minimum connection interval in milliseconds. */
+#define MAX_CONNECTION_INTERVAL     MSEC_TO_UNITS(30, UNIT_1_25_MS)     /**< Determines maximum connection interval in milliseconds. */
+#define SLAVE_LATENCY               0                                   /**< Determines slave latency in terms of connection events. */
+#define SUPERVISION_TIMEOUT         MSEC_TO_UNITS(4000, UNIT_10_MS)     /**< Determines supervision time-out in units of 10 milliseconds. */
+
+#define UUID16_SIZE                 2                                   /**< Size of a UUID, in bytes. */
 
 
 NRF_BLE_GATT_DEF(m_gatt);                                               /**< GATT module instance. */
+
+BLE_NUS_DEF(m_nus);                                                     /**< BLE NUS service instance. */
+BLE_ADVERTISING_DEF(m_advertising);                                     /**< Advertising module instance. */                                                                
+
 BLE_LBS_C_ARRAY_DEF(m_lbs_c, NRF_SDH_BLE_CENTRAL_LINK_COUNT);           /**< LED Button client instances. */
 BLE_DB_DISCOVERY_ARRAY_DEF(m_db_disc, NRF_SDH_BLE_CENTRAL_LINK_COUNT);  /**< Database discovery module instances. */
 
 static char const m_target_periph_name[] = "Nordic_Blinky";             /**< Name of the device we try to connect to. This name is searched for in the scan report data*/
+
+static ble_uuid_t m_adv_uuids[]          =                                          /**< Universally unique service identifier. */
+{
+    {BLE_UUID_NUS_SERVICE, NUS_SERVICE_UUID_TYPE}
+};
 
 /**@brief Scan parameters requested for scanning and connection. */
 static ble_gap_scan_params_t const m_scan_params =
@@ -138,6 +160,59 @@ void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
 {
     app_error_handler(0xDEADBEEF, line_num, p_file_name);
 }
+
+
+/**@brief Function for the GAP initialization.
+ *
+ * @details This function will set up all the necessary GAP (Generic Access Profile) parameters of
+ *          the device. It also sets the permissions and appearance.
+ */
+static void gap_params_init(void)
+{
+    uint32_t                err_code;
+    ble_gap_conn_params_t   gap_conn_params;
+    ble_gap_conn_sec_mode_t sec_mode;
+
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&sec_mode);
+
+    err_code = sd_ble_gap_device_name_set(&sec_mode,
+                                          (const uint8_t *) DEVICE_NAME,
+                                          strlen(DEVICE_NAME));
+    APP_ERROR_CHECK(err_code);
+
+    memset(&gap_conn_params, 0, sizeof(gap_conn_params));
+
+    gap_conn_params.min_conn_interval = MIN_PERIPHERAL_CON_INT;
+    gap_conn_params.max_conn_interval = MAX_PERIPHERAL_CON_INT;
+    gap_conn_params.slave_latency     = PERIPHERAL_SLAVE_LATENCY;
+    gap_conn_params.conn_sup_timeout  = PERIPHERAL_CONN_SUP_TIMEOUT;
+
+    err_code = sd_ble_gap_ppcp_set(&gap_conn_params);
+    APP_ERROR_CHECK(err_code);
+}
+
+
+/**@brief Function for handling the data from the Nordic UART Service.
+ *
+ * @details This function will process the data received from the Nordic UART BLE Service and send
+ *          it to the UART module.
+ *
+ * @param[in] p_nus    Nordic UART Service structure.
+ * @param[in] p_data   Data to be send to UART module.
+ * @param[in] length   Length of the data.
+ */
+/**@snippet [Handling the data received over BLE] */
+static void nus_data_handler(ble_nus_evt_t * p_evt)
+{
+    if (p_evt->type == BLE_NUS_EVT_RX_DATA)
+    {
+        //uint32_t err_code;
+
+        NRF_LOG_INFO("Received data from BLE NUS. Writing data on UART.");
+        NRF_LOG_HEXDUMP_INFO(p_evt->params.rx_data.p_data, p_evt->params.rx_data.length);
+    }
+}
+/**@snippet [Handling the data received over BLE] */
 
 
 /**@brief Function for the LEDs initialization.
@@ -314,6 +389,28 @@ static void on_adv_report(ble_evt_t const * p_ble_evt)
 }
 
 
+/**@brief Function for handling advertising events.
+ *
+ * @details This function will be called for advertising events which are passed to the application.
+ *
+ * @param[in] ble_adv_evt  Advertising event.
+ */
+static void on_adv_evt(ble_adv_evt_t ble_adv_evt)
+{
+    //uint32_t err_code;
+
+    switch (ble_adv_evt)
+    {
+        case BLE_ADV_EVT_FAST:
+            break;
+        case BLE_ADV_EVT_IDLE:
+            break;
+        default:
+            break;
+    }
+}
+
+
 /**@brief Function for handling BLE events.
  *
  * @param[in]   p_ble_evt   Bluetooth stack event.
@@ -451,6 +548,22 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
 }
 
 
+/**@brief Function for initializing services that will be used by the application.
+ */
+static void services_init(void)
+{
+    uint32_t       err_code;
+    ble_nus_init_t nus_init;
+
+    memset(&nus_init, 0, sizeof(nus_init));
+
+    nus_init.data_handler = nus_data_handler;
+
+    err_code = ble_nus_init(&m_nus, &nus_init);
+    APP_ERROR_CHECK(err_code);
+}
+
+
 /**@brief LED Button collector initialization. */
 static void lbs_c_init(void)
 {
@@ -490,6 +603,35 @@ static void ble_stack_init(void)
 
     // Register a handler for BLE events.
     NRF_SDH_BLE_OBSERVER(m_ble_observer, APP_BLE_OBSERVER_PRIO, ble_evt_handler, NULL);
+}
+
+
+/**@brief Function for initializing the Advertising functionality.
+ */
+static void advertising_init(void)
+{
+    uint32_t               err_code;
+    ble_advertising_init_t init;
+
+    memset(&init, 0, sizeof(init));
+
+    init.advdata.name_type          = BLE_ADVDATA_FULL_NAME;
+    init.advdata.include_appearance = false;
+    init.advdata.flags              = BLE_GAP_ADV_FLAGS_LE_ONLY_LIMITED_DISC_MODE;
+
+    init.srdata.uuids_complete.uuid_cnt = sizeof(m_adv_uuids) / sizeof(m_adv_uuids[0]);
+    init.srdata.uuids_complete.p_uuids  = m_adv_uuids;
+
+    init.config.ble_adv_fast_enabled  = true;
+    init.config.ble_adv_fast_interval = PERIPHERAL_ADV_INTERVAL;
+    init.config.ble_adv_fast_timeout  = PERIPHERAL_ADV_TIMEOUT_IN_SECONDS;
+
+    init.evt_handler = on_adv_evt;
+
+    err_code = ble_advertising_init(&m_advertising, &init);
+    APP_ERROR_CHECK(err_code);
+
+    ble_advertising_conn_cfg_tag_set(&m_advertising, APP_BLE_CONN_CFG_TAG);
 }
 
 
@@ -626,26 +768,38 @@ static void gatt_init(void)
 {
     ret_code_t err_code = nrf_ble_gatt_init(&m_gatt, NULL);
     APP_ERROR_CHECK(err_code);
+    
+    err_code = nrf_ble_gatt_att_mtu_periph_set(&m_gatt, 64);
+    APP_ERROR_CHECK(err_code);
 }
 
 
 int main(void)
 {
+    uint32_t err_code;
+    
     log_init();
     timer_init();
     leds_init();
     buttons_init();
     ble_stack_init();
+    gap_params_init();
     gatt_init();
+    services_init();
     db_discovery_init();
     lbs_c_init();
     ble_conn_state_init();
+    advertising_init();
 
     NRF_LOG_INFO("Multilink example started.");
 
     // Start scanning for peripherals and initiate connection to devices which  advertise.
     scan_start();
 
+    // Start advertising
+    err_code = ble_advertising_start(&m_advertising, BLE_ADV_MODE_FAST);
+    APP_ERROR_CHECK(err_code);
+    
     // Turn on the LED to signal scanning.
     bsp_board_led_on(CENTRAL_SCANNING_LED);
 

@@ -15,6 +15,7 @@
 *.lst
 *.lnp
 *.bak
+*.scvd
 
 *.ini
 *.iex
@@ -22,7 +23,7 @@
 *.uvgui.*
 *.uvguix.*
 *.tmp
-**/arm/JLinkLog.txt
+**/*/JLinkLog.txt
 **/_viminfo
 **/_vimtags
 _build/
