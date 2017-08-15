@@ -113,6 +113,8 @@ BLE_DB_DISCOVERY_ARRAY_DEF(m_db_disc, NRF_SDH_BLE_CENTRAL_LINK_COUNT);  /**< Dat
 
 static char const m_target_periph_name[] = "Nordic_Blinky";             /**< Name of the device we try to connect to. This name is searched for in the scan report data*/
 
+
+static uint16_t   m_per_con_handle       = BLE_CONN_HANDLE_INVALID;
 static ble_uuid_t m_adv_uuids[]          =                                          /**< Universally unique service identifier. */
 {
     {BLE_UUID_NUS_SERVICE, NUS_SERVICE_UUID_TYPE}
@@ -429,36 +431,46 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
         // discovery, update LEDs status and resume scanning if necessary.
         case BLE_GAP_EVT_CONNECTED:
         {
-            NRF_LOG_INFO("Connection 0x%x established, starting DB discovery.",
-                         p_gap_evt->conn_handle);
-
-            APP_ERROR_CHECK_BOOL(p_gap_evt->conn_handle < NRF_SDH_BLE_CENTRAL_LINK_COUNT);
-
-            err_code = ble_lbs_c_handles_assign(&m_lbs_c[p_gap_evt->conn_handle],
-                                                p_gap_evt->conn_handle,
-                                                NULL);
-            APP_ERROR_CHECK(err_code);
-
-            memset(&m_db_disc[p_gap_evt->conn_handle], 0x00, sizeof(ble_db_discovery_t));
-            err_code = ble_db_discovery_start(&m_db_disc[p_gap_evt->conn_handle],
-                                              p_gap_evt->conn_handle);
-            if (err_code != NRF_ERROR_BUSY)
+            // Handle central connections
+            if(p_gap_evt->params.connected.role == BLE_GAP_ROLE_CENTRAL)
             {
+                NRF_LOG_INFO("Connection 0x%x established, starting DB discovery.",
+                             p_gap_evt->conn_handle);
+
+                APP_ERROR_CHECK_BOOL(p_gap_evt->conn_handle < NRF_SDH_BLE_CENTRAL_LINK_COUNT);
+
+                err_code = ble_lbs_c_handles_assign(&m_lbs_c[p_gap_evt->conn_handle],
+                                                    p_gap_evt->conn_handle,
+                                                    NULL);
                 APP_ERROR_CHECK(err_code);
-            }
 
-            // Update LEDs status, and check if we should be looking for more
-            // peripherals to connect to.
-            bsp_board_led_on(CENTRAL_CONNECTED_LED);
-            if (ble_conn_state_n_centrals() == NRF_SDH_BLE_CENTRAL_LINK_COUNT)
-            {
-                bsp_board_led_off(CENTRAL_SCANNING_LED);
+                memset(&m_db_disc[p_gap_evt->conn_handle], 0x00, sizeof(ble_db_discovery_t));
+                err_code = ble_db_discovery_start(&m_db_disc[p_gap_evt->conn_handle],
+                                                  p_gap_evt->conn_handle);
+                if (err_code != NRF_ERROR_BUSY)
+                {
+                    APP_ERROR_CHECK(err_code);
+                }
+
+                // Update LEDs status, and check if we should be looking for more
+                // peripherals to connect to.
+                bsp_board_led_on(CENTRAL_CONNECTED_LED);
+                if (ble_conn_state_n_centrals() == NRF_SDH_BLE_CENTRAL_LINK_COUNT)
+                {
+                    bsp_board_led_off(CENTRAL_SCANNING_LED);
+                }
+                else
+                {
+                    // Resume scanning.
+                    bsp_board_led_on(CENTRAL_SCANNING_LED);
+                    scan_start();
+                }
             }
+            // Handle links as a peripheral here
             else
             {
-                // Resume scanning.
-                bsp_board_led_on(CENTRAL_SCANNING_LED);
-                scan_start();
+                m_per_con_handle = p_gap_evt->conn_handle;
+                NRF_LOG_INFO("Peripheral connection 0x%x established.", m_per_con_handle);               
             }
         } break; // BLE_GAP_EVT_CONNECTED
 
@@ -466,24 +478,38 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
         // the LEDs status and start scanning again.
         case BLE_GAP_EVT_DISCONNECTED:
         {
-            NRF_LOG_INFO("LBS central link 0x%x disconnected (reason: 0x%x)",
-                         p_gap_evt->conn_handle,
-                         p_gap_evt->params.disconnected.reason);
-
-            if (ble_conn_state_n_centrals() == 0)
+            // Handle central disconnections
+            if(p_gap_evt->conn_handle != m_per_con_handle)
             {
-                err_code = app_button_disable();
-                APP_ERROR_CHECK(err_code);
+                NRF_LOG_INFO("LBS central link 0x%x disconnected (reason: 0x%x)",
+                             p_gap_evt->conn_handle,
+                             p_gap_evt->params.disconnected.reason);
 
-                // Turn off connection indication LED
-                bsp_board_led_off(CENTRAL_CONNECTED_LED);
+                if (ble_conn_state_n_centrals() == 0)
+                {
+                    err_code = app_button_disable();
+                    APP_ERROR_CHECK(err_code);
+
+                    // Turn off connection indication LED
+                    bsp_board_led_off(CENTRAL_CONNECTED_LED);
+                }
+
+                // Start scanning
+                scan_start();
+
+                // Turn on LED for indicating scanning
+                bsp_board_led_on(CENTRAL_SCANNING_LED);
             }
-
-            // Start scanning
-            scan_start();
-
-            // Turn on LED for indicating scanning
-            bsp_board_led_on(CENTRAL_SCANNING_LED);
+            // Handle peripheral disconnect
+            else
+            {
+                NRF_LOG_INFO("Peripheral connection disconnected (reason: 0x%x)", p_gap_evt->params.disconnected.reason);
+                m_per_con_handle = BLE_CONN_HANDLE_INVALID;
+                
+                // Start advertising
+                err_code = ble_advertising_start(&m_advertising, BLE_ADV_MODE_FAST);
+                APP_ERROR_CHECK(err_code);
+            }
 
         } break;
 
