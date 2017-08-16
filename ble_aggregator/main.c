@@ -63,7 +63,8 @@
 #include "ble_lbs_c.h"
 #include "ble_conn_state.h"
 #include "nrf_ble_gatt.h"
-#include "ble_nus.h"
+#include "ble_agg_config_service.h"
+#include "app_aggregator.h"
 
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
@@ -75,13 +76,13 @@
 
 // Peripheral parameters
 #define DEVICE_NAME                  "MultiLinkDemo"                    /**< Name of device. Will be included in the advertising data. */
-#define NUS_SERVICE_UUID_TYPE        BLE_UUID_TYPE_VENDOR_BEGIN         /**< UUID type for the Nordic UART Service (vendor specific). */
+#define AGG_CFG_SERVICE_UUID_TYPE    BLE_UUID_TYPE_VENDOR_BEGIN         /**< UUID type for the Nordic UART Service (vendor specific). */
 #define MIN_PERIPHERAL_CON_INT       MSEC_TO_UNITS(20, UNIT_1_25_MS)    /**< Determines minimum connection interval in milliseconds. */
 #define MAX_PERIPHERAL_CON_INT       MSEC_TO_UNITS(200, UNIT_1_25_MS)   /**< Determines maximum connection interval in milliseconds. */
 #define PERIPHERAL_SLAVE_LATENCY     0                                  /**< Slave latency. */
 #define PERIPHERAL_CONN_SUP_TIMEOUT  MSEC_TO_UNITS(4000, UNIT_10_MS)    /**< Connection supervisory timeout (4 seconds), Supervision Timeout uses 10 ms units. */
 
-#define PERIPHERAL_ADV_INTERVAL                300                      /**< The advertising interval (in units of 0.625 ms. This value corresponds to 40 ms). */
+#define PERIPHERAL_ADV_INTERVAL                100                      /**< The advertising interval (in units of 0.625 ms. This value corresponds to 40 ms). */
 #define PERIPHERAL_ADV_TIMEOUT_IN_SECONDS      180                      /**< The advertising timeout (in units of seconds). */
 
 #define CENTRAL_SCANNING_LED        BSP_BOARD_LED_0
@@ -105,7 +106,7 @@
 
 NRF_BLE_GATT_DEF(m_gatt);                                               /**< GATT module instance. */
 
-BLE_NUS_DEF(m_nus);                                                     /**< BLE NUS service instance. */
+BLE_AGG_CFG_SERVICE_DEF(m_agg_cfg_service);                             /**< BLE NUS service instance. */
 BLE_ADVERTISING_DEF(m_advertising);                                     /**< Advertising module instance. */                                                                
 
 BLE_LBS_C_ARRAY_DEF(m_lbs_c, NRF_SDH_BLE_CENTRAL_LINK_COUNT);           /**< LED Button client instances. */
@@ -117,7 +118,7 @@ static char const m_target_periph_name[] = "Nordic_Blinky";             /**< Nam
 static uint16_t   m_per_con_handle       = BLE_CONN_HANDLE_INVALID;
 static ble_uuid_t m_adv_uuids[]          =                                          /**< Universally unique service identifier. */
 {
-    {BLE_UUID_NUS_SERVICE, NUS_SERVICE_UUID_TYPE}
+    {BLE_UUID_AGG_CFG_SERVICE_SERVICE, AGG_CFG_SERVICE_UUID_TYPE}
 };
 
 /**@brief Scan parameters requested for scanning and connection. */
@@ -204,9 +205,9 @@ static void gap_params_init(void)
  * @param[in] length   Length of the data.
  */
 /**@snippet [Handling the data received over BLE] */
-static void nus_data_handler(ble_nus_evt_t * p_evt)
+static void agg_cfg_service_data_handler(ble_agg_cfg_service_evt_t * p_evt)
 {
-    if (p_evt->type == BLE_NUS_EVT_RX_DATA)
+    if (p_evt->type == BLE_AGG_CFG_SERVICE_EVT_RX_DATA)
     {
         //uint32_t err_code;
 
@@ -452,6 +453,9 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                     APP_ERROR_CHECK(err_code);
                 }
 
+                // Notify the aggregator service
+                app_aggregator_on_central_connect(p_gap_evt);
+                
                 // Update LEDs status, and check if we should be looking for more
                 // peripherals to connect to.
                 bsp_board_led_on(CENTRAL_CONNECTED_LED);
@@ -499,6 +503,9 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
 
                 // Turn on LED for indicating scanning
                 bsp_board_led_on(CENTRAL_SCANNING_LED);
+                
+                // Notify aggregator service
+                app_aggregator_on_central_disconnect(p_gap_evt);
             }
             // Handle peripheral disconnect
             else
@@ -579,13 +586,13 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
 static void services_init(void)
 {
     uint32_t       err_code;
-    ble_nus_init_t nus_init;
+    ble_agg_cfg_service_init_t agg_cfg_service_init;
 
-    memset(&nus_init, 0, sizeof(nus_init));
+    memset(&agg_cfg_service_init, 0, sizeof(agg_cfg_service_init));
 
-    nus_init.data_handler = nus_data_handler;
+    agg_cfg_service_init.data_handler = agg_cfg_service_data_handler;
 
-    err_code = ble_nus_init(&m_nus, &nus_init);
+    err_code = ble_agg_cfg_service_init(&m_agg_cfg_service, &agg_cfg_service_init);
     APP_ERROR_CHECK(err_code);
 }
 
@@ -812,6 +819,7 @@ int main(void)
     gap_params_init();
     gatt_init();
     services_init();
+    app_aggregator_init(&m_agg_cfg_service);
     db_discovery_init();
     lbs_c_init();
     ble_conn_state_init();
@@ -833,6 +841,10 @@ int main(void)
     {
         if (!NRF_LOG_PROCESS())
         {
+            if(m_per_con_handle != BLE_CONN_HANDLE_INVALID)
+            {
+                while(app_aggregator_flush_ble_commands());
+            }
             power_manage();
         }
     }

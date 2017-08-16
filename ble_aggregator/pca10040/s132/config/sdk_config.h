@@ -5247,6 +5247,13 @@
 #define BLE_NUS_BLE_OBSERVER_PRIO 2
 #endif
 
+// <o> BLE_AGG_CFG_SRV_BLE_OBSERVER_PRIO  
+// <i> Priority with which BLE events are dispatched to the aggregator configuration Service.
+
+#ifndef BLE_AGG_CFG_SRV_BLE_OBSERVER_PRIO
+#define BLE_AGG_CFG_SRV_BLE_OBSERVER_PRIO 2
+#endif
+
 // <o> BLE_NUS_C_BLE_OBSERVER_PRIO  
 // <i> Priority with which BLE events are dispatched to the UART Central Service.
 
