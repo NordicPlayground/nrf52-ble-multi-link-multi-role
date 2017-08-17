@@ -319,6 +319,9 @@ static void lbs_c_evt_handler(ble_lbs_c_t * p_lbs_c, ble_lbs_c_evt_t * p_lbs_c_e
             {
                 bsp_board_led_off(LEDBUTTON_LED);
             }
+            
+            // Forward the data to the app aggregator module
+            app_aggregator_on_blinky_data(p_lbs_c_evt->conn_handle, p_lbs_c_evt->params.button.button_state);
         } break; // BLE_LBS_C_EVT_BUTTON_NOTIFICATION
 
         default:
@@ -816,7 +819,7 @@ static void uart_init()
 
     APP_UART_FIFO_INIT(&comm_params,
                        16,
-                       128,
+                       1024,
                        uart_error_handle,
                        APP_IRQ_PRIORITY_LOWEST,
                        err_code);

@@ -7,6 +7,8 @@
 
 enum {APP_AGG_ERROR_CONN_HANDLE_CONFLICT = 1, APP_AGG_ERROR_LINK_INFO_LIST_FULL, APP_AGG_ERROR_CONN_HANDLE_NOT_FOUND};
 enum TX_COMMANDS {AGG_BLE_LINK_CONNECTED = 1, AGG_BLE_LINK_DISCONNECTED};
+enum {APP_AGG_DEVICE_TYPE_UNKNOWN, APP_AGG_DEVICE_TYPE_BLINKY, APP_AGG_DEVICE_TYPE_END};
+static char *device_type_string_list[] = {"Unknown", "Blinky"};
 
 static uint8_t tx_command_payload[20];
 static uint16_t tx_command_payload_length;
@@ -22,7 +24,7 @@ static volatile bool m_schedule_device_list_print = true;
 
 static uint16_t device_list_search(uint16_t conn_handle);
 static uint16_t device_list_find_available();
-static void device_connected(uint16_t conn_handle);
+static void device_connected(uint16_t conn_handle, uint16_t dev_type);
 static void device_disconnected(uint16_t conn_handle);
 
 static bool cmd_buffer_put(uint8_t *data, uint16_t length)
@@ -105,7 +107,7 @@ void app_aggregator_on_central_connect(const ble_gap_evt_t *ble_gap_evt)
     uint16_t conn_handle = ble_gap_evt->conn_handle;
     
     // Update local device list
-    device_connected(conn_handle);
+    device_connected(conn_handle, APP_AGG_DEVICE_TYPE_BLINKY);
     
     // Send info to central device (if connected)
     tx_command_payload[0] = AGG_BLE_LINK_CONNECTED;
@@ -128,6 +130,16 @@ void app_aggregator_on_central_disconnect(const ble_gap_evt_t *ble_gap_evt)
     tx_command_payload[2] = ble_gap_evt->conn_handle & 0xFF;
     tx_command_payload_length = 3;
     cmd_buffer_put(tx_command_payload, tx_command_payload_length);
+}
+
+void app_aggregator_on_blinky_data(uint16_t conn_handle, uint8_t button_state)
+{
+    uint16_t device_index = device_list_search(conn_handle);
+    if(device_index != BLE_CONN_HANDLE_INVALID)
+    {
+        m_link_info_list[device_index].button_state = button_state;
+        m_schedule_device_list_print = true;
+    }
 }
 
 uint8_t   *data_ptr;
@@ -183,7 +195,7 @@ static uint16_t device_list_find_available()
     return device_list_search(BLE_CONN_HANDLE_INVALID);
 }
 
-static void device_connected(uint16_t conn_handle)
+static void device_connected(uint16_t conn_handle, uint16_t device_type)
 {
     if(device_list_search(conn_handle) == BLE_CONN_HANDLE_INVALID)
     {
@@ -192,7 +204,7 @@ static void device_connected(uint16_t conn_handle)
         if(new_device_index != 0xFFFF)
         {
             m_link_info_list[new_device_index].conn_handle = conn_handle;
-            m_link_info_list[new_device_index].device_type = 0; 
+            m_link_info_list[new_device_index].device_type = device_type; 
             m_link_info_list[new_device_index].button_state = 0; 
             m_link_info_list[new_device_index].led_state = 0; 
             m_schedule_device_list_print = true;
@@ -218,14 +230,22 @@ void device_list_print()
     if(m_schedule_device_list_print)
     {
         m_schedule_device_list_print = false;
-        printf("Device list overview: \r\n");
+        printf("\r\n-------------------- Device list overview --------------------\r\n");
         printf("Con No.\t\tType\t\tBtn state\tLED state\t  \r\n");
         for(int i = 0; i < MAX_NUMBER_OF_LINKS; i++)
         {
             if(m_link_info_list[i].conn_handle != BLE_CONN_HANDLE_INVALID)
             {
-                printf("%i\t\t%i\t\t%i\t\t%i \r\n", m_link_info_list[i].conn_handle, m_link_info_list[i].device_type,
-                                              m_link_info_list[i].button_state, m_link_info_list[i].led_state);
+                if(m_link_info_list[i].device_type < APP_AGG_DEVICE_TYPE_END)
+                {
+                    printf("%i\t\t%s\t\t%i\t\t%i \r\n", m_link_info_list[i].conn_handle, device_type_string_list[m_link_info_list[i].device_type],
+                                                        m_link_info_list[i].button_state, m_link_info_list[i].led_state);
+                }
+                else
+                {
+                     printf("%i\t\tInvalid device!\t%i\t\t%i \r\n", m_link_info_list[i].conn_handle, 
+                                                         m_link_info_list[i].button_state, m_link_info_list[i].led_state);                   
+                }
             }
         }
         printf("\r\n");
