@@ -65,6 +65,7 @@
 #include "nrf_ble_gatt.h"
 #include "ble_agg_config_service.h"
 #include "app_aggregator.h"
+#include "app_uart.h"
 
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
@@ -786,6 +787,44 @@ static void log_init(void)
 }
 
 
+void uart_error_handle(app_uart_evt_t * p_event)
+{
+    if (p_event->evt_type == APP_UART_COMMUNICATION_ERROR)
+    {
+        APP_ERROR_HANDLER(p_event->data.error_communication);
+    }
+    else if (p_event->evt_type == APP_UART_FIFO_ERROR)
+    {
+        APP_ERROR_HANDLER(p_event->data.error_code);
+    }
+}
+
+
+static void uart_init()
+{
+    uint32_t err_code;
+    const app_uart_comm_params_t comm_params =
+    {
+        RX_PIN_NUMBER,
+        TX_PIN_NUMBER,
+        RTS_PIN_NUMBER,
+        CTS_PIN_NUMBER,
+        APP_UART_FLOW_CONTROL_DISABLED,
+        false,
+        UART_BAUDRATE_BAUDRATE_Baud115200
+    };
+
+    APP_UART_FIFO_INIT(&comm_params,
+                       16,
+                       128,
+                       uart_error_handle,
+                       APP_IRQ_PRIORITY_LOWEST,
+                       err_code);
+
+    APP_ERROR_CHECK(err_code);
+}
+
+
 /** @brief Function for initializing the timer.
  */
 static void timer_init(void)
@@ -813,6 +852,7 @@ int main(void)
     
     log_init();
     timer_init();
+    uart_init();
     leds_init();
     buttons_init();
     ble_stack_init();
@@ -825,7 +865,8 @@ int main(void)
     ble_conn_state_init();
     advertising_init();
 
-    NRF_LOG_INFO("Multilink example started.");
+    NRF_LOG_INFO("Multilink example started");
+    printf("Multilink example started\r\n");
 
     // Start scanning for peripherals and initiate connection to devices which  advertise.
     scan_start();
@@ -836,7 +877,7 @@ int main(void)
     
     // Turn on the LED to signal scanning.
     bsp_board_led_on(CENTRAL_SCANNING_LED);
-
+    
     for (;;)
     {
         if (!NRF_LOG_PROCESS())
@@ -845,6 +886,8 @@ int main(void)
             {
                 while(app_aggregator_flush_ble_commands());
             }
+            device_list_print();
+            
             power_manage();
         }
     }
