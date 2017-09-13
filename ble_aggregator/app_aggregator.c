@@ -7,8 +7,8 @@
 
 enum {APP_AGG_ERROR_CONN_HANDLE_CONFLICT = 1, APP_AGG_ERROR_LINK_INFO_LIST_FULL, APP_AGG_ERROR_CONN_HANDLE_NOT_FOUND};
 enum TX_COMMANDS {AGG_BLE_LINK_CONNECTED = 1, AGG_BLE_LINK_DISCONNECTED};
-enum {APP_AGG_DEVICE_TYPE_UNKNOWN, APP_AGG_DEVICE_TYPE_BLINKY, APP_AGG_DEVICE_TYPE_END};
-static char *device_type_string_list[] = {"Unknown", "Blinky"};
+enum {APP_AGG_DEVICE_TYPE_UNKNOWN, APP_AGG_DEVICE_TYPE_BLINKY, APP_AGG_DEVICE_TYPE_THINGY, APP_AGG_DEVICE_TYPE_END};
+static char *device_type_string_list[] = {"Unknown", "Blinky", "Thingy"};
 
 static uint8_t tx_command_payload[20];
 static uint16_t tx_command_payload_length;
@@ -23,7 +23,7 @@ static uint32_t m_error_flags = 0;
 static volatile bool m_schedule_device_list_print = true;
 
 static uint16_t device_list_search(uint16_t conn_handle);
-static uint16_t device_list_find_available();
+static uint16_t device_list_find_available(void);
 static void device_connected(uint16_t conn_handle, uint16_t dev_type);
 static void device_disconnected(uint16_t conn_handle);
 
@@ -102,12 +102,12 @@ void app_aggregator_init(ble_agg_cfg_service_t *agg_cfg_service)
     
 }
 
-void app_aggregator_on_central_connect(const ble_gap_evt_t *ble_gap_evt)
+void app_aggregator_on_central_connect(const ble_gap_evt_t *ble_gap_evt, uint32_t dev_type)
 {
     uint16_t conn_handle = ble_gap_evt->conn_handle;
     
     // Update local device list
-    device_connected(conn_handle, APP_AGG_DEVICE_TYPE_BLINKY);
+    device_connected(conn_handle, dev_type);
     
     // Send info to central device (if connected)
     tx_command_payload[0] = AGG_BLE_LINK_CONNECTED;

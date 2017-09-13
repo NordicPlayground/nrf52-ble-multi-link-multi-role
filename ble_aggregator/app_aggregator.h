@@ -18,7 +18,7 @@ typedef struct
 
 void app_aggregator_init(ble_agg_cfg_service_t *agg_cfg_service);
 
-void app_aggregator_on_central_connect(const ble_gap_evt_t *ble_gap_evt);
+void app_aggregator_on_central_connect(const ble_gap_evt_t *ble_gap_evt, uint32_t dev_type);
 
 void app_aggregator_on_central_disconnect(const ble_gap_evt_t *ble_gap_evt);
 
@@ -26,6 +26,6 @@ void app_aggregator_on_blinky_data(uint16_t conn_handle, uint8_t button_state);
 
 bool app_aggregator_flush_ble_commands(void);
 
-void device_list_print();
+void device_list_print(void);
 
 #endif

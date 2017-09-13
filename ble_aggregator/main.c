@@ -61,6 +61,7 @@
 #include "ble_conn_params.h"
 #include "ble_db_discovery.h"
 #include "ble_lbs_c.h"
+#include "ble_thingy_uis_c.h"
 #include "ble_conn_state.h"
 #include "nrf_ble_gatt.h"
 #include "ble_agg_config_service.h"
@@ -111,6 +112,7 @@ BLE_AGG_CFG_SERVICE_DEF(m_agg_cfg_service);                             /**< BLE
 BLE_ADVERTISING_DEF(m_advertising);                                     /**< Advertising module instance. */                                                                
 
 BLE_LBS_C_ARRAY_DEF(m_lbs_c, NRF_SDH_BLE_CENTRAL_LINK_COUNT);           /**< LED Button client instances. */
+BLE_THINGY_UIS_C_ARRAY_DEF(m_thingy_uis_c, NRF_SDH_BLE_CENTRAL_LINK_COUNT);
 BLE_DB_DISCOVERY_ARRAY_DEF(m_db_disc, NRF_SDH_BLE_CENTRAL_LINK_COUNT);  /**< Database discovery module instances. */
 
 static char const m_target_periph_name[] = "Nordic_Blinky";             /**< Name of the device we try to connect to. This name is searched for in the scan report data*/
@@ -121,6 +123,9 @@ static ble_uuid_t m_adv_uuids[]          =                                      
 {
     {BLE_UUID_AGG_CFG_SERVICE_SERVICE, AGG_CFG_SERVICE_UUID_TYPE}
 };
+
+typedef enum {DEVTYPE_NONE, DEVTYPE_BLINKY, DEVTYPE_THINGY} device_type_t;
+device_type_t    m_device_type_being_connected_to = DEVTYPE_NONE;
 
 /**@brief Scan parameters requested for scanning and connection. */
 static ble_gap_scan_params_t const m_scan_params =
@@ -294,7 +299,7 @@ static void lbs_c_evt_handler(ble_lbs_c_t * p_lbs_c, ble_lbs_c_evt_t * p_lbs_c_e
         {
             ret_code_t err_code;
 
-            NRF_LOG_INFO("LED Button service discovered on conn_handle 0x%x",
+            NRF_LOG_INFO("LED Button service discovered on conn_handle 0x%x\r\n",
                          p_lbs_c_evt->conn_handle);
 
             err_code = app_button_enable();
@@ -330,6 +335,39 @@ static void lbs_c_evt_handler(ble_lbs_c_t * p_lbs_c, ble_lbs_c_evt_t * p_lbs_c_e
     }
 }
 
+
+/**@brief Handles events coming from the Thingy UI central module.
+ *
+ * @param[in] p_thingy_uis_c     The instance of THINGY_UIS_C that triggered the event.
+ * @param[in] p_thingy_uis_c_evt The THINGY_UIS_C event.
+ */
+static void thingy_uis_c_evt_handler(ble_thingy_uis_c_t * p_thingy_uis_c, ble_thingy_uis_c_evt_t * p_thingy_uis_c_evt)
+{
+    ret_code_t err_code;
+    switch (p_thingy_uis_c_evt->evt_type)
+    {
+        case BLE_LBS_C_EVT_DISCOVERY_COMPLETE:
+        {
+            NRF_LOG_DEBUG("Thingy UI service discovered on conn_handle 0x%x\r\n", p_thingy_uis_c_evt->conn_handle);
+            
+            // Thingy UI service discovered. Enable notification of Button.
+            err_code = ble_thingy_uis_c_button_notif_enable(p_thingy_uis_c);
+            APP_ERROR_CHECK(err_code);
+
+        } break; // BLE_LBS_C_EVT_DISCOVERY_COMPLETE
+
+        case BLE_LBS_C_EVT_BUTTON_NOTIFICATION:
+        {
+            // Forward the data to the app aggregator module
+            app_aggregator_on_blinky_data(p_thingy_uis_c_evt->conn_handle, p_thingy_uis_c_evt->params.button.button_state);
+        } break; // BLE_LBS_C_EVT_BUTTON_NOTIFICATION
+
+        default:
+            // No implementation needed.
+            break;
+    }
+}
+
 /**@brief Function for handling the advertising report BLE event.
  *
  * @param[in] p_ble_evt  Bluetooth stack event.
@@ -340,73 +378,76 @@ static void on_adv_report(ble_evt_t const * p_ble_evt)
     uint8_array_t adv_data;
     uint8_array_t dev_name;
     uint8_array_t service_uuid;
-    bool          do_connect = false;
 
-    // For readibility.
-    ble_gap_evt_t  const * p_gap_evt  = &p_ble_evt->evt.gap_evt;
-    ble_gap_addr_t const * peer_addr  = &p_gap_evt->params.adv_report.peer_addr;
-
-    // Prepare advertisement report for parsing.
-    adv_data.p_data = (uint8_t *)p_gap_evt->params.adv_report.data;
-    adv_data.size   = p_gap_evt->params.adv_report.dlen;
-
-    // Search for advertising names.
-    bool found_name = false;
-    err_code = adv_report_parse(BLE_GAP_AD_TYPE_COMPLETE_LOCAL_NAME,
-                                &adv_data,
-                                &dev_name);
-    if (err_code != NRF_SUCCESS)
+    if (m_device_type_being_connected_to == DEVTYPE_NONE)
     {
-        // Look for the short local name if it was not found as complete.
-        err_code = adv_report_parse(BLE_GAP_AD_TYPE_SHORT_LOCAL_NAME, &adv_data, &dev_name);
+
+        // For readibility.
+        ble_gap_evt_t  const * p_gap_evt  = &p_ble_evt->evt.gap_evt;
+        ble_gap_addr_t const * peer_addr  = &p_gap_evt->params.adv_report.peer_addr;
+
+        // Prepare advertisement report for parsing.
+        adv_data.p_data = (uint8_t *)p_gap_evt->params.adv_report.data;
+        adv_data.size   = p_gap_evt->params.adv_report.dlen;
+
+        // Search for advertising names.
+        bool found_name = false;
+        err_code = adv_report_parse(BLE_GAP_AD_TYPE_COMPLETE_LOCAL_NAME,
+                                    &adv_data,
+                                    &dev_name);
         if (err_code != NRF_SUCCESS)
         {
-            // If we can't parse the data, then exit.
-            //return;
+            // Look for the short local name if it was not found as complete.
+            err_code = adv_report_parse(BLE_GAP_AD_TYPE_SHORT_LOCAL_NAME, &adv_data, &dev_name);
+            if (err_code != NRF_SUCCESS)
+            {
+                // If we can't parse the data, then exit.
+                //return;
+            }
+            else
+            {
+                found_name = true;
+            }
         }
         else
         {
             found_name = true;
         }
-    }
-    else
-    {
-        found_name = true;
-    }
 
-    if (found_name)
-    {
-        if (strlen(m_target_periph_name) != 0)
+        if (found_name)
         {
-            if (memcmp(m_target_periph_name, dev_name.p_data, dev_name.size) == 0)
+            if (strlen(m_target_periph_name) != 0)
             {
-                do_connect = true;
+                if (memcmp(m_target_periph_name, dev_name.p_data, dev_name.size) == 0)
+                {
+                    m_device_type_being_connected_to = DEVTYPE_BLINKY;
+                }
             }
         }
-    }
-    
-    // Look for Thingy UUID
-    // Filter on RSSI to avoid connecting to everything in the room
-    const uint8_t thingy_service_uuid[] = {0x42, 0x00, 0x74, 0xA9, 0xFF, 0x52, 0x10, 0x9B, 0x33, 0x49, 0x35, 0x9B, 0x00, 0x01, 0x68, 0xEF};
-    if(p_gap_evt->params.adv_report.rssi > -30)
-    {
-        err_code = adv_report_parse(BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_MORE_AVAILABLE, &adv_data, &service_uuid);
-        if (err_code == NRF_SUCCESS)
+        
+        // Look for Thingy UUID
+        // Filter on RSSI to avoid connecting to everything in the room
+        const uint8_t thingy_service_uuid[] = {0x42, 0x00, 0x74, 0xA9, 0xFF, 0x52, 0x10, 0x9B, 0x33, 0x49, 0x35, 0x9B, 0x00, 0x01, 0x68, 0xEF};
+        if(p_gap_evt->params.adv_report.rssi > -30)
         {
-            if (memcmp(service_uuid.p_data, thingy_service_uuid, 16) == 0)
+            err_code = adv_report_parse(BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_MORE_AVAILABLE, &adv_data, &service_uuid);
+            if (err_code == NRF_SUCCESS)
             {
-                do_connect = true;
+                if (memcmp(service_uuid.p_data, thingy_service_uuid, 16) == 0)
+                {
+                    m_device_type_being_connected_to = DEVTYPE_THINGY;
+                }
             }
         }
-    }
 
-    if (do_connect)
-    {
-        // Initiate connection.
-        err_code = sd_ble_gap_connect(peer_addr, &m_scan_params, &m_connection_param, APP_BLE_CONN_CFG_TAG);
-        if (err_code != NRF_SUCCESS)
+        if (m_device_type_being_connected_to != DEVTYPE_NONE)
         {
-            NRF_LOG_ERROR("Connection Request Failed, reason %d", err_code);
+            // Initiate connection.
+            err_code = sd_ble_gap_connect(peer_addr, &m_scan_params, &m_connection_param, APP_BLE_CONN_CFG_TAG);
+            if (err_code != NRF_SUCCESS)
+            {
+                NRF_LOG_ERROR("Connection Request Failed, reason %d", err_code);
+            }
         }
     }
 }
@@ -460,10 +501,23 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
 
                 APP_ERROR_CHECK_BOOL(p_gap_evt->conn_handle < NRF_SDH_BLE_CENTRAL_LINK_COUNT);
 
-                err_code = ble_lbs_c_handles_assign(&m_lbs_c[p_gap_evt->conn_handle],
-                                                    p_gap_evt->conn_handle,
-                                                    NULL);
-                APP_ERROR_CHECK(err_code);
+                switch(m_device_type_being_connected_to)
+                {
+                    case DEVTYPE_BLINKY:
+                        err_code = ble_lbs_c_handles_assign(&m_lbs_c[p_gap_evt->conn_handle],
+                                                            p_gap_evt->conn_handle, NULL);
+                        APP_ERROR_CHECK(err_code);
+                        break;
+                    
+                    case DEVTYPE_THINGY:
+                        err_code = ble_thingy_uis_c_handles_assign(&m_thingy_uis_c[p_gap_evt->conn_handle],
+                                                                   p_gap_evt->conn_handle, NULL);
+                        APP_ERROR_CHECK(err_code);
+                        break;
+                    
+                    default:
+                        break;
+                }
 
                 memset(&m_db_disc[p_gap_evt->conn_handle], 0x00, sizeof(ble_db_discovery_t));
                 err_code = ble_db_discovery_start(&m_db_disc[p_gap_evt->conn_handle],
@@ -474,7 +528,7 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                 }
 
                 // Notify the aggregator service
-                app_aggregator_on_central_connect(p_gap_evt);
+                app_aggregator_on_central_connect(p_gap_evt, m_device_type_being_connected_to);
                 
                 // Update LEDs status, and check if we should be looking for more
                 // peripherals to connect to.
@@ -489,6 +543,8 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                     bsp_board_led_on(CENTRAL_SCANNING_LED);
                     scan_start();
                 }
+                
+                m_device_type_being_connected_to = DEVTYPE_NONE;
             }
             // Handle links as a peripheral here
             else
@@ -633,6 +689,22 @@ static void lbs_c_init(void)
 }
 
 
+/**@brief LED Button collector initialization. */
+static void thingy_uis_c_init(void)
+{
+    ret_code_t       err_code;
+    ble_thingy_uis_c_init_t thingy_uis_c_init_obj;
+
+    thingy_uis_c_init_obj.evt_handler = thingy_uis_c_evt_handler;
+
+    for (uint32_t i = 0; i < NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
+    {
+        err_code = ble_thingy_uis_c_init(&m_thingy_uis_c[i], &thingy_uis_c_init_obj);
+        APP_ERROR_CHECK(err_code);
+    }
+}
+
+
 /**@brief Function for initializing the BLE stack.
  *
  * @details Initializes the SoftDevice and the BLE event interrupts.
@@ -701,18 +773,29 @@ static void advertising_init(void)
 static ret_code_t led_status_send_to_all(uint8_t button_action)
 {
     ret_code_t err_code;
+    static ble_thingy_uis_led_t led_state;
 
-    for (uint32_t i = 0; i< NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
+    for (uint32_t i = 0; i < NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
     {
         err_code = ble_lbs_led_status_send(&m_lbs_c[i], button_action);
-        if (err_code != NRF_SUCCESS &&
-            err_code != BLE_ERROR_INVALID_CONN_HANDLE &&
-            err_code != NRF_ERROR_INVALID_STATE)
+
+        if(err_code != NRF_SUCCESS)
         {
-            return err_code;
+            led_state.mode = THINGY_UIS_LED_MODE_CONSTANT;
+            led_state.params.constant.r = button_action ? 255 : 0;
+            led_state.params.constant.g = button_action ? 255 : 0;
+            led_state.params.constant.b = button_action ? 255 : 0;
+            
+            err_code = ble_thingy_uis_led_status_send(&m_thingy_uis_c[i], &led_state);
+            if (err_code != NRF_SUCCESS &&
+                err_code != BLE_ERROR_INVALID_CONN_HANDLE &&
+                err_code != NRF_ERROR_INVALID_STATE)
+            {
+                return err_code;
+            }
         }
     }
-        return NRF_SUCCESS;
+    return NRF_SUCCESS;
 }
 
 
@@ -774,6 +857,7 @@ static void db_disc_handler(ble_db_discovery_evt_t * p_evt)
                   p_evt->conn_handle);
 
     ble_lbs_on_db_disc_evt(&m_lbs_c[p_evt->conn_handle], p_evt);
+    ble_thingy_uis_on_db_disc_evt(&m_thingy_uis_c[p_evt->conn_handle], p_evt);
 }
 
 
@@ -881,6 +965,7 @@ int main(void)
     app_aggregator_init(&m_agg_cfg_service);
     db_discovery_init();
     lbs_c_init();
+    thingy_uis_c_init();
     ble_conn_state_init();
     advertising_init();
 
