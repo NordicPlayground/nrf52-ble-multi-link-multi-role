@@ -346,7 +346,7 @@ uint32_t ble_thingy_uis_c_button_notif_enable(ble_thingy_uis_c_t * p_ble_thingy_
 }
 
 
-uint32_t ble_thingy_uis_led_status_send(ble_thingy_uis_c_t * p_ble_thingy_uis_c, ble_thingy_uis_led_t * led_state)
+uint32_t ble_thingy_uis_led_status_send(ble_thingy_uis_c_t * p_ble_thingy_uis_c, ble_thingy_uis_led_t * led_state, uint16_t length)
 {
     VERIFY_PARAM_NOT_NULL(p_ble_thingy_uis_c);
 
@@ -355,27 +355,57 @@ uint32_t ble_thingy_uis_led_status_send(ble_thingy_uis_c_t * p_ble_thingy_uis_c,
         return NRF_ERROR_INVALID_STATE;
     }
 
-    if(led_state->mode <= THINGY_UIS_LED_MODE_ONESHOT)
-    {
-        const uint16_t thingy_uis_led_length_by_mode[] = {1, 4, 5, 2};
-        NRF_LOG_DEBUG("writing Thingy UI LED status");
-        tx_message_t * p_msg;
+    NRF_LOG_DEBUG("writing Thingy UI LED status");
+    tx_message_t * p_msg;
 
-        p_msg              = &m_tx_buffer[m_tx_insert_index++];
-        m_tx_insert_index &= TX_BUFFER_MASK;
+    p_msg              = &m_tx_buffer[m_tx_insert_index++];
+    m_tx_insert_index &= TX_BUFFER_MASK;
 
-        p_msg->req.write_req.gattc_params.handle   = p_ble_thingy_uis_c->peer_thingy_uis_db.led_handle;
-        p_msg->req.write_req.gattc_params.len      = thingy_uis_led_length_by_mode[led_state->mode];
-        p_msg->req.write_req.gattc_params.p_value  = p_msg->req.write_req.gattc_value;
-        p_msg->req.write_req.gattc_params.offset   = 0;
-        p_msg->req.write_req.gattc_params.write_op = BLE_GATT_OP_WRITE_REQ;
-        memcpy(p_msg->req.write_req.gattc_value, (void *)led_state, thingy_uis_led_length_by_mode[led_state->mode]);
-        p_msg->conn_handle                         = p_ble_thingy_uis_c->conn_handle;
-        p_msg->type                                = WRITE_REQ;
+    p_msg->req.write_req.gattc_params.handle   = p_ble_thingy_uis_c->peer_thingy_uis_db.led_handle;
+    p_msg->req.write_req.gattc_params.len      = length;
+    p_msg->req.write_req.gattc_params.p_value  = p_msg->req.write_req.gattc_value;
+    p_msg->req.write_req.gattc_params.offset   = 0;
+    p_msg->req.write_req.gattc_params.write_op = BLE_GATT_OP_WRITE_REQ;
+    memcpy(p_msg->req.write_req.gattc_value, (void *)led_state, length);
+    p_msg->conn_handle                         = p_ble_thingy_uis_c->conn_handle;
+    p_msg->type                                = WRITE_REQ;
 
-        tx_buffer_process();
-    }
+    tx_buffer_process();
+
     return NRF_SUCCESS;
+}
+
+uint32_t ble_thingy_uis_led_set_off(ble_thingy_uis_c_t * p_ble_thingy_uis_c)
+{
+    ble_thingy_uis_led_t led_state;
+    led_state.mode = THINGY_UIS_LED_MODE_OFF;
+    return ble_thingy_uis_led_status_send(p_ble_thingy_uis_c, &led_state, 1);
+}
+
+uint32_t ble_thingy_uis_led_set_constant(ble_thingy_uis_c_t * p_ble_thingy_uis_c, uint8_t r, uint8_t g, uint8_t b)
+{
+    ble_thingy_uis_led_t led_state;
+    led_state.mode = THINGY_UIS_LED_MODE_CONSTANT;
+    led_state.params.constant.r = r;
+    led_state.params.constant.g = g;
+    led_state.params.constant.b = b;
+    return ble_thingy_uis_led_status_send(p_ble_thingy_uis_c, &led_state, 4);    
+}
+
+uint32_t ble_thingy_uis_led_set_breathe(ble_thingy_uis_c_t * p_ble_thingy_uis_c, uint8_t color, uint8_t intensity, uint16_t delay)
+{
+    ble_thingy_uis_led_t led_state;
+    led_state.mode = THINGY_UIS_LED_MODE_BREATHE;
+    led_state.params.breathe.color = color;
+    led_state.params.breathe.intensity = intensity;
+    led_state.params.breathe.delay = delay;
+    return ble_thingy_uis_led_status_send(p_ble_thingy_uis_c, &led_state, 5);    
+}
+
+uint32_t ble_thingy_uis_led_set_one_shot(ble_thingy_uis_c_t * p_ble_thingy_uis_c, uint8_t color, uint8_t intensity)
+{
+    ble_thingy_uis_led_t led_state;
+    return ble_thingy_uis_led_status_send(p_ble_thingy_uis_c, &led_state, 2);    
 }
 
 uint32_t ble_thingy_uis_c_handles_assign(ble_thingy_uis_c_t    * p_ble_thingy_uis_c,

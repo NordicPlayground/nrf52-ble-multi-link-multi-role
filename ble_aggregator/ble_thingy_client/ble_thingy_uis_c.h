@@ -107,6 +107,8 @@ typedef __packed struct
 }ble_thingy_uis_led_mode_breathe_t;
 
 enum {THINGY_UIS_LED_MODE_OFF, THINGY_UIS_LED_MODE_CONSTANT, THINGY_UIS_LED_MODE_BREATHE, THINGY_UIS_LED_MODE_ONESHOT};
+enum {THINGY_UIS_LED_COLOR_RED = 1, THINGY_UIS_LED_COLOR_GREEN, THINGY_UIS_LED_COLOR_YELLOW, THINGY_UIS_LED_COLOR_BLUE, THINGY_UIS_LED_COLOR_PURPLE, THINGY_UIS_LED_COLOR_CYAN, THINGY_UIS_LED_COLOR_WHITE};
+
 typedef __packed struct
 {
   uint8_t mode;  
@@ -241,15 +243,13 @@ uint32_t ble_thingy_uis_c_handles_assign(ble_thingy_uis_c_t *    p_ble_thingy_ui
                                   const thingy_uis_db_t * p_peer_handles);
 
 
-/**@brief Function for writing the LED status to the connected server.
- *
- * @param[in] p_ble_thingy_uis_c Pointer to the LED Button client structure.
- * @param[in] status      LED status to send.
- *
- * @retval NRF_SUCCESS If the staus was sent successfully. Otherwise, an error code is returned.
- */
-uint32_t ble_thingy_uis_led_status_send(ble_thingy_uis_c_t * p_ble_thingy_uis_c, ble_thingy_uis_led_t * led_state);
+uint32_t ble_thingy_uis_led_set_off(ble_thingy_uis_c_t * p_ble_thingy_uis_c);
 
+uint32_t ble_thingy_uis_led_set_constant(ble_thingy_uis_c_t * p_ble_thingy_uis_c, uint8_t r, uint8_t g, uint8_t b);
+
+uint32_t ble_thingy_uis_led_set_breathe(ble_thingy_uis_c_t * p_ble_thingy_uis_c, uint8_t color, uint8_t intensity, uint16_t delay);
+
+uint32_t ble_thingy_uis_led_set_one_shot(ble_thingy_uis_c_t * p_ble_thingy_uis_c, uint8_t color, uint8_t intensity);
 
 #ifdef __cplusplus
 }

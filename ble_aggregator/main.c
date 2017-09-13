@@ -105,6 +105,8 @@
 
 #define UUID16_SIZE                 2                                   /**< Size of a UUID, in bytes. */
 
+#define THINGY_RSSI_CONNECT_LIMIT   -35
+
 
 NRF_BLE_GATT_DEF(m_gatt);                                               /**< GATT module instance. */
 
@@ -349,11 +351,13 @@ static void thingy_uis_c_evt_handler(ble_thingy_uis_c_t * p_thingy_uis_c, ble_th
         case BLE_LBS_C_EVT_DISCOVERY_COMPLETE:
         {
             NRF_LOG_DEBUG("Thingy UI service discovered on conn_handle 0x%x\r\n", p_thingy_uis_c_evt->conn_handle);
+            //err_code = ble_thingy_uis_led_set_breathe(p_thingy_uis_c, THINGY_UIS_LED_COLOR_YELLOW, 60, 1);
+            err_code = ble_thingy_uis_led_set_constant(p_thingy_uis_c, 128, 128, 0);
+            APP_ERROR_CHECK(err_code);   
             
             // Thingy UI service discovered. Enable notification of Button.
             err_code = ble_thingy_uis_c_button_notif_enable(p_thingy_uis_c);
             APP_ERROR_CHECK(err_code);
-
         } break; // BLE_LBS_C_EVT_DISCOVERY_COMPLETE
 
         case BLE_LBS_C_EVT_BUTTON_NOTIFICATION:
@@ -428,7 +432,7 @@ static void on_adv_report(ble_evt_t const * p_ble_evt)
         // Look for Thingy UUID
         // Filter on RSSI to avoid connecting to everything in the room
         const uint8_t thingy_service_uuid[] = {0x42, 0x00, 0x74, 0xA9, 0xFF, 0x52, 0x10, 0x9B, 0x33, 0x49, 0x35, 0x9B, 0x00, 0x01, 0x68, 0xEF};
-        if(p_gap_evt->params.adv_report.rssi > -30)
+        if(p_gap_evt->params.adv_report.rssi > THINGY_RSSI_CONNECT_LIMIT)
         {
             err_code = adv_report_parse(BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_MORE_AVAILABLE, &adv_data, &service_uuid);
             if (err_code == NRF_SUCCESS)
@@ -773,7 +777,6 @@ static void advertising_init(void)
 static ret_code_t led_status_send_to_all(uint8_t button_action)
 {
     ret_code_t err_code;
-    static ble_thingy_uis_led_t led_state;
 
     for (uint32_t i = 0; i < NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
     {
@@ -781,12 +784,7 @@ static ret_code_t led_status_send_to_all(uint8_t button_action)
 
         if(err_code != NRF_SUCCESS)
         {
-            led_state.mode = THINGY_UIS_LED_MODE_CONSTANT;
-            led_state.params.constant.r = button_action ? 255 : 0;
-            led_state.params.constant.g = button_action ? 255 : 0;
-            led_state.params.constant.b = button_action ? 255 : 0;
-            
-            err_code = ble_thingy_uis_led_status_send(&m_thingy_uis_c[i], &led_state);
+            err_code = ble_thingy_uis_led_set_constant(&m_thingy_uis_c[i], button_action ? 255 : 0, button_action ? 255 : 0, button_action ? 255 : 0);
             if (err_code != NRF_SUCCESS &&
                 err_code != BLE_ERROR_INVALID_CONN_HANDLE &&
                 err_code != NRF_ERROR_INVALID_STATE)
