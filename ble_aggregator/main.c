@@ -339,6 +339,7 @@ static void on_adv_report(ble_evt_t const * p_ble_evt)
     uint32_t      err_code;
     uint8_array_t adv_data;
     uint8_array_t dev_name;
+    uint8_array_t service_uuid;
     bool          do_connect = false;
 
     // For readibility.
@@ -361,7 +362,7 @@ static void on_adv_report(ble_evt_t const * p_ble_evt)
         if (err_code != NRF_SUCCESS)
         {
             // If we can't parse the data, then exit.
-            return;
+            //return;
         }
         else
         {
@@ -378,6 +379,21 @@ static void on_adv_report(ble_evt_t const * p_ble_evt)
         if (strlen(m_target_periph_name) != 0)
         {
             if (memcmp(m_target_periph_name, dev_name.p_data, dev_name.size) == 0)
+            {
+                do_connect = true;
+            }
+        }
+    }
+    
+    // Look for Thingy UUID
+    // Filter on RSSI to avoid connecting to everything in the room
+    const uint8_t thingy_service_uuid[] = {0x42, 0x00, 0x74, 0xA9, 0xFF, 0x52, 0x10, 0x9B, 0x33, 0x49, 0x35, 0x9B, 0x00, 0x01, 0x68, 0xEF};
+    if(p_gap_evt->params.adv_report.rssi > -30)
+    {
+        err_code = adv_report_parse(BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_MORE_AVAILABLE, &adv_data, &service_uuid);
+        if (err_code == NRF_SUCCESS)
+        {
+            if (memcmp(service_uuid.p_data, thingy_service_uuid, 16) == 0)
             {
                 do_connect = true;
             }
