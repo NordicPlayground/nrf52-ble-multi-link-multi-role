@@ -304,9 +304,6 @@ static void lbs_c_evt_handler(ble_lbs_c_t * p_lbs_c, ble_lbs_c_evt_t * p_lbs_c_e
             NRF_LOG_INFO("LED Button service discovered on conn_handle 0x%x\r\n",
                          p_lbs_c_evt->conn_handle);
 
-            err_code = app_button_enable();
-            APP_ERROR_CHECK(err_code);
-
             // LED Button service discovered. Enable notification of Button.
             err_code = ble_lbs_c_button_notif_enable(p_lbs_c);
             APP_ERROR_CHECK(err_code);
@@ -979,6 +976,9 @@ int main(void)
     
     // Turn on the LED to signal scanning.
     bsp_board_led_on(CENTRAL_SCANNING_LED);
+        
+    err_code = app_button_enable();
+    APP_ERROR_CHECK(err_code);
     
     for (;;)
     {
