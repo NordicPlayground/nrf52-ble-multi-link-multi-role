@@ -1,7 +1,8 @@
 # nRF52 Multi Link Multi Role Demo
 ----------------------------------
 
-**Scope:** This is a demo example used to showcase the ability of the S132 and S140 SoftDevice to connect to up to 20 devices in either peripheral or central role. One device acts as a central node (called the aggregator), which can connect to up to 20 other devices and show the state of these devices over the UART or through an Android application (using one of the 20 available links to connect to the aggregator). 
+**Scope:** This is a demo example used to showcase the ability of the S132 and S140 SoftDevice to connect to up to 20 devices in either peripheral or central role. 
+One device acts as a central node (called the aggregator), which can connect to up to 20 other devices and show the state of these devices over the UART or through an Android application (using one of the 20 available links to connect to the aggregator). 
 
 Currently two types of peripherals can be connected to the aggregator:
 - nRF52/nRF52840 devkits running the ble_app_blinky example from the SDK
