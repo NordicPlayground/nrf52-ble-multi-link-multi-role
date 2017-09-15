@@ -64,7 +64,7 @@ static bool cmd_buffer_put(uint8_t *data, uint16_t length)
     return true;
 }
 
-static bool cmd_buffer_peek(uint8_t **data_ptr, uint16_t *length_ptr)
+/*static bool cmd_buffer_peek(uint8_t **data_ptr, uint16_t *length_ptr)
 {
     if(ble_cmd_buf[ble_cmd_buf_out_ptr] != 0)
     {
@@ -73,7 +73,7 @@ static bool cmd_buffer_peek(uint8_t **data_ptr, uint16_t *length_ptr)
         return true;
     }
     return false;    
-}
+}*/
 
 static bool cmd_buffer_get(uint8_t **data_ptr, uint16_t *length_ptr)
 {
