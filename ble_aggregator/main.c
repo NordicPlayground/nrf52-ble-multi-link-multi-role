@@ -129,6 +129,8 @@ static ble_uuid_t m_adv_uuids[]          =                                      
 typedef enum {DEVTYPE_NONE, DEVTYPE_BLINKY, DEVTYPE_THINGY} device_type_t;
 device_type_t    m_device_type_being_connected_to = DEVTYPE_NONE;
 
+static ret_code_t led_status_send_to_all(uint8_t button_state, uint8_t r, uint8_t g, uint8_t b);
+
 /**@brief Scan parameters requested for scanning and connection. */
 static ble_gap_scan_params_t const m_scan_params =
 {
@@ -202,6 +204,7 @@ static void gap_params_init(void)
     APP_ERROR_CHECK(err_code);
 }
 
+enum {APPCMD_ERROR, APPCMD_SET_LED_ALL};
 
 /**@brief Function for handling the data from the Nordic UART Service.
  *
@@ -217,7 +220,15 @@ static void agg_cfg_service_data_handler(ble_agg_cfg_service_evt_t * p_evt)
 {
     if (p_evt->type == BLE_AGG_CFG_SERVICE_EVT_RX_DATA)
     {
-        //uint32_t err_code;
+        const uint8_t *data = p_evt->params.rx_data.p_data;
+        switch(data[0])
+        {
+            case APPCMD_SET_LED_ALL:
+                led_status_send_to_all(data[1], data[2], data[3], data[4]);
+                break;
+            default:
+                break;
+        }
 
         NRF_LOG_INFO("Received data from BLE NUS. Writing data on UART.");
         NRF_LOG_HEXDUMP_INFO(p_evt->params.rx_data.p_data, p_evt->params.rx_data.length);
@@ -771,7 +782,7 @@ static void advertising_init(void)
  *
  * @return If successful NRF_SUCCESS is returned. Otherwise, the error code from @ref ble_lbs_led_status_send.
  */
-static ret_code_t led_status_send_to_all(uint8_t button_action)
+static ret_code_t led_status_send_to_all(uint8_t button_action, uint8_t r, uint8_t g, uint8_t b)
 {
     ret_code_t err_code;
 
@@ -781,7 +792,7 @@ static ret_code_t led_status_send_to_all(uint8_t button_action)
 
         if(err_code != NRF_SUCCESS)
         {
-            err_code = ble_thingy_uis_led_set_constant(&m_thingy_uis_c[i], button_action ? 255 : 0, button_action ? 255 : 0, button_action ? 255 : 0);
+            err_code = ble_thingy_uis_led_set_constant(&m_thingy_uis_c[i], button_action ? r : 0, button_action ? g : 0, button_action ? b : 0);
             if (err_code != NRF_SUCCESS &&
                 err_code != BLE_ERROR_INVALID_CONN_HANDLE &&
                 err_code != NRF_ERROR_INVALID_STATE)
@@ -806,7 +817,7 @@ static void button_event_handler(uint8_t pin_no, uint8_t button_action)
     switch (pin_no)
     {
         case LEDBUTTON_BUTTON:
-            err_code = led_status_send_to_all(button_action);
+            err_code = led_status_send_to_all(button_action, 255, 255, 255);
             if (err_code == NRF_SUCCESS)
             {
                 NRF_LOG_INFO("LBS write LED state %d", button_action);

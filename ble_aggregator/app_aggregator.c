@@ -2,7 +2,7 @@
 #include "nrf_log.h"
 #include <string.h>
 
-#define BLE_AGG_CMD_BUFFER_SIZE 512
+#define BLE_AGG_CMD_BUFFER_SIZE 1024
 #define BLE_AGG_CMD_MAX_LENGTH  128
 
 enum {APP_AGG_ERROR_CONN_HANDLE_CONFLICT = 1, APP_AGG_ERROR_LINK_INFO_LIST_FULL, APP_AGG_ERROR_CONN_HANDLE_NOT_FOUND};
@@ -27,7 +27,7 @@ static uint16_t device_list_find_available(void);
 static void device_connected(uint16_t conn_handle, uint16_t dev_type);
 static void device_disconnected(uint16_t conn_handle);
 
-static bool cmd_buffer_put(uint8_t *data, uint16_t length)
+/*static bool cmd_buffer_put(uint8_t *data, uint16_t length)
 {
     if(length > BLE_AGG_CMD_MAX_LENGTH) return false;
     
@@ -62,6 +62,43 @@ static bool cmd_buffer_put(uint8_t *data, uint16_t length)
     }
     //NRF_LOG_INFO("BPUT: In: %i, Out: %i\r\n", ble_cmd_buf_in_ptr, ble_cmd_buf_out_ptr);
     return true;
+}*/
+
+static bool cmd_buffer_put(uint8_t *data, uint16_t length)
+{
+    if(length > BLE_AGG_CMD_MAX_LENGTH) return false;
+    
+    uint32_t in_ptr_new_pos = (ble_cmd_buf_in_ptr + BLE_AGG_CMD_MAX_LENGTH) % BLE_AGG_CMD_BUFFER_SIZE;
+    
+    if(in_ptr_new_pos == ble_cmd_buf_out_ptr)
+    {
+        // Buffer full, exit
+        return false;
+    }
+    
+    ble_cmd_buf[ble_cmd_buf_in_ptr] = length;
+    memcpy(&ble_cmd_buf[ble_cmd_buf_in_ptr + 1], data, length);
+    ble_cmd_buf_in_ptr = in_ptr_new_pos;
+
+    return true;   
+}
+
+static bool cmd_buffer_get(uint8_t ** data_ptr, uint16_t * length_ptr)
+{
+    uint32_t out_ptr_new_pos = (ble_cmd_buf_out_ptr + BLE_AGG_CMD_MAX_LENGTH) % BLE_AGG_CMD_BUFFER_SIZE;
+    
+    if(ble_cmd_buf_out_ptr == ble_cmd_buf_in_ptr)
+    {
+        // Buffer empty, return false
+        return false;
+    }
+
+    *data_ptr = &ble_cmd_buf[ble_cmd_buf_out_ptr + 1];
+    *length_ptr = ble_cmd_buf[ble_cmd_buf_out_ptr];
+    ble_cmd_buf_out_ptr = out_ptr_new_pos;
+
+    //NRF_LOG_INFO("BGET: In: %i, Out: %i\r\n", ble_cmd_buf_in_ptr, ble_cmd_buf_out_ptr);
+    return true;
 }
 
 /*static bool cmd_buffer_peek(uint8_t **data_ptr, uint16_t *length_ptr)
@@ -75,7 +112,7 @@ static bool cmd_buffer_put(uint8_t *data, uint16_t length)
     return false;    
 }*/
 
-static bool cmd_buffer_get(uint8_t **data_ptr, uint16_t *length_ptr)
+/*static bool cmd_buffer_get(uint8_t **data_ptr, uint16_t *length_ptr)
 {
     if(ble_cmd_buf[ble_cmd_buf_out_ptr] != 0)
     {
@@ -90,7 +127,7 @@ static bool cmd_buffer_get(uint8_t **data_ptr, uint16_t *length_ptr)
         return true;
     }
     return false;
-}
+}*/
 
 void app_aggregator_init(ble_agg_cfg_service_t *agg_cfg_service)
 {
