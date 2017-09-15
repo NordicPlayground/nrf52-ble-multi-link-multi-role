@@ -6,7 +6,7 @@
 #define BLE_AGG_CMD_MAX_LENGTH  128
 
 enum {APP_AGG_ERROR_CONN_HANDLE_CONFLICT = 1, APP_AGG_ERROR_LINK_INFO_LIST_FULL, APP_AGG_ERROR_CONN_HANDLE_NOT_FOUND};
-enum TX_COMMANDS {AGG_BLE_LINK_CONNECTED = 1, AGG_BLE_LINK_DISCONNECTED};
+enum TX_COMMANDS {AGG_BLE_LINK_CONNECTED = 1, AGG_BLE_LINK_DISCONNECTED, AGG_BLE_LINK_DATA_UPDATE};
 enum {APP_AGG_DEVICE_TYPE_UNKNOWN, APP_AGG_DEVICE_TYPE_BLINKY, APP_AGG_DEVICE_TYPE_THINGY, APP_AGG_DEVICE_TYPE_END};
 static char *device_type_string_list[] = {"Unknown", "Blinky", "Thingy"};
 
@@ -113,7 +113,8 @@ void app_aggregator_on_central_connect(const ble_gap_evt_t *ble_gap_evt, uint32_
     tx_command_payload[0] = AGG_BLE_LINK_CONNECTED;
     tx_command_payload[1] = ble_gap_evt->conn_handle >> 8;
     tx_command_payload[2] = ble_gap_evt->conn_handle & 0xFF;
-    tx_command_payload_length = 3;
+    tx_command_payload[3] = dev_type & 0xFF;
+    tx_command_payload_length = 4;
     cmd_buffer_put(tx_command_payload, tx_command_payload_length);
 }
 
@@ -132,12 +133,27 @@ void app_aggregator_on_central_disconnect(const ble_gap_evt_t *ble_gap_evt)
     cmd_buffer_put(tx_command_payload, tx_command_payload_length);
 }
 
+void app_aggregator_data_update(uint16_t conn_handle, uint8_t *p_data, uint32_t length)
+{
+    if(length <= 255)
+    {
+        tx_command_payload[0] = AGG_BLE_LINK_DATA_UPDATE;
+        tx_command_payload[1] = conn_handle >> 8;
+        tx_command_payload[2] = conn_handle & 0xFF;
+        tx_command_payload[3] = length & 0xFF;
+        memcpy(&tx_command_payload[4], p_data, length);
+        tx_command_payload_length = length + 4;
+        cmd_buffer_put(tx_command_payload, tx_command_payload_length);
+    }
+}
+
 void app_aggregator_on_blinky_data(uint16_t conn_handle, uint8_t button_state)
 {
     uint16_t device_index = device_list_search(conn_handle);
     if(device_index != BLE_CONN_HANDLE_INVALID)
     {
         m_link_info_list[device_index].button_state = button_state;
+        app_aggregator_data_update(conn_handle, &button_state, 1);
         m_schedule_device_list_print = true;
     }
 }
