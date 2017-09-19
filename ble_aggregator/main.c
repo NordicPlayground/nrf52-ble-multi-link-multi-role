@@ -107,7 +107,6 @@
 
 #define THINGY_RSSI_CONNECT_LIMIT   -35
 
-
 NRF_BLE_GATT_DEF(m_gatt);                                               /**< GATT module instance. */
 
 BLE_AGG_CFG_SERVICE_DEF(m_agg_cfg_service);                             /**< BLE NUS service instance. */
@@ -117,7 +116,7 @@ BLE_LBS_C_ARRAY_DEF(m_lbs_c, NRF_SDH_BLE_CENTRAL_LINK_COUNT);           /**< LED
 BLE_THINGY_UIS_C_ARRAY_DEF(m_thingy_uis_c, NRF_SDH_BLE_CENTRAL_LINK_COUNT);
 BLE_DB_DISCOVERY_ARRAY_DEF(m_db_disc, NRF_SDH_BLE_CENTRAL_LINK_COUNT);  /**< Database discovery module instances. */
 
-static char const m_target_periph_name[] = "Nordic_Blinky";             /**< Name of the device we try to connect to. This name is searched for in the scan report data*/
+static char const m_target_periph_name[] = "NT:";                       /**< Name of the device we try to connect to. This name is searched for in the scan report data*/
 
 
 static uint16_t   m_per_con_handle       = BLE_CONN_HANDLE_INVALID;
@@ -418,15 +417,19 @@ static void on_adv_report(ble_evt_t const * p_ble_evt)
 
         if (found_name)
         {
-            // Copy the name to a static variable, to pass it on to the smart phone later
-            memcpy(m_device_name_being_connected_to, dev_name.p_data, dev_name.size);
-            m_device_name_being_connected_to[dev_name.size] = 0;
-            
             // Check if the device name matches the BLINKY name filter
             if (strlen(m_target_periph_name) != 0)
             {
-                if (memcmp(m_target_periph_name, dev_name.p_data, dev_name.size) == 0)
+                if (memcmp(m_target_periph_name, dev_name.p_data, strlen(m_target_periph_name)) == 0)
                 {
+                    // Copy the name to a static variable, to pass it on to the smart phone later
+                    if(dev_name.size > strlen(m_target_periph_name))
+                    {
+                        memcpy(m_device_name_being_connected_to, 
+                               dev_name.p_data + strlen(m_target_periph_name), 
+                               dev_name.size - strlen(m_target_periph_name));
+                        m_device_name_being_connected_to[dev_name.size - strlen(m_target_periph_name)] = 0;
+                    }
                     m_device_type_being_connected_to = DEVTYPE_BLINKY;
                 }
             }
@@ -442,6 +445,12 @@ static void on_adv_report(ble_evt_t const * p_ble_evt)
             {
                 if (memcmp(service_uuid.p_data, thingy_service_uuid, 16) == 0)
                 {
+                    if(found_name)
+                    {
+                        memcpy(m_device_name_being_connected_to, 
+                               dev_name.p_data, dev_name.size);
+                        m_device_name_being_connected_to[dev_name.size] = 0;
+                    }
                     m_device_type_being_connected_to = DEVTYPE_THINGY;
                 }
             }
