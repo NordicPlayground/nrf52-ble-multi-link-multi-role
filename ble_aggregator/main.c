@@ -310,6 +310,8 @@ static void lbs_c_evt_handler(ble_lbs_c_t * p_lbs_c, ble_lbs_c_evt_t * p_lbs_c_e
             // LED Button service discovered. Enable notification of Button.
             err_code = ble_lbs_c_button_notif_enable(p_lbs_c);
             APP_ERROR_CHECK(err_code);
+            
+            scan_start();
         } break; // BLE_LBS_C_EVT_DISCOVERY_COMPLETE
 
         case BLE_LBS_C_EVT_BUTTON_NOTIFICATION:
@@ -329,6 +331,8 @@ static void lbs_c_evt_handler(ble_lbs_c_t * p_lbs_c, ble_lbs_c_evt_t * p_lbs_c_e
             
             // Forward the data to the app aggregator module
             app_aggregator_on_blinky_data(p_lbs_c_evt->conn_handle, p_lbs_c_evt->params.button.button_state);
+            
+            scan_start();
         } break; // BLE_LBS_C_EVT_BUTTON_NOTIFICATION
 
         default:
@@ -558,7 +562,7 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                 {
                     // Resume scanning.
                     bsp_board_led_on(CENTRAL_SCANNING_LED);
-                    scan_start();
+                    //scan_start();
                 }
                 
                 m_device_type_being_connected_to = DEVTYPE_NONE;
