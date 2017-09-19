@@ -128,6 +128,7 @@ static ble_uuid_t m_adv_uuids[]          =                                      
 
 typedef enum {DEVTYPE_NONE, DEVTYPE_BLINKY, DEVTYPE_THINGY} device_type_t;
 device_type_t    m_device_type_being_connected_to = DEVTYPE_NONE;
+char             m_device_name_being_connected_to[30];
 
 static ret_code_t led_status_send_to_all(uint8_t button_state, uint8_t r, uint8_t g, uint8_t b);
 static ret_code_t led_status_send_by_mask(uint8_t button_state, uint8_t r, uint8_t g, uint8_t b, uint32_t mask);
@@ -209,49 +210,21 @@ static void gap_params_init(void)
 
 enum {APPCMD_ERROR, APPCMD_SET_LED_ALL, APPCMD_SET_LED_ON_OFF_ALL, APPCMD_POST_CONNECT_MESSAGE};
 
-/**@brief Function for handling the data from the Nordic UART Service.
- *
- * @details This function will process the data received from the Nordic UART BLE Service and send
- *          it to the UART module.
- *
- * @param[in] p_nus    Nordic UART Service structure.
- * @param[in] p_data   Data to be send to UART module.
- * @param[in] length   Length of the data.
- */
-/**@snippet [Handling the data received over BLE] */
+
+static volatile uint32_t agg_cmd_received = 0;
+static uint8_t           agg_cmd[32];
+
 static void agg_cfg_service_data_handler(ble_agg_cfg_service_evt_t * p_evt)
 {
-    uint32_t mask = 0;
     if (p_evt->type == BLE_AGG_CFG_SERVICE_EVT_RX_DATA)
     {
-        const uint8_t *data = p_evt->params.rx_data.p_data;
-        switch(data[0])
+        while(agg_cmd_received != 0);
+        //if(agg_cmd_received == 0)
         {
-            case APPCMD_SET_LED_ALL:
-                for(int i = 2; i >= 0; i--)
-                {
-                    mask = mask << 8 | data[5 + i];
-                }
-                led_status_send_by_mask(data[1], data[2], data[3], data[4], mask);
-                break;
-                
-            case APPCMD_SET_LED_ON_OFF_ALL:
-                for(int i = 2; i >= 0; i--)
-                {
-                    mask = mask << 8 | data[2 + i];
-                }
-                led_status_on_off_send_by_mask(data[1], mask);
-                break;
-                
-            case APPCMD_POST_CONNECT_MESSAGE:
-                post_connect_message(data[1]);
-            
-            default:
-                break;
+            agg_cmd_received = p_evt->params.rx_data.p_data[0];
+            memcpy(agg_cmd, &p_evt->params.rx_data.p_data[1], p_evt->params.rx_data.length);
         }
-
-        NRF_LOG_INFO("Received data from BLE NUS. Writing data on UART.");
-        NRF_LOG_HEXDUMP_INFO(p_evt->params.rx_data.p_data, p_evt->params.rx_data.length);
+        //else NRF_LOG_WARNING("AGG CMD OVERFLOW!!\r\n");
     }
 }
 /**@snippet [Handling the data received over BLE] */
@@ -445,6 +418,11 @@ static void on_adv_report(ble_evt_t const * p_ble_evt)
 
         if (found_name)
         {
+            // Copy the name to a static variable, to pass it on to the smart phone later
+            memcpy(m_device_name_being_connected_to, dev_name.p_data, dev_name.size);
+            m_device_name_being_connected_to[dev_name.size] = 0;
+            
+            // Check if the device name matches the BLINKY name filter
             if (strlen(m_target_periph_name) != 0)
             {
                 if (memcmp(m_target_periph_name, dev_name.p_data, dev_name.size) == 0)
@@ -557,7 +535,8 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                 }
 
                 // Notify the aggregator service
-                app_aggregator_on_central_connect(p_gap_evt, m_device_type_being_connected_to);
+                app_aggregator_on_central_connect(p_gap_evt, m_device_type_being_connected_to, 
+                                                  m_device_name_being_connected_to);
                 
                 // Update LEDs status, and check if we should be looking for more
                 // peripherals to connect to.
@@ -830,7 +809,6 @@ static ret_code_t led_status_send_by_mask(uint8_t button_action, uint8_t r, uint
         if((mask & (1 << i)) != 0)
         {
             err_code = ble_lbs_led_status_send(&m_lbs_c[i], button_action);
-
             if(err_code != NRF_SUCCESS)
             {
                 err_code = ble_thingy_uis_led_set_constant(&m_thingy_uis_c[i], button_action ? r : 0, button_action ? g : 0, button_action ? b : 0);
@@ -854,7 +832,7 @@ ret_code_t led_status_on_off_send_by_mask(bool on, uint32_t mask)
     {
         if((mask & (1 << i)) != 0)
         {
-            err_code = ble_thingy_uis_led_set_on_off(&m_thingy_uis_c[i], on);
+            err_code = ble_lbs_led_status_send(&m_lbs_c[i], on);
             if(err_code != NRF_SUCCESS)
             {
                 err_code = ble_thingy_uis_led_set_on_off(&m_thingy_uis_c[i], on);
@@ -1081,6 +1059,36 @@ int main(void)
             if(m_per_con_handle != BLE_CONN_HANDLE_INVALID)
             {
                 while(app_aggregator_flush_ble_commands());
+            }
+            if(agg_cmd_received != 0)
+            {          
+                uint32_t mask;
+                switch(agg_cmd_received)
+                {
+                    case APPCMD_SET_LED_ALL:
+                        for(int i = 2; i >= 0; i--)
+                        {
+                            mask = mask << 8 | agg_cmd[4 + i];
+                        }
+                        led_status_send_by_mask(agg_cmd[0], agg_cmd[1], agg_cmd[2], agg_cmd[3], mask);
+                        break;
+                        
+                    case APPCMD_SET_LED_ON_OFF_ALL:
+                        for(int i = 2; i >= 0; i--)
+                        {
+                            mask = mask << 8 | agg_cmd[1 + i];
+                        }
+                        led_status_on_off_send_by_mask(agg_cmd[0], mask);
+                        break;
+                        
+                    case APPCMD_POST_CONNECT_MESSAGE:
+                        post_connect_message(agg_cmd[0]);
+                        break;
+                    
+                    default:
+                        break;
+                }
+                agg_cmd_received = 0;
             }
             device_list_print();
             

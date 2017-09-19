@@ -24,7 +24,7 @@ static volatile bool m_schedule_device_list_print = true;
 
 static uint16_t device_list_search(uint16_t conn_handle);
 static uint16_t device_list_find_available(void);
-static void device_connected(uint16_t conn_handle, uint16_t dev_type);
+static void device_connected(uint16_t conn_handle, uint16_t dev_type, uint8_t *device_name);
 static void device_disconnected(uint16_t conn_handle);
 
 /*static bool cmd_buffer_put(uint8_t *data, uint16_t length)
@@ -139,19 +139,27 @@ void app_aggregator_init(ble_agg_cfg_service_t *agg_cfg_service)
     
 }
 
-void app_aggregator_on_central_connect(const ble_gap_evt_t *ble_gap_evt, uint32_t dev_type)
+void app_aggregator_on_central_connect(const ble_gap_evt_t *ble_gap_evt, uint32_t dev_type, const char *dev_name)
 {
     uint16_t conn_handle = ble_gap_evt->conn_handle;
     
     // Update local device list
-    device_connected(conn_handle, dev_type);
+    device_connected(conn_handle, dev_type, 0);
     
     // Send info to central device (if connected)
     tx_command_payload[0] = AGG_BLE_LINK_CONNECTED;
     tx_command_payload[1] = ble_gap_evt->conn_handle >> 8;
     tx_command_payload[2] = ble_gap_evt->conn_handle & 0xFF;
     tx_command_payload[3] = dev_type & 0xFF;
-    tx_command_payload_length = 4;
+    if(strlen(dev_name) <= MAX_ADV_NAME_LENGTH)
+    {
+        memcpy(&tx_command_payload[4], dev_name, strlen(dev_name));
+        tx_command_payload_length = 4 + strlen(dev_name);
+    }
+    else 
+    {
+        tx_command_payload_length = 4;
+    }
     cmd_buffer_put(tx_command_payload, tx_command_payload_length);
 }
 
@@ -248,7 +256,7 @@ static uint16_t device_list_find_available()
     return device_list_search(BLE_CONN_HANDLE_INVALID);
 }
 
-static void device_connected(uint16_t conn_handle, uint16_t device_type)
+static void device_connected(uint16_t conn_handle, uint16_t device_type, uint8_t *device_name)
 {
     if(device_list_search(conn_handle) == BLE_CONN_HANDLE_INVALID)
     {

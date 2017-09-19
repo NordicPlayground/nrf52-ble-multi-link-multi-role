@@ -8,6 +8,8 @@
 
 #define MAX_NUMBER_OF_LINKS 20
 
+#define MAX_ADV_NAME_LENGTH 16
+
 typedef struct
 {
     uint16_t conn_handle;
@@ -18,7 +20,8 @@ typedef struct
 
 void app_aggregator_init(ble_agg_cfg_service_t *agg_cfg_service);
 
-void app_aggregator_on_central_connect(const ble_gap_evt_t *ble_gap_evt, uint32_t dev_type);
+void app_aggregator_on_central_connect(const ble_gap_evt_t *ble_gap_evt, uint32_t dev_type, 
+                                       const char *dev_name);
 
 void app_aggregator_on_central_disconnect(const ble_gap_evt_t *ble_gap_evt);
 
