@@ -389,6 +389,19 @@ uint32_t ble_thingy_uis_led_set_constant(ble_thingy_uis_c_t * p_ble_thingy_uis_c
     led_state.params.constant.r = r;
     led_state.params.constant.g = g;
     led_state.params.constant.b = b;
+    p_ble_thingy_uis_c->colors[0] = r;
+    p_ble_thingy_uis_c->colors[1] = g;
+    p_ble_thingy_uis_c->colors[2] = b;
+    return ble_thingy_uis_led_status_send(p_ble_thingy_uis_c, &led_state, 4);    
+}
+
+uint32_t ble_thingy_uis_led_set_on_off(ble_thingy_uis_c_t * p_ble_thingy_uis_c, bool on)
+{
+    ble_thingy_uis_led_t led_state;
+    led_state.mode = THINGY_UIS_LED_MODE_CONSTANT;
+    led_state.params.constant.r = on ? p_ble_thingy_uis_c->colors[0] : 0;
+    led_state.params.constant.g = on ? p_ble_thingy_uis_c->colors[1] : 0;
+    led_state.params.constant.b = on ? p_ble_thingy_uis_c->colors[2] : 0;    
     return ble_thingy_uis_led_status_send(p_ble_thingy_uis_c, &led_state, 4);    
 }
 

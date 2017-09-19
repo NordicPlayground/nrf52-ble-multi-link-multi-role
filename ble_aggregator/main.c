@@ -130,6 +130,9 @@ typedef enum {DEVTYPE_NONE, DEVTYPE_BLINKY, DEVTYPE_THINGY} device_type_t;
 device_type_t    m_device_type_being_connected_to = DEVTYPE_NONE;
 
 static ret_code_t led_status_send_to_all(uint8_t button_state, uint8_t r, uint8_t g, uint8_t b);
+static ret_code_t led_status_send_by_mask(uint8_t button_state, uint8_t r, uint8_t g, uint8_t b, uint32_t mask);
+static ret_code_t led_status_on_off_send_by_mask(bool on, uint32_t mask);
+static ret_code_t post_connect_message(uint8_t conn_handle);
 
 /**@brief Scan parameters requested for scanning and connection. */
 static ble_gap_scan_params_t const m_scan_params =
@@ -204,7 +207,7 @@ static void gap_params_init(void)
     APP_ERROR_CHECK(err_code);
 }
 
-enum {APPCMD_ERROR, APPCMD_SET_LED_ALL};
+enum {APPCMD_ERROR, APPCMD_SET_LED_ALL, APPCMD_SET_LED_ON_OFF_ALL, APPCMD_POST_CONNECT_MESSAGE};
 
 /**@brief Function for handling the data from the Nordic UART Service.
  *
@@ -218,14 +221,31 @@ enum {APPCMD_ERROR, APPCMD_SET_LED_ALL};
 /**@snippet [Handling the data received over BLE] */
 static void agg_cfg_service_data_handler(ble_agg_cfg_service_evt_t * p_evt)
 {
+    uint32_t mask = 0;
     if (p_evt->type == BLE_AGG_CFG_SERVICE_EVT_RX_DATA)
     {
         const uint8_t *data = p_evt->params.rx_data.p_data;
         switch(data[0])
         {
             case APPCMD_SET_LED_ALL:
-                led_status_send_to_all(data[1], data[2], data[3], data[4]);
+                for(int i = 2; i >= 0; i--)
+                {
+                    mask = mask << 8 | data[5 + i];
+                }
+                led_status_send_by_mask(data[1], data[2], data[3], data[4], mask);
                 break;
+                
+            case APPCMD_SET_LED_ON_OFF_ALL:
+                for(int i = 2; i >= 0; i--)
+                {
+                    mask = mask << 8 | data[2 + i];
+                }
+                led_status_on_off_send_by_mask(data[1], mask);
+                break;
+                
+            case APPCMD_POST_CONNECT_MESSAGE:
+                post_connect_message(data[1]);
+            
             default:
                 break;
         }
@@ -359,9 +379,6 @@ static void thingy_uis_c_evt_handler(ble_thingy_uis_c_t * p_thingy_uis_c, ble_th
         case BLE_LBS_C_EVT_DISCOVERY_COMPLETE:
         {
             NRF_LOG_DEBUG("Thingy UI service discovered on conn_handle 0x%x\r\n", p_thingy_uis_c_evt->conn_handle);
-            //err_code = ble_thingy_uis_led_set_breathe(p_thingy_uis_c, THINGY_UIS_LED_COLOR_YELLOW, 60, 1);
-            err_code = ble_thingy_uis_led_set_constant(p_thingy_uis_c, 128, 128, 0);
-            APP_ERROR_CHECK(err_code);   
             
             // Thingy UI service discovered. Enable notification of Button.
             err_code = ble_thingy_uis_c_button_notif_enable(p_thingy_uis_c);
@@ -804,6 +821,72 @@ static ret_code_t led_status_send_to_all(uint8_t button_action, uint8_t r, uint8
     return NRF_SUCCESS;
 }
 
+static ret_code_t led_status_send_by_mask(uint8_t button_action, uint8_t r, uint8_t g, uint8_t b, uint32_t mask)
+{
+    ret_code_t err_code;
+
+    for (uint32_t i = 0; i < NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
+    {
+        if((mask & (1 << i)) != 0)
+        {
+            err_code = ble_lbs_led_status_send(&m_lbs_c[i], button_action);
+
+            if(err_code != NRF_SUCCESS)
+            {
+                err_code = ble_thingy_uis_led_set_constant(&m_thingy_uis_c[i], button_action ? r : 0, button_action ? g : 0, button_action ? b : 0);
+                if (err_code != NRF_SUCCESS &&
+                    err_code != BLE_ERROR_INVALID_CONN_HANDLE &&
+                    err_code != NRF_ERROR_INVALID_STATE)
+                {
+                    return err_code;
+                }
+            }
+        }
+    }
+    return NRF_SUCCESS;    
+}
+
+ret_code_t led_status_on_off_send_by_mask(bool on, uint32_t mask)
+{
+    ret_code_t err_code;
+
+    for (uint32_t i = 0; i < NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
+    {
+        if((mask & (1 << i)) != 0)
+        {
+            err_code = ble_thingy_uis_led_set_on_off(&m_thingy_uis_c[i], on);
+            if(err_code != NRF_SUCCESS)
+            {
+                err_code = ble_thingy_uis_led_set_on_off(&m_thingy_uis_c[i], on);
+                if (err_code != NRF_SUCCESS &&
+                    err_code != BLE_ERROR_INVALID_CONN_HANDLE &&
+                    err_code != NRF_ERROR_INVALID_STATE)
+                {
+                    return err_code;
+                }
+            }
+        }
+    }
+    return NRF_SUCCESS;      
+}
+
+ret_code_t post_connect_message(uint8_t conn_handle)
+{
+    ret_code_t err_code = NRF_SUCCESS;
+    for(int i = 0; i < NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
+    {
+        if(m_lbs_c[i].conn_handle == conn_handle)
+        {
+            err_code = ble_thingy_uis_led_set_on_off(&m_thingy_uis_c[i], true);
+        }
+        
+        if(m_thingy_uis_c[i].conn_handle == conn_handle)
+        {
+            err_code = ble_thingy_uis_led_set_constant(&m_thingy_uis_c[i], 255, 255, 255);           
+        }
+    }
+    return err_code;
+}
 
 /**@brief Function for handling events from the button handler module.
  *

@@ -154,9 +154,10 @@ typedef void (* ble_thingy_uis_c_evt_handler_t) (ble_thingy_uis_c_t * p_ble_thin
 struct ble_thingy_uis_c_s
 {
     uint16_t                conn_handle;  /**< Connection handle as provided by the SoftDevice. */
-    thingy_uis_db_t                peer_thingy_uis_db;  /**< Handles related to THINGY_UIS on the peer*/
+    thingy_uis_db_t         peer_thingy_uis_db;  /**< Handles related to THINGY_UIS on the peer*/
     ble_thingy_uis_c_evt_handler_t evt_handler;  /**< Application event handler to be called when there is an event related to the LED Button service. */
     uint8_t                 uuid_type;    /**< UUID type. */
+    uint8_t                 colors[3];
 };
 
 /**@brief LED Button Client initialization structure. */
@@ -244,6 +245,8 @@ uint32_t ble_thingy_uis_c_handles_assign(ble_thingy_uis_c_t *    p_ble_thingy_ui
 
 
 uint32_t ble_thingy_uis_led_set_off(ble_thingy_uis_c_t * p_ble_thingy_uis_c);
+
+uint32_t ble_thingy_uis_led_set_on_off(ble_thingy_uis_c_t * p_ble_thingy_uis_c, bool on);
 
 uint32_t ble_thingy_uis_led_set_constant(ble_thingy_uis_c_t * p_ble_thingy_uis_c, uint8_t r, uint8_t g, uint8_t b);
 
