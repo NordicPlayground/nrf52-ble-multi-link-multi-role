@@ -207,7 +207,8 @@ static void gap_params_init(void)
     APP_ERROR_CHECK(err_code);
 }
 
-enum {APPCMD_ERROR, APPCMD_SET_LED_ALL, APPCMD_SET_LED_ON_OFF_ALL, APPCMD_POST_CONNECT_MESSAGE};
+enum {APPCMD_ERROR, APPCMD_SET_LED_ALL, APPCMD_SET_LED_ON_OFF_ALL, 
+      APPCMD_POST_CONNECT_MESSAGE, APPCMD_DISCONNECT_PERIPHERALS};
 
 
 static volatile uint32_t agg_cmd_received = 0;
@@ -880,6 +881,32 @@ ret_code_t post_connect_message(uint8_t conn_handle)
     return err_code;
 }
 
+ret_code_t disconnect_all_peripherals()
+{
+    ret_code_t err_code;
+    for(int i = 0; i < NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
+    {
+        if(m_lbs_c[i].conn_handle != BLE_CONN_HANDLE_INVALID)
+        {
+            err_code = sd_ble_gap_disconnect(m_lbs_c[i].conn_handle, BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
+            if(err_code != NRF_SUCCESS)
+            {
+                return err_code;
+            }
+        }
+        
+        if(m_thingy_uis_c[i].conn_handle != BLE_CONN_HANDLE_INVALID)
+        {
+            err_code = sd_ble_gap_disconnect(m_lbs_c[i].conn_handle, BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
+            if(err_code != NRF_SUCCESS)
+            {
+                return err_code;
+            }
+        }
+    }    
+    return NRF_SUCCESS;
+}
+
 /**@brief Function for handling events from the button handler module.
  *
  * @param[in] pin_no        The pin that the event applies to.
@@ -1030,6 +1057,46 @@ static void gatt_init(void)
 }
 
 
+static void process_app_commands()
+{               
+    if(agg_cmd_received != 0)
+    {          
+        uint32_t mask;
+        switch(agg_cmd_received)
+        {
+            case APPCMD_SET_LED_ALL:
+                for(int i = 2; i >= 0; i--)
+                {
+                    mask = mask << 8 | agg_cmd[4 + i];
+                }
+                led_status_send_by_mask(agg_cmd[0], agg_cmd[1], agg_cmd[2], agg_cmd[3], mask);
+                break;
+                
+            case APPCMD_SET_LED_ON_OFF_ALL:
+                for(int i = 2; i >= 0; i--)
+                {
+                    mask = mask << 8 | agg_cmd[1 + i];
+                }
+                led_status_on_off_send_by_mask(agg_cmd[0], mask);
+                break;
+                
+            case APPCMD_POST_CONNECT_MESSAGE:
+                post_connect_message(agg_cmd[0]);
+                break;
+            
+            case APPCMD_DISCONNECT_PERIPHERALS:
+                printf("BALL");
+                disconnect_all_peripherals();
+                break;
+            
+            default:
+                break;
+        }
+        agg_cmd_received = 0;
+    }
+}
+
+
 int main(void)
 {
     uint32_t err_code;
@@ -1074,36 +1141,9 @@ int main(void)
             {
                 while(app_aggregator_flush_ble_commands());
             }
-            if(agg_cmd_received != 0)
-            {          
-                uint32_t mask;
-                switch(agg_cmd_received)
-                {
-                    case APPCMD_SET_LED_ALL:
-                        for(int i = 2; i >= 0; i--)
-                        {
-                            mask = mask << 8 | agg_cmd[4 + i];
-                        }
-                        led_status_send_by_mask(agg_cmd[0], agg_cmd[1], agg_cmd[2], agg_cmd[3], mask);
-                        break;
-                        
-                    case APPCMD_SET_LED_ON_OFF_ALL:
-                        for(int i = 2; i >= 0; i--)
-                        {
-                            mask = mask << 8 | agg_cmd[1 + i];
-                        }
-                        led_status_on_off_send_by_mask(agg_cmd[0], mask);
-                        break;
-                        
-                    case APPCMD_POST_CONNECT_MESSAGE:
-                        post_connect_message(agg_cmd[0]);
-                        break;
-                    
-                    default:
-                        break;
-                }
-                agg_cmd_received = 0;
-            }
+
+            process_app_commands();
+
             device_list_print();
             
             power_manage();

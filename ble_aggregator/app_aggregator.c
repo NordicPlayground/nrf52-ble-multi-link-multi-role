@@ -291,20 +291,20 @@ void device_list_print()
     if(m_schedule_device_list_print)
     {
         m_schedule_device_list_print = false;
-        printf("\r\n-------------------- Device list overview --------------------\r\n");
-        printf("Con No.\t\tType\t\tBtn state\tLED state\t  \r\n");
+        printf("\r\n---------------- Device list overview ----------------\r\n");
+        printf("Con No.\tType\tBtn LED   \r\n");
         for(int i = 0; i < MAX_NUMBER_OF_LINKS; i++)
         {
             if(m_link_info_list[i].conn_handle != BLE_CONN_HANDLE_INVALID)
             {
                 if(m_link_info_list[i].device_type < APP_AGG_DEVICE_TYPE_END)
                 {
-                    printf("%i\t\t%s\t\t%i\t\t%i \r\n", m_link_info_list[i].conn_handle, device_type_string_list[m_link_info_list[i].device_type],
+                    printf("%i\t%s\t%i   %i \r\n", m_link_info_list[i].conn_handle, device_type_string_list[m_link_info_list[i].device_type],
                                                         m_link_info_list[i].button_state, m_link_info_list[i].led_state);
                 }
                 else
                 {
-                     printf("%i\t\tInvalid device!\t%i\t\t%i \r\n", m_link_info_list[i].conn_handle, 
+                     printf("%i\tInvalid device!\t%i   %i \r\n", m_link_info_list[i].conn_handle, 
                                                          m_link_info_list[i].button_state, m_link_info_list[i].led_state);                   
                 }
             }
