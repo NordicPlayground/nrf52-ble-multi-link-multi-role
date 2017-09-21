@@ -118,7 +118,7 @@ BLE_DB_DISCOVERY_ARRAY_DEF(m_db_disc, NRF_SDH_BLE_CENTRAL_LINK_COUNT);  /**< Dat
 
 static char const m_target_periph_name[] = "NT:";                       /**< Name of the device we try to connect to. This name is searched for in the scan report data*/
 
-
+static volatile bool m_service_discovery_in_process = false;
 static uint16_t   m_per_con_handle       = BLE_CONN_HANDLE_INVALID;
 static ble_uuid_t m_adv_uuids[]          =                                          /**< Universally unique service identifier. */
 {
@@ -312,7 +312,12 @@ static void lbs_c_evt_handler(ble_lbs_c_t * p_lbs_c, ble_lbs_c_evt_t * p_lbs_c_e
             err_code = ble_lbs_c_button_notif_enable(p_lbs_c);
             APP_ERROR_CHECK(err_code);
             
-            scan_start();
+            if(ble_conn_state_n_centrals() < NRF_SDH_BLE_CENTRAL_LINK_COUNT)
+            {
+                scan_start();
+            }
+            
+            m_service_discovery_in_process = false;
         } break; // BLE_LBS_C_EVT_DISCOVERY_COMPLETE
 
         case BLE_LBS_C_EVT_BUTTON_NOTIFICATION:
@@ -360,7 +365,12 @@ static void thingy_uis_c_evt_handler(ble_thingy_uis_c_t * p_thingy_uis_c, ble_th
             err_code = ble_thingy_uis_c_button_notif_enable(p_thingy_uis_c);
             APP_ERROR_CHECK(err_code);
             
-            scan_start();
+            if(ble_conn_state_n_centrals() < NRF_SDH_BLE_CENTRAL_LINK_COUNT)
+            {
+                scan_start();
+            }
+            
+            m_service_discovery_in_process = false;
         } break; // BLE_LBS_C_EVT_DISCOVERY_COMPLETE
 
         case BLE_LBS_C_EVT_BUTTON_NOTIFICATION:
@@ -521,8 +531,8 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                 NRF_LOG_INFO("Connection 0x%x established, starting DB discovery.",
                              p_gap_evt->conn_handle);
 
-                APP_ERROR_CHECK_BOOL(p_gap_evt->conn_handle < NRF_SDH_BLE_CENTRAL_LINK_COUNT);
-
+                //APP_ERROR_CHECK_BOOL(p_gap_evt->conn_handle < NRF_SDH_BLE_CENTRAL_LINK_COUNT);
+                
                 switch(m_device_type_being_connected_to)
                 {
                     case DEVTYPE_BLINKY:
@@ -541,6 +551,7 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                         break;
                 }
 
+                m_service_discovery_in_process = true;
                 memset(&m_db_disc[p_gap_evt->conn_handle], 0x00, sizeof(ble_db_discovery_t));
                 err_code = ble_db_discovery_start(&m_db_disc[p_gap_evt->conn_handle],
                                                   p_gap_evt->conn_handle);
@@ -563,7 +574,7 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                 else
                 {
                     // Resume scanning.
-                    bsp_board_led_on(CENTRAL_SCANNING_LED);
+                    //bsp_board_led_on(CENTRAL_SCANNING_LED);
                     //scan_start();
                 }
                 
@@ -581,6 +592,7 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
         // the LEDs status and start scanning again.
         case BLE_GAP_EVT_DISCONNECTED:
         {
+            NRF_LOG_INFO("GAP_EVT_DISCONNECT: %i", p_gap_evt->conn_handle);
             // Handle central disconnections
             if(p_gap_evt->conn_handle != m_per_con_handle)
             {
@@ -597,8 +609,11 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                     bsp_board_led_off(CENTRAL_CONNECTED_LED);
                 }
 
-                // Start scanning
-                scan_start();
+                // Start scanning if we are not currently in the service discovery state
+                if(!m_service_discovery_in_process)
+                {
+                    scan_start();
+                }
 
                 // Turn on LED for indicating scanning
                 bsp_board_led_on(CENTRAL_SCANNING_LED);
@@ -630,6 +645,11 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             {
                 NRF_LOG_DEBUG("Connection request timed out.");
             }
+            else if(p_gap_evt->params.timeout.src == BLE_GAP_TIMEOUT_SRC_ADVERTISING)
+            {
+                printf("Adv TIMEOUT\r\n");
+            }
+                
         } break;
 
         case BLE_GAP_EVT_CONN_PARAM_UPDATE_REQUEST:
