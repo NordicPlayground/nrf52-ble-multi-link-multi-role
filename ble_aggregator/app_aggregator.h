@@ -16,6 +16,8 @@ typedef struct
     uint8_t  device_type;
     uint8_t  button_state;
     uint8_t  led_state;
+    uint8_t  rf_phy;
+    uint8_t  adv_name[MAX_ADV_NAME_LENGTH];
 }link_info_t;
 
 void app_aggregator_init(ble_agg_cfg_service_t *agg_cfg_service);
