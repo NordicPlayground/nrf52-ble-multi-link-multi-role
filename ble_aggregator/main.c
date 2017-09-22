@@ -207,8 +207,8 @@ static void gap_params_init(void)
     APP_ERROR_CHECK(err_code);
     
     ble_opt_t ble_opt;
-    ble_opt.gap_opt.preferred_phys.tx_phys = BLE_GAP_PHY_2MBPS | BLE_GAP_PHY_1MBPS;
-    ble_opt.gap_opt.preferred_phys.rx_phys = BLE_GAP_PHY_2MBPS | BLE_GAP_PHY_1MBPS;    
+    ble_opt.gap_opt.preferred_phys.tx_phys = BLE_GAP_PHY_2MBPS | BLE_GAP_PHY_1MBPS | BLE_GAP_PHY_CODED;
+    ble_opt.gap_opt.preferred_phys.rx_phys = BLE_GAP_PHY_2MBPS | BLE_GAP_PHY_1MBPS | BLE_GAP_PHY_CODED;    
                                           
     sd_ble_opt_set(BLE_GAP_OPT_PREFERRED_PHYS_SET, &ble_opt);
 }
@@ -666,7 +666,10 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
 
         case BLE_GAP_EVT_CONN_PARAM_UPDATE_REQUEST:
         {
-            NRF_LOG_DEBUG("BLE_GAP_EVT_CONN_PARAM_UPDATE_REQUEST.");
+            
+            NRF_LOG_INFO("BLE_GAP_EVT_CONN_PARAM_UPDATE_REQUEST. CH%i, MaxMin CI %i, %i", p_gap_evt->conn_handle, 
+                            p_gap_evt->params.conn_param_update_request.conn_params.max_conn_interval, 
+                            p_gap_evt->params.conn_param_update_request.conn_params.min_conn_interval);
             // Accept parameters requested by peer.
             err_code = sd_ble_gap_conn_param_update(p_gap_evt->conn_handle,
                                         &p_gap_evt->params.conn_param_update_request.conn_params);

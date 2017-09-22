@@ -72,15 +72,12 @@
 #define CONNECTED_LED                   BSP_BOARD_LED_1                         /**< Is on when device has connected. */
 #define LEDBUTTON_LED                   BSP_BOARD_LED_2                         /**< LED to be toggled with the help of the LED Button Service. */
 #define LEDBUTTON_BUTTON                BSP_BUTTON_0                            /**< Button that will trigger the notification event with the LED Button Service */
-#define PHY_UPDATE_BUTTON               BSP_BUTTON_1                            /**< Button that will trigger the notification event with the LED Button Service */
 
 // ### ------------------ TASK 1: STEP 1 ------------------
 // ### Change the device name to include your group prefix plus your own unique name
 // ### For example, if your group prefix is 'GRP1:' and your name is 'John' the advertising name should be 'GRP1:John'
 // ### WARNING: Don't make the name longer than 25 characters, or it won't fit in the advertise packet. 
-
-#define DEVICE_NAME                     "NT:20-4-437"                        /**< Name of device. Will be included in the advertising data. */
-
+#define DEVICE_NAME                     "GRP1:John"                             /**< Name of device. Will be included in the advertising data. */
 // ### ----------------------------------------------------
 
 #define APP_BLE_OBSERVER_PRIO           1                                       /**< Application's BLE observer priority. You shouldn't need to modify this value. */
@@ -442,11 +439,6 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
         {
             const ble_gap_evt_phy_update_t *phy_update_event;
             phy_update_event = &p_ble_evt->evt.gap_evt.params.phy_update;
-            if(phy_update_event->tx_phy == 1)
-            {
-                
-            }
-            
         }break;
         
         default:
@@ -490,7 +482,6 @@ static void ble_stack_init(void)
 static void button_event_handler(uint8_t pin_no, uint8_t button_action)
 {
     ret_code_t err_code;
-    ble_gap_phys_t phys;
     
     switch (pin_no)
     {
@@ -506,16 +497,27 @@ static void button_event_handler(uint8_t pin_no, uint8_t button_action)
             }
             break;
             
-        case PHY_UPDATE_BUTTON:
-            if(button_action == APP_BUTTON_PUSH)
+        case BUTTON_2:
+// ### ------------------ TASK 1: STEP 5 ------------------
+// ### Add code to request the PHY to be updated when Button 2 is pressed
+// ### Hint 1: To check if the button is pressed or not you can check if button_action == APP_BUTTON_PUSH
+// ### Hint 2: You can use the sd_ble_gap_phy_request function to ask for an updated PHY. 
+// ###         The first argument to this function is the connection handle, which is stored in the m_conn_handle variable
+// ###         The second argument is a pointer to a struct of type ble_gap_phys_t, which contains fields for requesting a change to the TX and RX phy
+// ###         You can ask for the TX and RX PHY to be the same, and you can choose between the following values: BLE_GAP_PHY_2MBPS, BLE_GAP_PHY_1MBPS or BLE_GAP_PHY_CODED
             {
-                NRF_LOG_INFO("Send phy update request.");
-                phys.rx_phys = BLE_GAP_PHY_2MBPS;
-                phys.tx_phys = BLE_GAP_PHY_2MBPS;
+                ble_gap_phys_t phys;
+                if(button_action == APP_BUTTON_PUSH)
+                {
+                    NRF_LOG_INFO("Send phy update request.");
+                    phys.rx_phys = BLE_GAP_PHY_2MBPS;
+                    phys.tx_phys = BLE_GAP_PHY_2MBPS;
              
-                err_code = sd_ble_gap_phy_request(m_conn_handle, &phys);
-                APP_ERROR_CHECK(err_code);        
+                    err_code = sd_ble_gap_phy_request(m_conn_handle, &phys);
+                    APP_ERROR_CHECK(err_code);        
+                }
             }
+// ### ----------------------------------------------------
             break;
 
         default:
@@ -535,7 +537,7 @@ static void buttons_init(void)
     static app_button_cfg_t buttons[] =
     {
         {LEDBUTTON_BUTTON, false, BUTTON_PULL, button_event_handler},
-        {PHY_UPDATE_BUTTON, false, BUTTON_PULL, button_event_handler}
+        {BUTTON_2, false, BUTTON_PULL, button_event_handler}
     };
 
     err_code = app_button_init(buttons, sizeof(buttons) / sizeof(buttons[0]),
