@@ -40,4 +40,6 @@ bool app_aggregator_flush_ble_commands(void);
 
 void device_list_print(void);
 
+void uart_printf(const char *fmt, ...);
+
 #endif

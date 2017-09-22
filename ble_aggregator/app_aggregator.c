@@ -351,8 +351,8 @@ void device_list_print()
     if(m_schedule_device_list_print)
     {
         m_schedule_device_list_print = false;
-        printf("\r\n---------------- Device list overview ----------------\r\n");
-        printf("ID   %sBtn LED Phy   RSSI\r\n", m_device_name_header_string);
+        uart_printf("\r\n---------------- Device list overview ----------------\r\n");
+        uart_printf("ID   %sBtn LED Phy   RSSI\r\n", m_device_name_header_string);
         for(int i = 0; i < MAX_NUMBER_OF_LINKS; i++)
         {
             if(m_link_info_list[i].conn_handle != BLE_CONN_HANDLE_INVALID)
@@ -361,20 +361,20 @@ void device_list_print()
                 {
                     if(m_link_info_list[i].conn_handle < 10)
                     {
-                        printf(" %i   ", m_link_info_list[i].conn_handle);
+                        uart_printf(" %i   ", m_link_info_list[i].conn_handle);
                     }
                     else
                     {
-                        printf("%i   ", m_link_info_list[i].conn_handle);
+                        uart_printf("%i   ", m_link_info_list[i].conn_handle);
                     }
-                    printf("%s ",       m_link_info_list[i].adv_name);
-                    printf("%i   ",     m_link_info_list[i].button_state);
-                    printf("%i   ",     m_link_info_list[i].led_state);
-                    printf("%s ",       m_link_info_list[i].rf_phy <= 4 ? m_phy_name_string_list[m_link_info_list[i].rf_phy] : "ERR!");
-                    printf("%i\r\n", (int)m_link_info_list[i].last_rssi);
+                    uart_printf("%s ",       m_link_info_list[i].adv_name);
+                    uart_printf("%i   ",     m_link_info_list[i].button_state);
+                    uart_printf("%i   ",     m_link_info_list[i].led_state);
+                    uart_printf("%s ",       m_link_info_list[i].rf_phy <= 4 ? m_phy_name_string_list[m_link_info_list[i].rf_phy] : "ERR!");
+                    uart_printf("%i\r\n", (int)m_link_info_list[i].last_rssi);
                 }
             }
         }
-        printf("\r\n");
+        uart_printf("\r\n");
     }
 }

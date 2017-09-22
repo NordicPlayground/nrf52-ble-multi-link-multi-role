@@ -48,6 +48,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include "stdarg.h"
 #include "nordic_common.h"
 #include "nrf_sdh.h"
 #include "nrf_sdh_soc.h"
@@ -159,6 +160,22 @@ static ble_gap_conn_params_t const m_connection_param =
     (uint16_t)SLAVE_LATENCY,
     (uint16_t)SUPERVISION_TIMEOUT
 };
+
+
+void uart_printf(const char *fmt, ...)
+{
+#if defined(__GNUC__)
+    char buf[120], *p;
+    va_list ap;
+    va_start(ap, fmt);
+    vsnprintf(buf, sizeof(buf), fmt, ap);
+    for (p = buf; *p; ++p)
+    app_uart_put(*p);
+    va_end(ap);
+#elif defined(__CC_ARM)
+  printf(fmt, ap);
+#endif
+ }
 
 
 /**@brief Function to handle asserts in the SoftDevice.
@@ -656,7 +673,7 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             }
             else if(p_gap_evt->params.timeout.src == BLE_GAP_TIMEOUT_SRC_ADVERTISING)
             {
-                printf("Adv restart\r\n");
+                uart_printf("Adv restart\r\n");
                 // Start advertising
                 err_code = ble_advertising_start(&m_advertising, BLE_ADV_MODE_FAST);
                 APP_ERROR_CHECK(err_code);
@@ -1146,7 +1163,6 @@ static void process_app_commands()
                 break;
             
             case APPCMD_DISCONNECT_PERIPHERALS:
-                printf("BALL");
                 disconnect_all_peripherals();
                 break;
             
@@ -1179,7 +1195,7 @@ int main(void)
     advertising_init();
 
     NRF_LOG_INFO("Multilink example started");
-    printf("Multilink example started\r\n");
+    uart_printf("Multilink example started\r\n");
 
     // Start scanning for peripherals and initiate connection to devices which  advertise.
     scan_start();

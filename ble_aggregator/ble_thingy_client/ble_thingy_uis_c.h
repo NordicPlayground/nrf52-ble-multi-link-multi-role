@@ -92,14 +92,14 @@ typedef struct
 } ble_thingy_uis_button_t;
 
 /**@brief Structure(s) containing the LED value. */
-typedef __packed struct 
+typedef __attribute__((__packed__)) struct 
 {
     uint8_t r;
     uint8_t g;
     uint8_t b;
 }ble_thingy_uis_led_mode_constant_t;
 
-typedef __packed struct
+typedef __attribute__((__packed__)) struct
 {
     uint8_t color;
     uint8_t intensity;
@@ -109,10 +109,10 @@ typedef __packed struct
 enum {THINGY_UIS_LED_MODE_OFF, THINGY_UIS_LED_MODE_CONSTANT, THINGY_UIS_LED_MODE_BREATHE, THINGY_UIS_LED_MODE_ONESHOT};
 enum {THINGY_UIS_LED_COLOR_RED = 1, THINGY_UIS_LED_COLOR_GREEN, THINGY_UIS_LED_COLOR_YELLOW, THINGY_UIS_LED_COLOR_BLUE, THINGY_UIS_LED_COLOR_PURPLE, THINGY_UIS_LED_COLOR_CYAN, THINGY_UIS_LED_COLOR_WHITE};
 
-typedef __packed struct
+typedef __attribute__((__packed__)) struct
 {
   uint8_t mode;  
-  __packed union
+  __attribute__((__packed__)) union
   {
       ble_thingy_uis_led_mode_constant_t constant;
       ble_thingy_uis_led_mode_breathe_t breathe;
