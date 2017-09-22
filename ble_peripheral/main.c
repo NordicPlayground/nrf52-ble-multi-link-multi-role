@@ -79,7 +79,7 @@
 // ### For example, if your group prefix is 'GRP1:' and your name is 'John' the advertising name should be 'GRP1:John'
 // ### WARNING: Don't make the name longer than 25 characters, or it won't fit in the advertise packet. 
 
-#define DEVICE_NAME                     "NT:TestBlinky"                        /**< Name of device. Will be included in the advertising data. */
+#define DEVICE_NAME                     "NT:20-4-437"                        /**< Name of device. Will be included in the advertising data. */
 
 // ### ----------------------------------------------------
 
@@ -513,8 +513,8 @@ static void button_event_handler(uint8_t pin_no, uint8_t button_action)
                 phys.rx_phys = BLE_GAP_PHY_2MBPS;
                 phys.tx_phys = BLE_GAP_PHY_2MBPS;
              
-                //err_code = sd_ble_gap_phy_update_request(m_conn_handle, &phys);
-                //APP_ERROR_CHECK(err_code);        
+                err_code = sd_ble_gap_phy_request(m_conn_handle, &phys);
+                APP_ERROR_CHECK(err_code);        
             }
             break;
 

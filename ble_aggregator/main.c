@@ -565,6 +565,9 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                 {
                     APP_ERROR_CHECK(err_code);
                 }
+                
+                err_code = sd_ble_gap_rssi_start(p_gap_evt->conn_handle, 5, 4);
+                APP_ERROR_CHECK(err_code);
 
                 // Notify the aggregator service
                 app_aggregator_on_central_connect(p_gap_evt, m_device_type_being_connected_to, 
@@ -653,7 +656,10 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             }
             else if(p_gap_evt->params.timeout.src == BLE_GAP_TIMEOUT_SRC_ADVERTISING)
             {
-                printf("Adv TIMEOUT\r\n");
+                printf("Adv restart\r\n");
+                // Start advertising
+                err_code = ble_advertising_start(&m_advertising, BLE_ADV_MODE_FAST);
+                APP_ERROR_CHECK(err_code);
             }
                 
         } break;
@@ -712,6 +718,10 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                                              BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
             APP_ERROR_CHECK(err_code);
         } break;
+        
+        case BLE_GAP_EVT_RSSI_CHANGED:
+            app_aggregator_rssi_changed(p_ble_evt->evt.gap_evt.conn_handle, p_ble_evt->evt.gap_evt.params.rssi_changed.rssi);
+            break;
 
         default:
             // No implementation needed.
@@ -883,6 +893,8 @@ ret_code_t led_status_on_off_send_by_mask(bool on, uint32_t mask)
 {
     ret_code_t err_code;
 
+    app_aggregator_on_led_update(on, mask);
+    
     for (uint32_t i = 0; i < NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
     {
         if((mask & (1 << i)) != 0)
@@ -959,10 +971,16 @@ static void button_event_handler(uint8_t pin_no, uint8_t button_action)
     switch (pin_no)
     {
         case LEDBUTTON_BUTTON:
-            err_code = led_status_send_to_all(button_action, 255, 255, 255);
+            /*err_code = led_status_send_to_all(button_action, 255, 255, 255);
             if (err_code == NRF_SUCCESS)
             {
                 NRF_LOG_INFO("LBS write LED state %d", button_action);
+            }*/
+            if(agg_cmd_received == 0)
+            {
+                agg_cmd_received = APPCMD_SET_LED_ON_OFF_ALL;
+                agg_cmd[0] = button_action;
+                agg_cmd[1] = agg_cmd[2] = agg_cmd[3] = agg_cmd[4] = 0xFF;
             }
             break;
 

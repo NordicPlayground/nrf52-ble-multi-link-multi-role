@@ -199,14 +199,49 @@ void app_aggregator_data_update(uint16_t conn_handle, uint8_t *p_data, uint32_t 
     }
 }
 
+void app_aggregator_data_update_by_index(uint16_t device_index)
+{
+    tx_command_payload[0] = AGG_BLE_LINK_DATA_UPDATE;
+    tx_command_payload[1] = m_link_info_list[device_index].conn_handle >> 8;
+    tx_command_payload[2] = m_link_info_list[device_index].conn_handle & 0xFF;
+    tx_command_payload[3] = 3;
+    tx_command_payload[4] = m_link_info_list[device_index].button_state;
+    tx_command_payload[5] = m_link_info_list[device_index].rf_phy;
+    tx_command_payload[6] = m_link_info_list[device_index].last_rssi;
+    tx_command_payload_length = 7;
+    cmd_buffer_put(tx_command_payload, tx_command_payload_length);    
+}
+
 void app_aggregator_on_blinky_data(uint16_t conn_handle, uint8_t button_state)
 {
     uint16_t device_index = device_list_search(conn_handle);
     if(device_index != BLE_CONN_HANDLE_INVALID)
     {
         m_link_info_list[device_index].button_state = button_state;
-        app_aggregator_data_update(conn_handle, &button_state, 1);
+        app_aggregator_data_update_by_index(device_index);
+        //app_aggregator_data_update(conn_handle, &button_state, 1);
         m_schedule_device_list_print = true;
+    }
+}
+
+void app_aggregator_on_led_update(uint8_t led_state, uint32_t conn_handle_mask)
+{
+    for(int i = 0; i < MAX_NUMBER_OF_LINKS; i++)
+    {
+        if(m_link_info_list[i].conn_handle < 32 && ((conn_handle_mask & (1 << m_link_info_list[i].conn_handle)) != 0))
+        {
+            m_link_info_list[i].led_state = led_state;
+            m_schedule_device_list_print = true;
+        }
+    }
+}
+
+void app_aggregator_rssi_changed(uint16_t conn_handle, int8_t rssi)
+{
+    uint16_t device_index = device_list_search(conn_handle);
+    if(device_index != BLE_CONN_HANDLE_INVALID)
+    {
+        m_link_info_list[device_index].last_rssi = rssi;
     }
 }
 
@@ -216,6 +251,7 @@ void app_aggregator_phy_update(uint16_t conn_handle, uint8_t tx_phy, uint8_t rx_
     if(device_index != BLE_CONN_HANDLE_INVALID)
     {
         m_link_info_list[device_index].rf_phy = tx_phy;
+        app_aggregator_data_update_by_index(device_index);
         m_schedule_device_list_print = true;
     }    
 }
@@ -291,6 +327,7 @@ static void device_connected(uint16_t conn_handle, uint16_t device_type, const c
             for(int i = device_name_length; i < MAX_ADV_NAME_LENGTH; i++) m_link_info_list[new_device_index].adv_name[i] = ' ';
             m_link_info_list[new_device_index].adv_name[MAX_ADV_NAME_LENGTH - 1] = 0;
             m_link_info_list[new_device_index].rf_phy = 1;
+            m_link_info_list[new_device_index].last_rssi = 0;
             m_schedule_device_list_print = true;
         }
         else m_error_flags |= 1 << APP_AGG_ERROR_LINK_INFO_LIST_FULL;
@@ -315,7 +352,7 @@ void device_list_print()
     {
         m_schedule_device_list_print = false;
         printf("\r\n---------------- Device list overview ----------------\r\n");
-        printf("ID   %sBtn LED Phy\r\n", m_device_name_header_string);
+        printf("ID   %sBtn LED Phy   RSSI\r\n", m_device_name_header_string);
         for(int i = 0; i < MAX_NUMBER_OF_LINKS; i++)
         {
             if(m_link_info_list[i].conn_handle != BLE_CONN_HANDLE_INVALID)
@@ -333,7 +370,8 @@ void device_list_print()
                     printf("%s ",       m_link_info_list[i].adv_name);
                     printf("%i   ",     m_link_info_list[i].button_state);
                     printf("%i   ",     m_link_info_list[i].led_state);
-                    printf("%s\r\n",    m_link_info_list[i].rf_phy <= 4 ? m_phy_name_string_list[m_link_info_list[i].rf_phy] : "Invalid!");
+                    printf("%s ",       m_link_info_list[i].rf_phy <= 4 ? m_phy_name_string_list[m_link_info_list[i].rf_phy] : "ERR!");
+                    printf("%i\r\n", (int)m_link_info_list[i].last_rssi);
                 }
             }
         }
