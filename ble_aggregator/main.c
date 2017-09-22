@@ -205,6 +205,12 @@ static void gap_params_init(void)
 
     err_code = sd_ble_gap_ppcp_set(&gap_conn_params);
     APP_ERROR_CHECK(err_code);
+    
+    ble_opt_t ble_opt;
+    ble_opt.gap_opt.preferred_phys.tx_phys = BLE_GAP_PHY_2MBPS | BLE_GAP_PHY_1MBPS;
+    ble_opt.gap_opt.preferred_phys.rx_phys = BLE_GAP_PHY_2MBPS | BLE_GAP_PHY_1MBPS;    
+                                          
+    sd_ble_opt_set(BLE_GAP_OPT_PREFERRED_PHYS_SET, &ble_opt);
 }
 
 enum {APPCMD_ERROR, APPCMD_SET_LED_ALL, APPCMD_SET_LED_ON_OFF_ALL, 
@@ -675,6 +681,20 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
         } break;
 #endif
 
+        case BLE_GAP_EVT_PHY_UPDATE:
+        {
+            app_aggregator_phy_update(p_ble_evt->evt.gap_evt.conn_handle,
+                                      p_ble_evt->evt.gap_evt.params.phy_update.tx_phy,
+                                      p_ble_evt->evt.gap_evt.params.phy_update.rx_phy);
+            /*ble_gap_phys_t const phys =
+            {
+                .rx_phys = BLE_GAP_PHY_AUTO,
+                .tx_phys = BLE_GAP_PHY_AUTO,
+            };
+            err_code = sd_ble_gap_phy_update(p_ble_evt->evt.gap_evt.conn_handle, &phys);
+            APP_ERROR_CHECK(err_code);*/
+        } break;        
+        
         case BLE_GATTC_EVT_TIMEOUT:
         {
             // Disconnect on GATT Client timeout event.

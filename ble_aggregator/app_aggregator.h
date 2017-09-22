@@ -8,7 +8,7 @@
 
 #define MAX_NUMBER_OF_LINKS 20
 
-#define MAX_ADV_NAME_LENGTH 16
+#define MAX_ADV_NAME_LENGTH 15
 
 typedef struct
 {
@@ -17,7 +17,7 @@ typedef struct
     uint8_t  button_state;
     uint8_t  led_state;
     uint8_t  rf_phy;
-    uint8_t  adv_name[MAX_ADV_NAME_LENGTH];
+    uint8_t  adv_name[MAX_ADV_NAME_LENGTH + 1];
 }link_info_t;
 
 void app_aggregator_init(ble_agg_cfg_service_t *agg_cfg_service);
@@ -28,6 +28,8 @@ void app_aggregator_on_central_connect(const ble_gap_evt_t *ble_gap_evt, uint32_
 void app_aggregator_on_central_disconnect(const ble_gap_evt_t *ble_gap_evt);
 
 void app_aggregator_on_blinky_data(uint16_t conn_handle, uint8_t button_state);
+
+void app_aggregator_phy_update(uint16_t conn_handle, uint8_t tx_phy, uint8_t rx_phy);
 
 bool app_aggregator_flush_ble_commands(void);
 
