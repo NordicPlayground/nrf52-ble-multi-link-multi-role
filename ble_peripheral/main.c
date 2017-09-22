@@ -72,8 +72,16 @@
 #define CONNECTED_LED                   BSP_BOARD_LED_1                         /**< Is on when device has connected. */
 #define LEDBUTTON_LED                   BSP_BOARD_LED_2                         /**< LED to be toggled with the help of the LED Button Service. */
 #define LEDBUTTON_BUTTON                BSP_BUTTON_0                            /**< Button that will trigger the notification event with the LED Button Service */
+#define PHY_UPDATE_BUTTON               BSP_BUTTON_1                            /**< Button that will trigger the notification event with the LED Button Service */
 
-#define DEVICE_NAME                     "Nordic_Blinky"                         /**< Name of device. Will be included in the advertising data. */
+// ### ------------------ TASK 1: STEP 1 ------------------
+// ### Change the device name to include your group prefix plus your own unique name
+// ### For example, if your group prefix is 'GRP1:' and your name is 'John' the advertising name should be 'GRP1:John'
+// ### WARNING: Don't make the name longer than 25 characters, or it won't fit in the advertise packet. 
+
+#define DEVICE_NAME                     "NT:TestBlinky"                        /**< Name of device. Will be included in the advertising data. */
+
+// ### ----------------------------------------------------
 
 #define APP_BLE_OBSERVER_PRIO           1                                       /**< Application's BLE observer priority. You shouldn't need to modify this value. */
 #define APP_BLE_CONN_CFG_TAG            1                                       /**< A tag identifying the SoftDevice BLE configuration. */
@@ -430,6 +438,17 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             }
         } break; // BLE_GATTS_EVT_RW_AUTHORIZE_REQUEST
 
+        case BLE_GAP_EVT_PHY_UPDATE:
+        {
+            const ble_gap_evt_phy_update_t *phy_update_event;
+            phy_update_event = &p_ble_evt->evt.gap_evt.params.phy_update;
+            if(phy_update_event->tx_phy == 1)
+            {
+                
+            }
+            
+        }break;
+        
         default:
             // No implementation needed.
             break;
@@ -471,7 +490,8 @@ static void ble_stack_init(void)
 static void button_event_handler(uint8_t pin_no, uint8_t button_action)
 {
     ret_code_t err_code;
-
+    ble_gap_phys_t phys;
+    
     switch (pin_no)
     {
         case LEDBUTTON_BUTTON:
@@ -483,6 +503,18 @@ static void button_event_handler(uint8_t pin_no, uint8_t button_action)
                 err_code != BLE_ERROR_GATTS_SYS_ATTR_MISSING)
             {
                 APP_ERROR_CHECK(err_code);
+            }
+            break;
+            
+        case PHY_UPDATE_BUTTON:
+            if(button_action == APP_BUTTON_PUSH)
+            {
+                NRF_LOG_INFO("Send phy update request.");
+                phys.rx_phys = BLE_GAP_PHY_2MBPS;
+                phys.tx_phys = BLE_GAP_PHY_2MBPS;
+             
+                err_code = sd_ble_gap_phy_update(m_conn_handle, &phys);
+                APP_ERROR_CHECK(err_code);        
             }
             break;
 
@@ -502,7 +534,8 @@ static void buttons_init(void)
     //The array must be static because a pointer to it will be saved in the button handler module.
     static app_button_cfg_t buttons[] =
     {
-        {LEDBUTTON_BUTTON, false, BUTTON_PULL, button_event_handler}
+        {LEDBUTTON_BUTTON, false, BUTTON_PULL, button_event_handler},
+        {PHY_UPDATE_BUTTON, false, BUTTON_PULL, button_event_handler}
     };
 
     err_code = app_button_init(buttons, sizeof(buttons) / sizeof(buttons[0]),
