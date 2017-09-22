@@ -513,8 +513,8 @@ static void button_event_handler(uint8_t pin_no, uint8_t button_action)
                 phys.rx_phys = BLE_GAP_PHY_2MBPS;
                 phys.tx_phys = BLE_GAP_PHY_2MBPS;
              
-                err_code = sd_ble_gap_phy_update(m_conn_handle, &phys);
-                APP_ERROR_CHECK(err_code);        
+                //err_code = sd_ble_gap_phy_update_request(m_conn_handle, &phys);
+                //APP_ERROR_CHECK(err_code);        
             }
             break;
 

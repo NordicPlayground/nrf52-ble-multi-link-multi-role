@@ -1,0 +1,49 @@
+<!DOCTYPE CrossStudio_Session_File>
+<session>
+ <Bookmarks/>
+ <Breakpoints groups="Breakpoints" active_group="Breakpoints"/>
+ <ExecutionProfileWindow/>
+ <FrameBufferWindow>
+  <FrameBufferWindow bufferHeight="-1" addressSpace="" addressText="" bufferWidth="-1"/>
+ </FrameBufferWindow>
+ <Memory1/>
+ <Memory2/>
+ <Memory3/>
+ <Memory4/>
+ <Project>
+  <ProjectSessionItem path="ble_peripheral_pca10056_s140"/>
+  <ProjectSessionItem path="ble_peripheral_pca10056_s140;ble_peripheral_pca10056_s140"/>
+  <ProjectSessionItem path="ble_peripheral_pca10056_s140;ble_peripheral_pca10056_s140;Application"/>
+  <ProjectSessionItem path="ble_peripheral_pca10056_s140;ble_peripheral_pca10056_s140;Board Definition"/>
+  <ProjectSessionItem path="ble_peripheral_pca10056_s140;ble_peripheral_pca10056_s140;Internal Files"/>
+  <ProjectSessionItem path="ble_peripheral_pca10056_s140;ble_peripheral_pca10056_s140;nRF_Libraries"/>
+  <ProjectSessionItem path="ble_peripheral_pca10056_s140;ble_peripheral_pca10056_s140;nRF_Log"/>
+  <ProjectSessionItem path="ble_peripheral_pca10056_s140;ble_peripheral_pca10056_s140;nRF_Segger_RTT"/>
+  <ProjectSessionItem path="ble_peripheral_pca10056_s140;ble_peripheral_pca10056_s140;nRF_SoftDevice"/>
+ </Project>
+ <Register1/>
+ <Register2/>
+ <Register3/>
+ <Register4/>
+ <TraceWindow>
+  <Trace enabled="Yes"/>
+ </TraceWindow>
+ <Watch1>
+  <Watches active="1" update="Never"/>
+ </Watch1>
+ <Watch2>
+  <Watches active="0" update="Never"/>
+ </Watch2>
+ <Watch3>
+  <Watches active="0" update="Never"/>
+ </Watch3>
+ <Watch4>
+  <Watches active="0" update="Never"/>
+ </Watch4>
+ <Files>
+  <SessionOpenFile windowGroup="DockEditLeft" x="53" y="81" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../main.c" debugPath="../../../main.c" selected="1" top="62" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="42" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../../components/drivers_nrf/hal/nrf_gpio.h" debugPath="../../../../../../../components/drivers_nrf/hal/nrf_gpio.h" selected="0" top="15" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="42" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../../components/toolchain/system_nrf52840.c" debugPath="../../../../../../../components/toolchain/system_nrf52840.c" selected="0" top="6" codecName="Default"/>
+ </Files>
+ <ARMCrossStudioWindow activeProject="ble_peripheral_pca10056_s140" fileDialogDefaultFilter="*.c" autoConnectTarget="J-Link" buildConfiguration="nrf52840_xxaa" debugSearchFileMap="" fileDialogInitialDirectory="C:/Nordic Semiconductor/nRF5_SDK_14.0.0/components/toolchain" debugSearchPath="" autoConnectCapabilities="3711"/>
+</session>

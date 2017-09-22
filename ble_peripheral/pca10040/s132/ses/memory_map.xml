@@ -1,0 +1,6 @@
+<!DOCTYPE Board_Memory_Definition_File>
+<Root Name="Memory Map">
+    <MemorySegment name="FLASH" start="0x23000" size="0x5d000" access="ReadOnly"/>
+    <MemorySegment name="SRAM" start="0x20002180" size="0xde80" access="Read/Write"/>
+
+</Root>
