@@ -120,6 +120,7 @@ BLE_DB_DISCOVERY_ARRAY_DEF(m_db_disc, NRF_SDH_BLE_CENTRAL_LINK_COUNT);  /**< Dat
 static char const m_target_periph_name[] = "NT:";                       /**< Name of the device we try to connect to. This name is searched for in the scan report data*/
 
 static volatile bool m_service_discovery_in_process = false;
+static uint16_t   m_service_discovery_conn_handle = BLE_CONN_HANDLE_INVALID;
 static uint16_t   m_per_con_handle       = BLE_CONN_HANDLE_INVALID;
 static ble_uuid_t m_adv_uuids[]          =                                          /**< Universally unique service identifier. */
 {
@@ -571,6 +572,7 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                 }
 
                 m_service_discovery_in_process = true;
+                m_service_discovery_conn_handle = p_gap_evt->conn_handle;
                 memset(&m_db_disc[p_gap_evt->conn_handle], 0x00, sizeof(ble_db_discovery_t));
                 err_code = ble_db_discovery_start(&m_db_disc[p_gap_evt->conn_handle],
                                                   p_gap_evt->conn_handle);
@@ -630,6 +632,12 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                     // Turn off connection indication LED
                     bsp_board_led_off(CENTRAL_CONNECTED_LED);
                 }
+                
+                if(p_gap_evt->conn_handle == m_service_discovery_conn_handle)
+                {
+                    m_service_discovery_in_process = false;
+                    m_service_discovery_conn_handle = BLE_CONN_HANDLE_INVALID;
+                }
 
                 // Start scanning if we are not currently in the service discovery state
                 if(!m_service_discovery_in_process)
@@ -669,7 +677,7 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             }
             else if(p_gap_evt->params.timeout.src == BLE_GAP_TIMEOUT_SRC_ADVERTISING)
             {
-                NRF_LOG_INFO("Adv restart");
+                NRF_LOG_INFO("Advertise timeout - Restarting...");
                 // Start advertising
                 err_code = ble_advertising_start(&m_advertising, BLE_ADV_MODE_FAST);
                 APP_ERROR_CHECK(err_code);
@@ -677,6 +685,12 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                 
         } break;
 
+
+        case BLE_GAP_EVT_CONN_PARAM_UPDATE:
+            NRF_LOG_INFO("BLE_GAP_EVT_CONN_PARAM_UPDATE. CH%i, MaxMin CI %i, %i", p_gap_evt->conn_handle, 
+                            p_gap_evt->params.conn_param_update.conn_params.max_conn_interval, 
+                            p_gap_evt->params.conn_param_update.conn_params.min_conn_interval);
+            break;
         case BLE_GAP_EVT_CONN_PARAM_UPDATE_REQUEST:
         {
             
@@ -1000,6 +1014,13 @@ static void button_event_handler(uint8_t pin_no, uint8_t button_action)
             }
             break;
 
+        case BUTTON_2:
+            if(button_action == APP_BUTTON_PUSH)
+            {
+                NRF_LOG_INFO("BUTTON2 pressed");
+            }
+            break;
+
         default:
             APP_ERROR_HANDLER(pin_no);
             break;
@@ -1016,7 +1037,8 @@ static void buttons_init(void)
    // The array must be static because a pointer to it will be saved in the button handler module.
     static app_button_cfg_t buttons[] =
     {
-        {LEDBUTTON_BUTTON, false, BUTTON_PULL, button_event_handler}
+        {LEDBUTTON_BUTTON, false, BUTTON_PULL, button_event_handler},
+        {BUTTON_2, false, BUTTON_PULL, button_event_handler}
     };
 
     err_code = app_button_init(buttons, ARRAY_SIZE(buttons), BUTTON_DETECTION_DELAY);
