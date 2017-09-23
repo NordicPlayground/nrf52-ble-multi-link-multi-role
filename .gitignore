@@ -23,8 +23,12 @@
 *.uvgui.*
 *.uvguix.*
 *.tmp
-**/*/JLinkLog.txt
+**/JLinkLog.txt
 **/_viminfo
 **/_vimtags
 _build/
 RTE/
+
+## Segger Embedded Studio ##
+*.jlink
+**/ses/Output/
