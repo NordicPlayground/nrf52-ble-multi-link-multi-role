@@ -1011,6 +1011,7 @@ static void button_event_handler(uint8_t pin_no, uint8_t button_action)
                 agg_cmd_received = APPCMD_SET_LED_ON_OFF_ALL;
                 agg_cmd[0] = button_action;
                 agg_cmd[1] = agg_cmd[2] = agg_cmd[3] = agg_cmd[4] = 0xFF;
+                app_aggregator_all_led_update(button_action);
             }
             break;
 

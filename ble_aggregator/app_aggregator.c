@@ -6,7 +6,7 @@
 #define BLE_AGG_CMD_MAX_LENGTH  64
 
 enum {APP_AGG_ERROR_CONN_HANDLE_CONFLICT = 1, APP_AGG_ERROR_LINK_INFO_LIST_FULL, APP_AGG_ERROR_CONN_HANDLE_NOT_FOUND};
-enum TX_COMMANDS {AGG_BLE_LINK_CONNECTED = 1, AGG_BLE_LINK_DISCONNECTED, AGG_BLE_LINK_DATA_UPDATE};
+enum TX_COMMANDS {AGG_BLE_LINK_CONNECTED = 1, AGG_BLE_LINK_DISCONNECTED, AGG_BLE_LINK_DATA_UPDATE, AGG_BLE_LED_BUTTON_PRESSED};
 enum {APP_AGG_DEVICE_TYPE_UNKNOWN, APP_AGG_DEVICE_TYPE_BLINKY, APP_AGG_DEVICE_TYPE_THINGY, APP_AGG_DEVICE_TYPE_END};
 //static char *device_type_string_list[] = {"Unknown", "Blinky", "Thingy"};
 static char    *m_phy_name_string_list[] = {"NONE", "1Mbps", "2Mbps", "INVALID", "Coded"};
@@ -210,6 +210,14 @@ void app_aggregator_data_update_by_index(uint16_t device_index)
     tx_command_payload[6] = m_link_info_list[device_index].last_rssi;
     tx_command_payload_length = 7;
     cmd_buffer_put(tx_command_payload, tx_command_payload_length);    
+}
+
+void app_aggregator_all_led_update(uint8_t button_state)
+{
+    tx_command_payload[0] = AGG_BLE_LED_BUTTON_PRESSED;
+    tx_command_payload[1] = button_state;
+    tx_command_payload_length = 2;
+    cmd_buffer_put(tx_command_payload, tx_command_payload_length);  
 }
 
 void app_aggregator_on_blinky_data(uint16_t conn_handle, uint8_t button_state)
