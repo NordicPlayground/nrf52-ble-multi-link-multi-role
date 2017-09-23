@@ -367,8 +367,8 @@ void device_list_print()
                 device_count++;
             }
         }
-        uart_printf("\r\n------ Device list overview (%i devices total) ------\r\n\n", device_count);
-        uart_printf("ID   %sBtn LED Phy   RSSI\r\n", m_device_name_header_string);4
+        uart_printf("\r\n------ Device list overview (%i device%s------\r\n\n", device_count, (device_count != 1) ? "s total) " : " total) -");
+        uart_printf("ID   %sBtn LED Phy   RSSI\r\n", m_device_name_header_string);
         for(int i = 0; i < MAX_NUMBER_OF_LINKS; i++)
         {
             if(m_link_info_list[i].conn_handle != BLE_CONN_HANDLE_INVALID)
