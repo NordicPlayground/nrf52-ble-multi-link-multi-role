@@ -77,7 +77,7 @@
 // ### Change the device name to include your group prefix plus your own unique name
 // ### For example, if your group prefix is 'GRP1:' and your name is 'John' the advertising name should be 'GRP1:John'
 // ### WARNING: Don't make the name longer than 25 characters, or it won't fit in the advertise packet. 
-#define DEVICE_NAME                     "GRP1:John"                             /**< Name of device. Will be included in the advertising data. */
+#define DEVICE_NAME                     "NT:MyBlinky"                           /**< Name of device. Will be included in the advertising data. */
 // ### ----------------------------------------------------
 
 #define APP_BLE_OBSERVER_PRIO           1                                       /**< Application's BLE observer priority. You shouldn't need to modify this value. */
@@ -105,6 +105,37 @@ NRF_BLE_GATT_DEF(m_gatt);                                                       
 
 static uint16_t m_conn_handle = BLE_CONN_HANDLE_INVALID;                        /**< Handle of the current connection. */
 
+// ### ------------------ TASK 4: STEP 1 ------------------
+// ### Use the APP_TIMER_DEF macro to define a new app_timer, and call it m_data_update_timer
+APP_TIMER_DEF(m_data_update_timer);
+// ### ----------------------------------------------------
+
+// ### ------------------ TASK 4: STEP 2 ------------------
+// ### Create the callback function that will be called by the app_timer library
+// ### This function will need to have the following prototype: void timer_callback(void *p_context)
+void data_update_callback(void *p_context)
+{
+    // ### ------------------ TASK 4: STEP 6 ------------------
+    // ### Add code to send an alternating button press each time this function is called
+    // ### You can copy the code from the button_event_handler, inside the LEDBUTTON_BUTTON case, 
+    // ### to see how you can send a button press to the central device 
+    // ### To send an alternating button value you can create a static bool variable inside the callback that you can 
+    // ### switch between 1 and 0 for each run of the function, and pass this as a parameter to the ble_lbs_on_button_change function. 
+    ret_code_t err_code;
+    static bool button_state = true;
+    NRF_LOG_INFO("Send button state change.");
+    err_code = ble_lbs_on_button_change(m_conn_handle, &m_lbs, button_state);
+    if (err_code != NRF_SUCCESS &&
+        err_code != BLE_ERROR_INVALID_CONN_HANDLE &&
+        err_code != NRF_ERROR_INVALID_STATE &&
+        err_code != BLE_ERROR_GATTS_SYS_ATTR_MISSING)
+    {
+        APP_ERROR_CHECK(err_code);
+    }
+    button_state = !button_state;
+    // ### ---------------------------------------------------- 
+}
+// ### ----------------------------------------------------
 
 /**@brief Function for assert macro callback.
  *
@@ -172,6 +203,14 @@ static void gap_params_init(void)
 
     err_code = sd_ble_gap_ppcp_set(&gap_conn_params);
     APP_ERROR_CHECK(err_code);
+
+// ### ------------------ TASK 2: STEP 1 ------------------
+// ### Change the TX output power of the BLE stack by calling sd_ble_gap_tx_power_set(int8_t tx_power)
+// ### Try different values and see how they affect the maximum range that you can get between the peripheral and the central
+// ### Hint: Some legal TX power values are: -40, -20, 0, 4, 8
+    err_code = sd_ble_gap_tx_power_set(4);
+    APP_ERROR_CHECK(err_code);
+// ### ----------------------------------------------------
 }
 
 
@@ -345,6 +384,18 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
 
             err_code = app_button_enable();
             APP_ERROR_CHECK(err_code);
+
+// ### ------------------ TASK 4: STEP 4 ------------------
+// ### Start your timer by calling app_timer_start (app_timer_id_t timer_id, 
+// ###                                              uint32_t timeout_ticks, 
+// ###                                              void *p_context)
+// ### The timer_id variable should refer to the variable you created in step 1
+// ### The timeout_ticks variable should be configured to give you a callback time of 5000ms. 
+// ###   To convert from ms to ticks you can use the APP_TIMER_TICKS(MS) macro. 
+// ### The p_context variable will not be used, and can be set to 0
+            err_code = app_timer_start(m_data_update_timer, APP_TIMER_TICKS(5000), 0);
+            APP_ERROR_CHECK(err_code);
+// ### ----------------------------------------------------
             break;
 
         case BLE_GAP_EVT_DISCONNECTED:
@@ -354,6 +405,13 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             err_code = app_button_disable();
             APP_ERROR_CHECK(err_code);
             advertising_start();
+
+            
+// ### ------------------ TASK 4: STEP 5 ------------------
+// ### Stop your timer by calling app_timer_stop (app_timer_id_t timer_id)
+            err_code = app_timer_stop(m_data_update_timer);
+            APP_ERROR_CHECK(err_code);
+// ### ----------------------------------------------------
             break;
 
         case BLE_GAP_EVT_SEC_PARAMS_REQUEST:
@@ -482,6 +540,7 @@ static void ble_stack_init(void)
 static void button_event_handler(uint8_t pin_no, uint8_t button_action)
 {
     ret_code_t err_code;
+    ble_gap_phys_t phys;
     
     switch (pin_no)
     {
@@ -498,24 +557,21 @@ static void button_event_handler(uint8_t pin_no, uint8_t button_action)
             break;
             
         case BUTTON_2:
-// ### ------------------ TASK 1: STEP 5 ------------------
+// ### ------------------ TASK 3: STEP 1 ------------------
 // ### Add code to request the PHY to be updated when Button 2 is pressed
 // ### Hint 1: To check if the button is pressed or not you can check if button_action == APP_BUTTON_PUSH
 // ### Hint 2: You can use the sd_ble_gap_phy_request function to ask for an updated PHY. 
 // ###         The first argument to this function is the connection handle, which is stored in the m_conn_handle variable
 // ###         The second argument is a pointer to a struct of type ble_gap_phys_t, which contains fields for requesting a change to the TX and RX phy
 // ###         You can ask for the TX and RX PHY to be the same, and you can choose between the following values: BLE_GAP_PHY_2MBPS, BLE_GAP_PHY_1MBPS or BLE_GAP_PHY_CODED
+            if(button_action == APP_BUTTON_PUSH)
             {
-                ble_gap_phys_t phys;
-                if(button_action == APP_BUTTON_PUSH)
-                {
-                    NRF_LOG_INFO("Send phy update request.");
-                    phys.rx_phys = BLE_GAP_PHY_2MBPS;
-                    phys.tx_phys = BLE_GAP_PHY_2MBPS;
-             
-                    err_code = sd_ble_gap_phy_request(m_conn_handle, &phys);
-                    APP_ERROR_CHECK(err_code);        
-                }
+                NRF_LOG_INFO("Send phy update request.");
+                phys.rx_phys = BLE_GAP_PHY_2MBPS;
+                phys.tx_phys = BLE_GAP_PHY_2MBPS;
+         
+                err_code = sd_ble_gap_phy_request(m_conn_handle, &phys);
+                APP_ERROR_CHECK(err_code);        
             }
 // ### ----------------------------------------------------
             break;
@@ -571,6 +627,18 @@ int main(void)
     // Initialize.
     leds_init();
     timers_init();
+
+// ### ------------------ TASK 4: STEP 3 ------------------
+// ### Create your timer by using app_timer_create(app_timer_id_t const * p_timer_id, 
+// ###                                             app_timer_mode_t mode, 
+// ###                                             app_timer_timeout_handler_t timeout_handler)
+// ### The app_timer_id_t should point to the variable you created in step 1.
+// ### The app_timer_mode should be APP_TIMER_MODE_REPEATED. 
+// ### The timeout handler should point to the function you created in step 2
+    uint32_t err_code = app_timer_create(&m_data_update_timer, APP_TIMER_MODE_REPEATED, data_update_callback);
+    APP_ERROR_CHECK(err_code);
+// ### ----------------------------------------------------
+
     log_init();
     buttons_init();
     ble_stack_init();
