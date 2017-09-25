@@ -608,7 +608,9 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             else
             {
                 m_per_con_handle = p_gap_evt->conn_handle;
-                NRF_LOG_INFO("Peripheral connection 0x%x established.", m_per_con_handle);               
+                NRF_LOG_INFO("Peripheral connection 0x%x established.", m_per_con_handle);    
+                
+                app_aggregator_clear_buffer_update_link_status();
             }
         } break; // BLE_GAP_EVT_CONNECTED
 
@@ -1022,6 +1024,15 @@ static void button_event_handler(uint8_t pin_no, uint8_t button_action)
             }
             break;
 
+        case BUTTON_3:
+            // Start advertising
+            if(button_action == APP_BUTTON_PUSH)
+            {
+                err_code = ble_advertising_start(&m_advertising, BLE_ADV_MODE_FAST);
+                APP_ERROR_CHECK(err_code);
+            }
+            break;
+
         default:
             APP_ERROR_HANDLER(pin_no);
             break;
@@ -1039,7 +1050,8 @@ static void buttons_init(void)
     static app_button_cfg_t buttons[] =
     {
         {LEDBUTTON_BUTTON, false, BUTTON_PULL, button_event_handler},
-        {BUTTON_2, false, BUTTON_PULL, button_event_handler}
+        {BUTTON_2, false, BUTTON_PULL, button_event_handler},
+        {BUTTON_3, false, BUTTON_PULL, button_event_handler}
     };
 
     err_code = app_button_init(buttons, ARRAY_SIZE(buttons), BUTTON_DETECTION_DELAY);

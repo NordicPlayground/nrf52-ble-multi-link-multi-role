@@ -38,6 +38,8 @@ void app_aggregator_rssi_changed(uint16_t conn_handle, int8_t rssi);
 
 bool app_aggregator_flush_ble_commands(void);
 
+void app_aggregator_clear_buffer_update_link_status(void);
+
 void device_list_print(void);
 
 void uart_printf(const char *fmt, ...);

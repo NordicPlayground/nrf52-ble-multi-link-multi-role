@@ -12,7 +12,7 @@ enum {APP_AGG_DEVICE_TYPE_UNKNOWN, APP_AGG_DEVICE_TYPE_BLINKY, APP_AGG_DEVICE_TY
 static char    *m_phy_name_string_list[] = {"NONE", "1Mbps", "2Mbps", "INVALID", "Coded"};
 static char     m_device_name_header_string[MAX_ADV_NAME_LENGTH + 1];
 
-static uint8_t tx_command_payload[20];
+static uint8_t tx_command_payload[BLE_AGG_CMD_MAX_LENGTH];
 static uint16_t tx_command_payload_length;
 static ble_agg_cfg_service_t *m_ble_service;
 
@@ -103,6 +103,11 @@ static bool cmd_buffer_get(uint8_t ** data_ptr, uint16_t * length_ptr)
     return true;
 }
 
+static void cmd_buffer_flush()
+{
+    ble_cmd_buf_in_ptr = ble_cmd_buf_out_ptr = 0;
+}
+
 /*static bool cmd_buffer_peek(uint8_t **data_ptr, uint16_t *length_ptr)
 {
     if(ble_cmd_buf[ble_cmd_buf_out_ptr] != 0)
@@ -158,14 +163,18 @@ void app_aggregator_on_central_connect(const ble_gap_evt_t *ble_gap_evt, uint32_
     tx_command_payload[1] = ble_gap_evt->conn_handle >> 8;
     tx_command_payload[2] = ble_gap_evt->conn_handle & 0xFF;
     tx_command_payload[3] = dev_type & 0xFF;
+    tx_command_payload[4] = 0; //Button state
+    tx_command_payload[5] = 0; // LED state;
+    tx_command_payload[6] = 0; // RSSI
+    tx_command_payload[7] = 1; // PHY
     if(strlen(dev_name) <= MAX_ADV_NAME_LENGTH)
     {
-        memcpy(&tx_command_payload[4], dev_name, strlen(dev_name));
-        tx_command_payload_length = 4 + strlen(dev_name);
+        memcpy(&tx_command_payload[8], dev_name, strlen(dev_name));
+        tx_command_payload_length = 8 + strlen(dev_name);
     }
     else 
     {
-        tx_command_payload_length = 4;
+        tx_command_payload_length = 8;
     }
     cmd_buffer_put(tx_command_payload, tx_command_payload_length);
 }
@@ -301,6 +310,38 @@ bool app_aggregator_flush_ble_commands(void)
 
     }
     return false;
+}
+
+void app_aggregator_clear_buffer_update_link_status(void)
+{
+    cmd_buffer_flush();
+
+    for(int i = 0; i < MAX_NUMBER_OF_LINKS; i++)
+    {
+        if(m_link_info_list[i].conn_handle != BLE_CONN_HANDLE_INVALID)
+        {
+            // Prepare new connection packet for each link in the list
+            tx_command_payload[0] = AGG_BLE_LINK_CONNECTED;
+            tx_command_payload[1] = m_link_info_list[i].conn_handle >> 8;
+            tx_command_payload[2] = m_link_info_list[i].conn_handle & 0xFF;
+            tx_command_payload[3] = m_link_info_list[i].device_type;
+            tx_command_payload[4] = m_link_info_list[i].button_state;
+            tx_command_payload[5] = m_link_info_list[i].led_state;
+            tx_command_payload[6] = m_link_info_list[i].last_rssi;
+            tx_command_payload[7] = m_link_info_list[i].rf_phy;
+            if(strlen(m_link_info_list[i].adv_name) <= MAX_ADV_NAME_LENGTH)
+            {
+                memcpy(&tx_command_payload[8], m_link_info_list[i].adv_name, strlen(m_link_info_list[i].adv_name));
+                tx_command_payload_length = 8 + strlen(m_link_info_list[i].adv_name);
+            }
+            else 
+            {
+                tx_command_payload_length = 8;
+            }
+            cmd_buffer_put(tx_command_payload, tx_command_payload_length);
+        }
+    }
+
 }
 
 static uint16_t device_list_search(uint16_t conn_handle)
