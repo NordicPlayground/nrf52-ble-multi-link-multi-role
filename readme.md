@@ -102,6 +102,12 @@ Create a folder under *\nRF5_SDK_14.0.0\examples\\* called *training* and copy t
 4) After updating the phy, verify that you can still send button presses to the central, and receive LED updates from the central. 
    Try to experiment with the range, and see how the range is affected by using a different phy.
    
+5) To be able to used the CODED phy we need to increase the length of the Bluetooth events. The reason for this is that the coded packets are 8 times as long as the normal BLE packets, and require a significantly longer timeslot on air to be sent. 
+   To do this navigate to line 5116 of sdk_config.h and change the NRF_SDH_BLE_GAP_EVENT_LENGTH define from 3 to 6. 
+   
+6) Change the code you wrote in step 1) to set the PHY to CODED instead of 2Mbps. Compile and download the code, and verify that you can successfully change the phy. 
+
+   
 ## Task 4 - Add an app_timer instance to send automatic updates every 5 seconds
 
 1) At the top of main.c, use the *APP_TIMER_DEF* macro to define a new app_timer instance. You can call the instance variable *m_data_update_timer*. 
