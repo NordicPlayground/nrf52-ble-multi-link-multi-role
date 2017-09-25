@@ -80,7 +80,7 @@
 // Peripheral parameters
 #define DEVICE_NAME                  "MultiLinkDemo"                    /**< Name of device. Will be included in the advertising data. */
 #define AGG_CFG_SERVICE_UUID_TYPE    BLE_UUID_TYPE_VENDOR_BEGIN         /**< UUID type for the Nordic UART Service (vendor specific). */
-#define MIN_PERIPHERAL_CON_INT       MSEC_TO_UNITS(20, UNIT_1_25_MS)    /**< Determines minimum connection interval in milliseconds. */
+#define MIN_PERIPHERAL_CON_INT       MSEC_TO_UNITS(50, UNIT_1_25_MS)    /**< Determines minimum connection interval in milliseconds. */
 #define MAX_PERIPHERAL_CON_INT       MSEC_TO_UNITS(200, UNIT_1_25_MS)   /**< Determines maximum connection interval in milliseconds. */
 #define PERIPHERAL_SLAVE_LATENCY     0                                  /**< Slave latency. */
 #define PERIPHERAL_CONN_SUP_TIMEOUT  MSEC_TO_UNITS(4000, UNIT_10_MS)    /**< Connection supervisory timeout (4 seconds), Supervision Timeout uses 10 ms units. */
@@ -99,8 +99,8 @@
 #define SCAN_WINDOW                 0x0050                              /**< Determines scan window in units of 0.625 millisecond. */
 #define SCAN_TIMEOUT                0x0000                              /**< Timout when scanning. 0x0000 disables timeout. */
 
-#define MIN_CONNECTION_INTERVAL     MSEC_TO_UNITS(7.5, UNIT_1_25_MS)    /**< Determines minimum connection interval in milliseconds. */
-#define MAX_CONNECTION_INTERVAL     MSEC_TO_UNITS(30, UNIT_1_25_MS)     /**< Determines maximum connection interval in milliseconds. */
+#define MIN_CONNECTION_INTERVAL     MSEC_TO_UNITS(30, UNIT_1_25_MS)    /**< Determines minimum connection interval in milliseconds. */
+#define MAX_CONNECTION_INTERVAL     MSEC_TO_UNITS(60, UNIT_1_25_MS)     /**< Determines maximum connection interval in milliseconds. */
 #define SLAVE_LATENCY               0                                   /**< Determines slave latency in terms of connection events. */
 #define SUPERVISION_TIMEOUT         MSEC_TO_UNITS(4000, UNIT_10_MS)     /**< Determines supervision time-out in units of 10 milliseconds. */
 
@@ -238,13 +238,13 @@ static void agg_cfg_service_data_handler(ble_agg_cfg_service_evt_t * p_evt)
 {
     if (p_evt->type == BLE_AGG_CFG_SERVICE_EVT_RX_DATA)
     {
-        while(agg_cmd_received != 0);
-        //if(agg_cmd_received == 0)
+        //while(agg_cmd_received != 0);
+        if(agg_cmd_received == 0)
         {
             agg_cmd_received = p_evt->params.rx_data.p_data[0];
             memcpy(agg_cmd, &p_evt->params.rx_data.p_data[1], p_evt->params.rx_data.length);
         }
-        //else NRF_LOG_WARNING("AGG CMD OVERFLOW!!\r\n");
+        else NRF_LOG_WARNING("AGG CMD OVERFLOW!!\r\n");
     }
 }
 /**@snippet [Handling the data received over BLE] */
@@ -626,14 +626,14 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                              p_gap_evt->conn_handle,
                              p_gap_evt->params.disconnected.reason);
 
-                if (ble_conn_state_n_centrals() == 0)
+                /*if (ble_conn_state_n_centrals() == 0)
                 {
                     err_code = app_button_disable();
                     APP_ERROR_CHECK(err_code);
 
                     // Turn off connection indication LED
                     bsp_board_led_off(CENTRAL_CONNECTED_LED);
-                }
+                }*/
                 
                 if(p_gap_evt->conn_handle == m_service_discovery_conn_handle)
                 {
