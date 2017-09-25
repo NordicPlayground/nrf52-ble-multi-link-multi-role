@@ -54,7 +54,7 @@ Create a folder under *\nRF5_SDK_14.0.0\examples\\* called *training* and copy t
 
 3) Compile the code (F7) and run it on your kit. To run the code you can either download it to the kit (CTRL T, L), or start a debug session (press F5 two times). Once the code is running, verify that your board connects to the central device, and that you can see your name in the list. 
     ```C
-    ---- Device list overview (1 devices connected) ----
+    ---- Device list overview (1 device connected) ----
     
     ID   Name           Btn LED Phy   RSSI
      2   MyBlinky       0   0   1Mbps -15
@@ -62,7 +62,7 @@ Create a folder under *\nRF5_SDK_14.0.0\examples\\* called *training* and copy t
 
 4) Press button 1 on your kit, and verify that the value is updated on the central device.
     ```C
-    ---- Device list overview (1 devices connected) ----
+    ---- Device list overview (1 device connected) ----
     
     ID   Name           Btn LED Phy   RSSI
      2   MyBlinky       1   0   1Mbps -15
@@ -93,7 +93,7 @@ Create a folder under *\nRF5_SDK_14.0.0\examples\\* called *training* and copy t
 
 3) Press button 2 on your kit, and verify that the Phy is updated from 1Mbps to 2Mbps on the central side
     ```C
-    ---- Device list overview (1 devices connected) ----
+    ---- Device list overview (1 device connected) ----
     
     ID   Name           Btn LED Phy   RSSI
      1   MyBlinky       0   0   2Mbps -16
@@ -107,7 +107,13 @@ Create a folder under *\nRF5_SDK_14.0.0\examples\\* called *training* and copy t
    
 6) Change the code you wrote in step 1) to set the PHY to CODED instead of 2Mbps. Compile and download the code, and verify that you can successfully change the phy. 
 
-   
+    ```C
+    ---- Device list overview (1 device connected) ----
+    
+    ID   Name           Btn LED Phy   RSSI
+     1   MyBlinky       0   0   Coded -16
+     ```
+
 ## Task 4 - Add an app_timer instance to send automatic updates every 5 seconds
 
 1) At the top of main.c, use the *APP_TIMER_DEF* macro to define a new app_timer instance. You can call the instance variable *m_data_update_timer*. 
