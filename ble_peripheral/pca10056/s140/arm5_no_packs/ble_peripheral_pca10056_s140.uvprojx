@@ -389,6 +389,11 @@
               <FileType>5</FileType>
               <FilePath>..\config\sdk_config.h</FilePath>
             </File>
+            <File>
+              <FileName>radio_time_analysis.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\radio_time_analysis.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -3020,6 +3025,11 @@
               <FileName>sdk_config.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\config\sdk_config.h</FilePath>
+            </File>
+            <File>
+              <FileName>radio_time_analysis.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\radio_time_analysis.c</FilePath>
             </File>
           </Files>
         </Group>

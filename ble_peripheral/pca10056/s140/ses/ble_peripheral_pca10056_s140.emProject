@@ -36,6 +36,7 @@
     <folder Name="Application">
       <file file_name="../../../main.c" />
       <file file_name="../config/sdk_config.h" />
+      <file file_name="../../../radio_time_analysis.c" />
     </folder>
     <folder Name="Board Definition">
       <file file_name="../../../../../../../components/boards/boards.c" />

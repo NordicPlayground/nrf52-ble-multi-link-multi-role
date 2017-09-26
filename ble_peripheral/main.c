@@ -55,6 +55,7 @@
 #include "ble_conn_params.h"
 #include "nrf_sdh.h"
 #include "nrf_sdh_ble.h"
+#include "radio_time_analysis.h"
 #include "boards.h"
 #include "app_timer.h"
 #include "app_button.h"
@@ -77,7 +78,7 @@
 // ### Change the device name to include your group prefix plus your own unique name
 // ### For example, if your group prefix is 'GRP1:' and your name is 'John' the advertising name should be 'GRP1:John'
 // ### WARNING: Don't make the name longer than 25 characters, or it won't fit in the advertise packet. 
-#define DEVICE_NAME                     "GRP1:John"                             /**< Name of device. Will be included in the advertising data. */
+#define DEVICE_NAME                     "NT:John"                             /**< Name of device. Will be included in the advertising data. */
 // ### ----------------------------------------------------
 
 #define APP_BLE_OBSERVER_PRIO           1                                       /**< Application's BLE observer priority. You shouldn't need to modify this value. */
@@ -477,12 +478,6 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                 }
             }
         } break; // BLE_GATTS_EVT_RW_AUTHORIZE_REQUEST
-
-        case BLE_GAP_EVT_PHY_UPDATE:
-        {
-            const ble_gap_evt_phy_update_t *phy_update_event;
-            phy_update_event = &p_ble_evt->evt.gap_evt.params.phy_update;
-        }break;
         
         default:
             // No implementation needed.
@@ -615,6 +610,10 @@ int main(void)
 
 // ### ----------------------------------------------------
 
+    // This function enables analysis of the RX time in the RTT log
+    // This can be used to measure the impact of changing the PHY, by measuring the time of each packet over the air
+    radio_analysis_enable();
+	
     log_init();
     buttons_init();
     ble_stack_init();
