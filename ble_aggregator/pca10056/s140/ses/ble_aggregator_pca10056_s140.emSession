@@ -3,6 +3,7 @@
  <Bookmarks/>
  <Breakpoints groups="Breakpoints" active_group="Breakpoints">
   <BreakpointListItem trigger="" line="96" counter="0" hardwareBreakpoint="" isFunctionBreakpoint="false" action="" expression="" group="Breakpoints" type="Breakpoint" state="4" filename="../../../../../../../components/libraries/uart/retarget.c" useHWbreakpoint="false"/>
+  <Exceptions set="MemManage;UsageFault_Coprocessor;UsageFault_CheckingError;UsageFault_StateError;BusFault;ExceptionEntryReturnFault;HardFault"/>
  </Breakpoints>
  <ExecutionProfileWindow/>
  <FrameBufferWindow>
@@ -25,6 +26,7 @@
   <ProjectSessionItem path="ble_aggregator_pca10056_s140;ble_aggregator_pca10056_s140"/>
   <ProjectSessionItem path="ble_aggregator_pca10056_s140;ble_aggregator_pca10056_s140;Application"/>
   <ProjectSessionItem path="ble_aggregator_pca10056_s140;ble_aggregator_pca10056_s140;Internal Files"/>
+  <ProjectSessionItem path="ble_aggregator_pca10056_s140;ble_aggregator_pca10056_s140;nRF_BLE"/>
   <ProjectSessionItem path="ble_aggregator_pca10056_s140;ble_aggregator_pca10056_s140;nRF_Drivers"/>
   <ProjectSessionItem path="ble_aggregator_pca10056_s140;ble_aggregator_pca10056_s140;nRF_Libraries"/>
   <ProjectSessionItem path="ble_aggregator_pca10056_s140;ble_aggregator_pca10056_s140;nRF_Segger_RTT"/>
@@ -58,13 +60,20 @@
   <Watches active="0" update="Never"/>
  </Watch4>
  <Files>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="181" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../main.c" debugPath="../../../main.c" selected="1" top="144" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="38" y="756" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../main.c" debugPath="../../../main.c" selected="1" top="519" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="57" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../../components/device/nrf.h" debugPath="../../../../../../../components/device/nrf.h" selected="0" top="34" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="39" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../../components/toolchain/system_nrf52840.c" debugPath="../../../../../../../components/toolchain/system_nrf52840.c" selected="0" top="0" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="105" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../ble_thingy_client/ble_thingy_uis_c.h" debugPath="../../../ble_thingy_client/ble_thingy_uis_c.h" selected="0" top="83" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="57" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../../components/libraries/uart/retarget.c" debugPath="../../../../../../../components/libraries/uart/retarget.c" selected="0" top="36" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="0" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../app_aggregator.c" debugPath="../../../app_aggregator.c" selected="0" top="0" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="30" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../app_aggregator.h" debugPath="../../../app_aggregator.h" selected="0" top="0" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="45" y="338" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../app_aggregator.c" debugPath="../../../app_aggregator.c" selected="0" top="295" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="56" y="40" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../app_aggregator.h" debugPath="../../../app_aggregator.h" selected="0" top="0" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="41" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../../components/libraries/button/app_button.c" debugPath="../../../../../../../components/libraries/button/app_button.c" selected="0" top="0" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="75" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../../components/libraries/button/app_button.h" debugPath="../../../../../../../components/libraries/button/app_button.h" selected="0" top="45" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="51" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../../components/softdevice/s140/headers/ble.h" debugPath="../../../../../../../components/softdevice/s140/headers/ble.h" selected="0" top="45" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="36" y="1493" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../../components/softdevice/s140/headers/ble_gap.h" debugPath="../../../../../../../components/softdevice/s140/headers/ble_gap.h" selected="0" top="1460" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="531" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../../components/ble/ble_advertising/ble_advertising.c" debugPath="../../../../../../../components/ble/ble_advertising/ble_advertising.c" selected="0" top="504" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="5" y="438" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../../components/ble/common/ble_advdata.c" debugPath="../../../../../../../components/ble/common/ble_advdata.c" selected="0" top="432" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="8" y="65" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../../components/softdevice/s140/headers/nrf_error.h" debugPath="../../../../../../../components/softdevice/s140/headers/nrf_error.h" selected="0" top="40" codecName="Default"/>
  </Files>
- <ARMCrossStudioWindow activeProject="ble_aggregator_pca10056_s140" fileDialogDefaultFilter="*.c" autoConnectTarget="J-Link" buildConfiguration="nrf52840_xxaa" debugSearchFileMap="" fileDialogInitialDirectory="C:/Nordic Semiconductor/nRF5_SDK_14.0.0/components/toolchain" debugSearchPath="" autoConnectCapabilities="3199"/>
+ <ARMCrossStudioWindow activeProject="ble_aggregator_pca10056_s140" fileDialogDefaultFilter="*.c" autoConnectTarget="J-Link" buildConfiguration="nrf52840_xxaa" debugSearchFileMap="" fileDialogInitialDirectory="C:/Nordic Semiconductor/nRF5_SDK_14.0.0/components/toolchain" debugSearchPath="" autoConnectCapabilities="3711"/>
 </session>

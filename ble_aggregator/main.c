@@ -390,6 +390,9 @@ static void thingy_uis_c_evt_handler(ble_thingy_uis_c_t * p_thingy_uis_c, ble_th
                 scan_start();
             }
             
+
+            ble_thingy_uis_led_set_constant(p_thingy_uis_c, 255, 255, 255);
+
             m_service_discovery_in_process = false;
         } break; // BLE_LBS_C_EVT_DISCOVERY_COMPLETE
 
