@@ -113,7 +113,14 @@ Create a folder under *\nRF5_SDK_14.0.0\examples\\* called *training* and copy t
     ID   Name           Btn LED Phy   RSSI
      1   MyBlinky       0   0   Coded -16
      ```
+	 
+7) Double check that the phy is updated by running the debugger and compare the RX packet time, as reported over the RTT log:
+   ```C
+   <info> app: RX time - 40us
+   ```
 
+   When using the standard BLE phy an empty RX packet should be 40us long (not including access address and preamble). How does this change when setting the phy to 2Mbps or coded?
+ 
 ## Task 4 - Add an app_timer instance to send automatic updates every 5 seconds
 
 1) At the top of main.c, use the *APP_TIMER_DEF* macro to define a new app_timer instance. You can call the instance variable *m_data_update_timer*. 
