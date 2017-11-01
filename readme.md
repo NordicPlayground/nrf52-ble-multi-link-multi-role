@@ -11,7 +11,7 @@ The aggregator will collect information on all the connected devices, and relay 
 - Phy
 - RSSI
 
-![System overview](https://github.com/NordicSemiconductor/nrf52-ble-multi-link-multi-role/blob/master/pics/overview.png)
+![System overview](https://github.com/NordicPlayground/nrf52-ble-multi-link-multi-role/blob/master/pics/overview.png)
 
 ### Scope
 The hands on portion of this exercise require the attendants to go together in groups, where each group will need 1 aggregator device. All the attendands will connect to the same aggregator device, and use the aggregator device to verify that the hands on is completed. 
@@ -33,7 +33,7 @@ Each group will need the following for the aggregator
 ## Preparations
 1) The *ble_app_multi_link_multi_role* folder will have to be copied into your local SDKv14 folder in order for the examples to compile. 
 Create a folder under *\nRF5_SDK_14.0.0\examples\\* called *training* and copy the ble_app_multi_link_multi_role folder into it. When you are finished it should look like this:
-![SDK examples folder](https://github.com/NordicSemiconductor/nrf52-ble-multi-link-multi-role/blob/master/pics/sdk_folder.png)
+![SDK examples folder](https://github.com/NordicPlayground/nrf52-ble-multi-link-multi-role/blob/master/pics/sdk_folder.png)
 2) One person in each group needs to set up the aggregator. Ask the Nordic attendants for help if you are unsure who should set up the aggregator. 
    * Open the aggregator Segger project file: *\nRF5_SDK_14.0.0\examples\training\ble_app_multi_link_multi_role\ble_aggregator\pca10056\s140\ses\ble_aggregator_pca10056_s140.emProject*
    * Change the m_target_periph_name define on line 120 of main.c to something unique, so that only members of your group will be able to connect to your aggregator. 
@@ -50,7 +50,7 @@ Create a folder under *\nRF5_SDK_14.0.0\examples\\* called *training* and copy t
 2) Change the DEVICE_NAME define at the top of main.c to include your central group prefix plus your own unique name.
    For example, if your group prefix is *'GRP1:'* and your name is *'John'* the advertising name should be *'GRP1:John'*.
    WARNING: Don't make the name longer than 25 characters, or it won't fit in the advertise packet. 
-   ![Change Advertise Name](https://github.com/NordicSemiconductor/nrf52-ble-multi-link-multi-role/blob/master/pics/per_handson_01.png)
+   ![Change Advertise Name](https://github.com/NordicPlayground/nrf52-ble-multi-link-multi-role/blob/master/pics/per_handson_01.png)
 
 3) Compile the code (F7) and run it on your kit. To run the code you can either download it to the kit (CTRL T, L), or start a debug session (press F5 two times). Once the code is running, verify that your board connects to the central device, and that you can see your name in the list. 
     ```C
