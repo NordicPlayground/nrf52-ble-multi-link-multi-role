@@ -114,6 +114,16 @@ typedef __attribute__((__packed__)) struct
     uint16_t delay;
 }ble_thingy_uis_led_mode_breathe_t;
 
+#if defined(__CC_ARM)
+typedef __packed struct
+#else
+typedef __attribute__((__packed__)) struct 
+#endif
+{
+    uint8_t color;
+    uint8_t intensity;
+}ble_thingy_uis_led_mode_one_shot_t;
+
 enum {THINGY_UIS_LED_MODE_OFF, THINGY_UIS_LED_MODE_CONSTANT, THINGY_UIS_LED_MODE_BREATHE, THINGY_UIS_LED_MODE_ONESHOT};
 enum {THINGY_UIS_LED_COLOR_RED = 1, THINGY_UIS_LED_COLOR_GREEN, THINGY_UIS_LED_COLOR_YELLOW, THINGY_UIS_LED_COLOR_BLUE, THINGY_UIS_LED_COLOR_PURPLE, THINGY_UIS_LED_COLOR_CYAN, THINGY_UIS_LED_COLOR_WHITE};
 
@@ -132,6 +142,7 @@ typedef __attribute__((__packed__)) struct
   {
       ble_thingy_uis_led_mode_constant_t constant;
       ble_thingy_uis_led_mode_breathe_t breathe;
+      ble_thingy_uis_led_mode_one_shot_t one_shot;
   }params;
 }ble_thingy_uis_led_t;
 

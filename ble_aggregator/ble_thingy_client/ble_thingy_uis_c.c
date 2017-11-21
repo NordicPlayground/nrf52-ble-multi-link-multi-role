@@ -418,7 +418,10 @@ uint32_t ble_thingy_uis_led_set_breathe(ble_thingy_uis_c_t * p_ble_thingy_uis_c,
 uint32_t ble_thingy_uis_led_set_one_shot(ble_thingy_uis_c_t * p_ble_thingy_uis_c, uint8_t color, uint8_t intensity)
 {
     ble_thingy_uis_led_t led_state;
-    return ble_thingy_uis_led_status_send(p_ble_thingy_uis_c, &led_state, 2);    
+    led_state.mode = THINGY_UIS_LED_MODE_ONESHOT;
+    led_state.params.one_shot.color = color;
+    led_state.params.one_shot.intensity = intensity;
+    return ble_thingy_uis_led_status_send(p_ble_thingy_uis_c, &led_state, 3);    
 }
 
 uint32_t ble_thingy_uis_c_handles_assign(ble_thingy_uis_c_t    * p_ble_thingy_uis_c,
