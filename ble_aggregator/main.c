@@ -219,12 +219,14 @@ static void gap_params_init(void)
 
     err_code = sd_ble_gap_ppcp_set(&gap_conn_params);
     APP_ERROR_CHECK(err_code);
-    
+ 
+#ifdef S140                                          
     ble_opt_t ble_opt;
     ble_opt.gap_opt.preferred_phys.tx_phys = BLE_GAP_PHY_2MBPS | BLE_GAP_PHY_1MBPS | BLE_GAP_PHY_CODED;
     ble_opt.gap_opt.preferred_phys.rx_phys = BLE_GAP_PHY_2MBPS | BLE_GAP_PHY_1MBPS | BLE_GAP_PHY_CODED;    
                                           
     sd_ble_opt_set(BLE_GAP_OPT_PREFERRED_PHYS_SET, &ble_opt);
+#endif
 }
 
 enum {APPCMD_ERROR, APPCMD_SET_LED_ALL, APPCMD_SET_LED_ON_OFF_ALL, 
