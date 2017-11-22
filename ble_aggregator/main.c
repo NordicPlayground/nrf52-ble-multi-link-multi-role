@@ -58,7 +58,6 @@
 #include "ble.h"
 #include "ble_hci.h"
 #include "ble_advdata.h"
-#include "ble_advertising.h"
 #include "ble_conn_params.h"
 #include "ble_db_discovery.h"
 #include "ble_lbs_c.h"
@@ -86,7 +85,7 @@
 #define PERIPHERAL_CONN_SUP_TIMEOUT  MSEC_TO_UNITS(4000, UNIT_10_MS)    /**< Connection supervisory timeout (4 seconds), Supervision Timeout uses 10 ms units. */
 
 #define PERIPHERAL_ADV_INTERVAL                100                      /**< The advertising interval (in units of 0.625 ms. This value corresponds to 40 ms). */
-#define PERIPHERAL_ADV_TIMEOUT_IN_SECONDS      180                      /**< The advertising timeout (in units of seconds). */
+#define PERIPHERAL_ADV_TIMEOUT_IN_SECONDS      0                        /**< The advertising timeout (in units of seconds). */
 
 #define CENTRAL_SCANNING_LED        BSP_BOARD_LED_0
 #define CENTRAL_CONNECTED_LED       BSP_BOARD_LED_1
@@ -135,22 +134,23 @@ static ret_code_t led_status_send_to_all(uint8_t button_state, uint8_t r, uint8_
 static ret_code_t led_status_send_by_mask(uint8_t button_state, uint8_t r, uint8_t g, uint8_t b, uint32_t mask);
 static ret_code_t led_status_on_off_send_by_mask(bool on, uint32_t mask);
 static ret_code_t post_connect_message(uint8_t conn_handle);
+static void       advertising_start(void);
 
 /**@brief Scan parameters requested for scanning and connection. */
 static ble_gap_scan_params_t const m_scan_params =
 {
-    .active   = 0,
-    .interval = SCAN_INTERVAL,
-    .window   = SCAN_WINDOW,
-    .timeout  = SCAN_TIMEOUT,
-    #if (NRF_SD_BLE_API_VERSION <= 2)
-        .selective   = 0,
-        .p_whitelist = NULL,
-    #endif
-    #if (NRF_SD_BLE_API_VERSION >= 3)
-        .use_whitelist  = 0,
-        .adv_dir_report = 0,
-    #endif
+    .active            = 0x00,
+    .interval          = SCAN_INTERVAL,
+    .window            = SCAN_WINDOW,
+    .filter_policy     = BLE_GAP_SCAN_FP_ACCEPT_ALL,
+    .filter_duplicates = BLE_GAP_SCAN_DUPLICATES_REPORT,
+#if defined(S140)
+    .scan_phy          = BLE_GAP_PHY_1MBPS,
+#else
+    .scan_phy          = BLE_GAP_PHY_1MBPS,
+#endif
+    .duration          = 0x0000, // No timeout.
+    .period            = 0x0000, // No period.
 };
 
 /**@brief Connection parameters requested for connection. */
@@ -219,18 +219,11 @@ static void gap_params_init(void)
 
     err_code = sd_ble_gap_ppcp_set(&gap_conn_params);
     APP_ERROR_CHECK(err_code);
- 
-#ifdef S140                                          
-    ble_opt_t ble_opt;
-    ble_opt.gap_opt.preferred_phys.tx_phys = BLE_GAP_PHY_2MBPS | BLE_GAP_PHY_1MBPS | BLE_GAP_PHY_CODED;
-    ble_opt.gap_opt.preferred_phys.rx_phys = BLE_GAP_PHY_2MBPS | BLE_GAP_PHY_1MBPS | BLE_GAP_PHY_CODED;    
-                                          
-    sd_ble_opt_set(BLE_GAP_OPT_PREFERRED_PHYS_SET, &ble_opt);
-#endif
 }
 
 enum {APPCMD_ERROR, APPCMD_SET_LED_ALL, APPCMD_SET_LED_ON_OFF_ALL, 
-      APPCMD_POST_CONNECT_MESSAGE, APPCMD_DISCONNECT_PERIPHERALS};
+      APPCMD_POST_CONNECT_MESSAGE, APPCMD_DISCONNECT_PERIPHERALS,
+      APPCMD_DISCONNECT_CENTRAL};
 
 
 static volatile uint32_t agg_cmd_received = 0;
@@ -510,28 +503,6 @@ static void on_adv_report(ble_evt_t const * p_ble_evt)
 }
 
 
-/**@brief Function for handling advertising events.
- *
- * @details This function will be called for advertising events which are passed to the application.
- *
- * @param[in] ble_adv_evt  Advertising event.
- */
-static void on_adv_evt(ble_adv_evt_t ble_adv_evt)
-{
-    //uint32_t err_code;
-
-    switch (ble_adv_evt)
-    {
-        case BLE_ADV_EVT_FAST:
-            break;
-        case BLE_ADV_EVT_IDLE:
-            break;
-        default:
-            break;
-    }
-}
-
-
 /**@brief Function for handling BLE events.
  *
  * @param[in]   p_ble_evt   Bluetooth stack event.
@@ -665,8 +636,7 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                 m_per_con_handle = BLE_CONN_HANDLE_INVALID;
                 
                 // Start advertising
-                err_code = ble_advertising_start(&m_advertising, BLE_ADV_MODE_FAST);
-                APP_ERROR_CHECK(err_code);
+                advertising_start();
             }
 
         } break;
@@ -685,9 +655,9 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             else if(p_gap_evt->params.timeout.src == BLE_GAP_TIMEOUT_SRC_ADVERTISING)
             {
                 NRF_LOG_INFO("Advertise timeout - Restarting...");
+
                 // Start advertising
-                err_code = ble_advertising_start(&m_advertising, BLE_ADV_MODE_FAST);
-                APP_ERROR_CHECK(err_code);
+                advertising_start();
             }
                 
         } break;
@@ -841,32 +811,50 @@ static void ble_stack_init(void)
 }
 
 
-/**@brief Function for initializing the Advertising functionality.
- */
-static void advertising_init(void)
+/**@brief Function for setting up advertising data. */
+static void advertising_data_set(void)
 {
-    uint32_t               err_code;
-    ble_advertising_init_t init;
+    
+    static ble_advdata_t adv_data; 
+    memset(&adv_data, 0, sizeof(adv_data));
+    adv_data.name_type          = BLE_ADVDATA_FULL_NAME;
+    adv_data.flags              = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
+    adv_data.include_appearance = false;
 
-    memset(&init, 0, sizeof(init));
-
-    init.advdata.name_type          = BLE_ADVDATA_FULL_NAME;
-    init.advdata.include_appearance = false;
-    init.advdata.flags              = BLE_GAP_ADV_FLAGS_LE_ONLY_LIMITED_DISC_MODE;
-
-    init.srdata.uuids_complete.uuid_cnt = sizeof(m_adv_uuids) / sizeof(m_adv_uuids[0]);
-    init.srdata.uuids_complete.p_uuids  = m_adv_uuids;
-
-    init.config.ble_adv_fast_enabled  = true;
-    init.config.ble_adv_fast_interval = PERIPHERAL_ADV_INTERVAL;
-    init.config.ble_adv_fast_timeout  = PERIPHERAL_ADV_TIMEOUT_IN_SECONDS;
-
-    init.evt_handler = on_adv_evt;
-
-    err_code = ble_advertising_init(&m_advertising, &init);
+    static ble_advdata_t sr_data;
+    memset(&sr_data, 0, sizeof(sr_data));
+    sr_data.uuids_complete.uuid_cnt = sizeof(m_adv_uuids) / sizeof(m_adv_uuids[0]);
+    sr_data.uuids_complete.p_uuids = m_adv_uuids;
+    
+    ret_code_t err_code = ble_advdata_set(&adv_data, &sr_data);
     APP_ERROR_CHECK(err_code);
+}
 
-    ble_advertising_conn_cfg_tag_set(&m_advertising, APP_BLE_CONN_CFG_TAG);
+
+/**@brief Function for starting advertising. */
+static void advertising_start(void)
+{
+    static ble_gap_adv_params_t adv_params = {0};
+    
+    adv_params.properties.connectable = 1;
+    adv_params.properties.scannable = 1;
+    adv_params.properties.legacy_pdu = 1;
+    adv_params.p_peer_addr   = NULL;
+    adv_params.fp            = BLE_GAP_ADV_FP_ANY;
+    adv_params.interval      = PERIPHERAL_ADV_INTERVAL;
+    adv_params.duration      = PERIPHERAL_ADV_TIMEOUT_IN_SECONDS * 100;
+#if defined(S140)
+    adv_params.primary_phy   = BLE_GAP_PHY_1MBPS;
+    adv_params.secondary_phy = BLE_GAP_PHY_1MBPS;
+#else
+        .primary_phy   = BLE_GAP_PHY_1MBPS,
+        .secondary_phy = BLE_GAP_PHY_1MBPS,
+#endif
+
+    NRF_LOG_INFO("Starting advertising.");
+
+    ret_code_t err_code = sd_ble_gap_adv_start(BLE_GAP_ADV_SET_HANDLE_DEFAULT, &adv_params, APP_BLE_CONN_CFG_TAG);
+    APP_ERROR_CHECK(err_code);
 }
 
 
@@ -1033,8 +1021,7 @@ static void button_event_handler(uint8_t pin_no, uint8_t button_action)
             // Start advertising
             if(button_action == APP_BUTTON_PUSH)
             {
-                err_code = ble_advertising_start(&m_advertising, BLE_ADV_MODE_FAST);
-                APP_ERROR_CHECK(err_code);
+                advertising_start();
             }
             break;
 
@@ -1201,6 +1188,10 @@ static void process_app_commands()
             case APPCMD_DISCONNECT_PERIPHERALS:
                 disconnect_all_peripherals();
                 break;
+
+            case APPCMD_DISCONNECT_CENTRAL:
+                sd_ble_gap_disconnect(m_per_con_handle, BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
+                break;
             
             default:
                 break;
@@ -1228,7 +1219,7 @@ int main(void)
     lbs_c_init();
     thingy_uis_c_init();
     ble_conn_state_init();
-    advertising_init();
+    advertising_data_set();
 
     NRF_LOG_INFO("Multilink example started");
     uart_printf("Multilink example started. Group name \"%s\"\r\n", m_target_periph_name);
@@ -1237,8 +1228,7 @@ int main(void)
     scan_start();
 
     // Start advertising
-    err_code = ble_advertising_start(&m_advertising, BLE_ADV_MODE_FAST);
-    APP_ERROR_CHECK(err_code);
+    advertising_start();
     
     // Turn on the LED to signal scanning.
     bsp_board_led_on(CENTRAL_SCANNING_LED);
