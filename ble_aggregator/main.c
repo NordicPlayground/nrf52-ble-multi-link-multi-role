@@ -96,7 +96,7 @@
 
 #define SCAN_INTERVAL               0x00A0                              /**< Determines scan interval in units of 0.625 millisecond. */
 #define SCAN_WINDOW                 0x0050                              /**< Determines scan window in units of 0.625 millisecond. */
-#define SCAN_TIMEOUT                0x0000                              /**< Timout when scanning. 0x0000 disables timeout. */
+#define SCAN_TIMEOUT                0x0100                              /**< Timout when scanning. 0x0000 disables timeout. */
 
 #define MIN_CONNECTION_INTERVAL     MSEC_TO_UNITS(30, UNIT_1_25_MS)    /**< Determines minimum connection interval in milliseconds. */
 #define MAX_CONNECTION_INTERVAL     MSEC_TO_UNITS(60, UNIT_1_25_MS)     /**< Determines maximum connection interval in milliseconds. */
@@ -121,7 +121,7 @@ static char const m_target_periph_name[] = "NT:";                       /**< Nam
 static volatile bool m_service_discovery_in_process = false;
 static uint16_t   m_service_discovery_conn_handle = BLE_CONN_HANDLE_INVALID;
 static uint16_t   m_per_con_handle       = BLE_CONN_HANDLE_INVALID;
-static ble_uuid_t m_adv_uuids[]          =                                          /**< Universally unique service identifier. */
+static ble_uuid_t m_adv_uuids[]          =                              /**< Universally unique service identifier. */
 {
     {BLE_UUID_AGG_CFG_SERVICE_SERVICE, AGG_CFG_SERVICE_UUID_TYPE}
 };
@@ -137,7 +137,7 @@ static ret_code_t post_connect_message(uint8_t conn_handle);
 static void       advertising_start(void);
 
 /**@brief Scan parameters requested for scanning and connection. */
-static ble_gap_scan_params_t const m_scan_params =
+static ble_gap_scan_params_t m_scan_params =
 {
     .active            = 0x00,
     .interval          = SCAN_INTERVAL,
@@ -149,7 +149,7 @@ static ble_gap_scan_params_t const m_scan_params =
 #else
     .scan_phy          = BLE_GAP_PHY_1MBPS,
 #endif
-    .duration          = 0x0000, // No timeout.
+    .duration          = SCAN_TIMEOUT,
     .period            = 0x0000, // No period.
 };
 
@@ -298,7 +298,7 @@ static void scan_start(void)
 
     (void) sd_ble_gap_scan_stop();
 
-    NRF_LOG_INFO("Start scanning for device name %s.", (uint32_t)m_target_periph_name);
+    NRF_LOG_DEBUG("Start scanning for device name %s.", (uint32_t)m_target_periph_name);
     ret = sd_ble_gap_scan_start(&m_scan_params);
     APP_ERROR_CHECK(ret);
 
@@ -413,7 +413,7 @@ static void on_adv_report(ble_evt_t const * p_ble_evt)
     uint8_array_t adv_data;
     uint8_array_t dev_name;
     uint8_array_t service_uuid;
-
+    NRF_LOG_INFO("ADV");
     if (m_device_type_being_connected_to == DEVTYPE_NONE)
     {
 
@@ -658,6 +658,12 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
 
                 // Start advertising
                 advertising_start();
+            }
+            else if(p_gap_evt->params.timeout.src == BLE_GAP_TIMEOUT_SRC_SCAN)
+            {
+                NRF_LOG_DEBUG("Scan timeout - Switching phy and restarting...");
+                m_scan_params.scan_phy = (m_scan_params.scan_phy == BLE_GAP_PHY_1MBPS) ? BLE_GAP_PHY_CODED : BLE_GAP_PHY_1MBPS;
+                scan_start();
             }
                 
         } break;
