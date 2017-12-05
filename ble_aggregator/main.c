@@ -105,7 +105,7 @@
 
 #define UUID16_SIZE                 2                                   /**< Size of a UUID, in bytes. */
 
-#define THINGY_RSSI_CONNECT_LIMIT   -35
+#define THINGY_RSSI_CONNECT_LIMIT   -45
 
 NRF_BLE_GATT_DEF(m_gatt);                                               /**< GATT module instance. */
 
@@ -1031,13 +1031,18 @@ static void button_event_handler(uint8_t pin_no, uint8_t button_action)
             break;
 
         case BUTTON_3:
-            // Start advertising
             if(button_action == APP_BUTTON_PUSH)
             {
-                advertising_start();
+                NRF_LOG_INFO("BUTTON3 pressed");
             }
             break;
 
+        case BUTTON_4:
+            if(button_action == APP_BUTTON_PUSH)
+            {
+                NRF_LOG_INFO("BUTTON4 pressed");
+            }
+            break;
         default:
             APP_ERROR_HANDLER(pin_no);
             break;
