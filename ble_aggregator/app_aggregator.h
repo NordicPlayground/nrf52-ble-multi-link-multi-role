@@ -21,10 +21,16 @@ typedef struct
     uint8_t  adv_name[MAX_ADV_NAME_LENGTH + 1];
 }link_info_t;
 
+typedef struct
+{
+    uint32_t dev_type;
+    const char *dev_name;
+    uint32_t phy;
+}connected_device_info_t;
+
 void app_aggregator_init(ble_agg_cfg_service_t *agg_cfg_service);
 
-void app_aggregator_on_central_connect(const ble_gap_evt_t *ble_gap_evt, uint32_t dev_type, 
-                                       const char *dev_name);
+void app_aggregator_on_central_connect(const ble_gap_evt_t *ble_gap_evt, connected_device_info_t *con_dev_info);
 
 void app_aggregator_on_central_disconnect(const ble_gap_evt_t *ble_gap_evt);
 
