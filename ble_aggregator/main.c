@@ -127,8 +127,10 @@ static ble_uuid_t m_adv_uuids[]          =                              /**< Uni
 };
 
 typedef enum {DEVTYPE_NONE, DEVTYPE_BLINKY, DEVTYPE_THINGY} device_type_t;
-device_type_t    m_device_type_being_connected_to = DEVTYPE_NONE;
+
+//device_type_t    m_device_type_being_connected_to = DEVTYPE_NONE;
 char             m_device_name_being_connected_to[30];
+connected_device_info_t m_device_being_connected_info = {DEVTYPE_NONE, m_device_name_being_connected_to, 0};
 
 static ret_code_t led_status_send_to_all(uint8_t button_state, uint8_t r, uint8_t g, uint8_t b);
 static ret_code_t led_status_send_by_mask(uint8_t button_state, uint8_t r, uint8_t g, uint8_t b, uint32_t mask);
@@ -144,11 +146,7 @@ static ble_gap_scan_params_t m_scan_params =
     .window            = SCAN_WINDOW,
     .filter_policy     = BLE_GAP_SCAN_FP_ACCEPT_ALL,
     .filter_duplicates = BLE_GAP_SCAN_DUPLICATES_REPORT,
-#if defined(S140)
     .scan_phy          = BLE_GAP_PHY_1MBPS,
-#else
-    .scan_phy          = BLE_GAP_PHY_1MBPS,
-#endif
     .duration          = SCAN_TIMEOUT,
     .period            = 0x0000, // No period.
 };
@@ -218,6 +216,9 @@ static void gap_params_init(void)
     gap_conn_params.conn_sup_timeout  = PERIPHERAL_CONN_SUP_TIMEOUT;
 
     err_code = sd_ble_gap_ppcp_set(&gap_conn_params);
+    APP_ERROR_CHECK(err_code);
+
+    err_code = sd_ble_gap_tx_power_set(BLE_GAP_TX_POWER_ROLE_SCAN_INIT, BLE_CONN_HANDLE_INVALID, 8);
     APP_ERROR_CHECK(err_code);
 }
 
@@ -413,8 +414,8 @@ static void on_adv_report(ble_evt_t const * p_ble_evt)
     uint8_array_t adv_data;
     uint8_array_t dev_name;
     uint8_array_t service_uuid;
-    NRF_LOG_INFO("ADV");
-    if (m_device_type_being_connected_to == DEVTYPE_NONE)
+
+    if (m_device_being_connected_info.dev_type == DEVTYPE_NONE)
     {
 
         // For readibility.
@@ -464,7 +465,7 @@ static void on_adv_report(ble_evt_t const * p_ble_evt)
                                dev_name.size - strlen(m_target_periph_name));
                         m_device_name_being_connected_to[dev_name.size - strlen(m_target_periph_name)] = 0;
                     }
-                    m_device_type_being_connected_to = DEVTYPE_BLINKY;
+                    m_device_being_connected_info.dev_type = DEVTYPE_BLINKY;
                 }
             }
         }
@@ -485,13 +486,15 @@ static void on_adv_report(ble_evt_t const * p_ble_evt)
                                dev_name.p_data, dev_name.size);
                         m_device_name_being_connected_to[dev_name.size] = 0;
                     }
-                    m_device_type_being_connected_to = DEVTYPE_THINGY;
+                    m_device_being_connected_info.dev_type = DEVTYPE_THINGY;
                 }
             }
         }
 
-        if (m_device_type_being_connected_to != DEVTYPE_NONE)
+        if (m_device_being_connected_info.dev_type != DEVTYPE_NONE)
         {
+            m_device_being_connected_info.phy = m_scan_params.scan_phy;
+            
             // Initiate connection.
             err_code = sd_ble_gap_connect(peer_addr, &m_scan_params, &m_connection_param, APP_BLE_CONN_CFG_TAG);
             if (err_code != NRF_SUCCESS)
@@ -529,7 +532,7 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
 
                 //APP_ERROR_CHECK_BOOL(p_gap_evt->conn_handle < NRF_SDH_BLE_CENTRAL_LINK_COUNT);
                 
-                switch(m_device_type_being_connected_to)
+                switch(m_device_being_connected_info.dev_type)
                 {
                     case DEVTYPE_BLINKY:
                         err_code = ble_lbs_c_handles_assign(&m_lbs_c[p_gap_evt->conn_handle],
@@ -560,9 +563,11 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                 err_code = sd_ble_gap_rssi_start(p_gap_evt->conn_handle, 5, 4);
                 APP_ERROR_CHECK(err_code);
 
+                err_code = sd_ble_gap_tx_power_set(BLE_GAP_TX_POWER_ROLE_CONN, p_gap_evt->conn_handle, 8);
+                APP_ERROR_CHECK(err_code);
+
                 // Notify the aggregator service
-                app_aggregator_on_central_connect(p_gap_evt, m_device_type_being_connected_to, 
-                                                  m_device_name_being_connected_to);
+                app_aggregator_on_central_connect(p_gap_evt, &m_device_being_connected_info);
                 
                 // Update LEDs status, and check if we should be looking for more
                 // peripherals to connect to.
@@ -578,7 +583,7 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                     //scan_start();
                 }
                 
-                m_device_type_being_connected_to = DEVTYPE_NONE;
+                m_device_being_connected_info.dev_type = DEVTYPE_NONE;
             }
             // Handle links as a peripheral here
             else
@@ -662,7 +667,9 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             else if(p_gap_evt->params.timeout.src == BLE_GAP_TIMEOUT_SRC_SCAN)
             {
                 NRF_LOG_DEBUG("Scan timeout - Switching phy and restarting...");
+#if defined(S140)
                 m_scan_params.scan_phy = (m_scan_params.scan_phy == BLE_GAP_PHY_1MBPS) ? BLE_GAP_PHY_CODED : BLE_GAP_PHY_1MBPS;
+#endif
                 scan_start();
             }
                 

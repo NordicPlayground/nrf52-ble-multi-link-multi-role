@@ -121,9 +121,9 @@
       <file file_name="../../../../../../../components/ble/ble_services/ble_lbs_c/ble_lbs_c.c" />
     </folder>
     <folder Name="nRF_SoftDevice">
-      <file file_name="../../../../../../../components/softdevice/common/nrf_sdh.c" />
       <file file_name="../../../../../../../components/softdevice/common/nrf_sdh_ble.c" />
       <file file_name="../../../../../../../components/softdevice/common/nrf_sdh_soc.c" />
+      <file file_name="../../../nrf_sdh_lrmod.c" />
     </folder>
     <configuration Connection="USB 683541437" Name="Debug" />
   </project>

@@ -26,7 +26,7 @@ static volatile bool m_schedule_device_list_print = true;
 
 static uint16_t device_list_search(uint16_t conn_handle);
 static uint16_t device_list_find_available(void);
-static void device_connected(uint16_t conn_handle, uint16_t dev_type, const char *device_name);
+static void device_connected(uint16_t conn_handle, connected_device_info_t *con_dev_info);
 static void device_disconnected(uint16_t conn_handle);
 
 /*static bool cmd_buffer_put(uint8_t *data, uint16_t length)
@@ -151,26 +151,26 @@ void app_aggregator_init(ble_agg_cfg_service_t *agg_cfg_service)
     m_device_name_header_string[MAX_ADV_NAME_LENGTH] = 0;
 }
 
-void app_aggregator_on_central_connect(const ble_gap_evt_t *ble_gap_evt, uint32_t dev_type, const char *dev_name)
+void app_aggregator_on_central_connect(const ble_gap_evt_t *ble_gap_evt, connected_device_info_t *con_dev_info)
 {
     uint16_t conn_handle = ble_gap_evt->conn_handle;
     
     // Update local device list
-    device_connected(conn_handle, dev_type, dev_name);
+    device_connected(conn_handle, con_dev_info);
     
     // Send info to central device (if connected)
     tx_command_payload[0] = AGG_BLE_LINK_CONNECTED;
     tx_command_payload[1] = ble_gap_evt->conn_handle >> 8;
     tx_command_payload[2] = ble_gap_evt->conn_handle & 0xFF;
-    tx_command_payload[3] = dev_type & 0xFF;
+    tx_command_payload[3] = con_dev_info->dev_type & 0xFF;
     tx_command_payload[4] = 0; //Button state
     tx_command_payload[5] = 0; // LED state;
     tx_command_payload[6] = 0; // RSSI
-    tx_command_payload[7] = 1; // PHY
-    if(strlen(dev_name) <= MAX_ADV_NAME_LENGTH)
+    tx_command_payload[7] = con_dev_info->phy; // PHY
+    if(strlen(con_dev_info->dev_type) <= MAX_ADV_NAME_LENGTH)
     {
-        memcpy(&tx_command_payload[8], dev_name, strlen(dev_name));
-        tx_command_payload_length = 8 + strlen(dev_name);
+        memcpy(&tx_command_payload[8], con_dev_info->dev_type, strlen(con_dev_info->dev_type));
+        tx_command_payload_length = 8 + strlen(con_dev_info->dev_type);
     }
     else 
     {
@@ -358,7 +358,7 @@ static uint16_t device_list_find_available()
     return device_list_search(BLE_CONN_HANDLE_INVALID);
 }
 
-static void device_connected(uint16_t conn_handle, uint16_t device_type, const char *device_name)
+static void device_connected(uint16_t conn_handle, connected_device_info_t *con_dev_info)
 {
     if(device_list_search(conn_handle) == BLE_CONN_HANDLE_INVALID)
     {
@@ -368,14 +368,14 @@ static void device_connected(uint16_t conn_handle, uint16_t device_type, const c
         {
             uint32_t device_name_length;
             m_link_info_list[new_device_index].conn_handle = conn_handle;
-            m_link_info_list[new_device_index].device_type = device_type; 
+            m_link_info_list[new_device_index].device_type = con_dev_info->dev_type; 
             m_link_info_list[new_device_index].button_state = 0; 
             m_link_info_list[new_device_index].led_state = 0; 
-            device_name_length = (strlen(device_name) > MAX_ADV_NAME_LENGTH) ? MAX_ADV_NAME_LENGTH : strlen(device_name);
-            memcpy(m_link_info_list[new_device_index].adv_name, device_name, device_name_length);
+            device_name_length = (strlen(con_dev_info->dev_name) > MAX_ADV_NAME_LENGTH) ? MAX_ADV_NAME_LENGTH : strlen(con_dev_info->dev_name);
+            memcpy(m_link_info_list[new_device_index].adv_name, con_dev_info->dev_name, device_name_length);
             for(int i = device_name_length; i < MAX_ADV_NAME_LENGTH; i++) m_link_info_list[new_device_index].adv_name[i] = ' ';
             m_link_info_list[new_device_index].adv_name[MAX_ADV_NAME_LENGTH - 1] = 0;
-            m_link_info_list[new_device_index].rf_phy = 1;
+            m_link_info_list[new_device_index].rf_phy = con_dev_info->phy;
             m_link_info_list[new_device_index].last_rssi = 0;
             m_schedule_device_list_print = true;
         }
