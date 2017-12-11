@@ -272,8 +272,8 @@
               </OCR_RVCT3>
               <OCR_RVCT4>
                 <Type>1</Type>
-                <StartAddress>0x22000</StartAddress>
-                <Size>0xde000</Size>
+                <StartAddress>0x25000</StartAddress>
+                <Size>0xdb000</Size>
               </OCR_RVCT4>
               <OCR_RVCT5>
                 <Type>1</Type>
@@ -297,8 +297,8 @@
               </OCR_RVCT8>
               <OCR_RVCT9>
                 <Type>0</Type>
-                <StartAddress>0x200097c8</StartAddress>
-                <Size>0x36838</Size>
+                <StartAddress>0x20009e10</StartAddress>
+                <Size>0x361f0</Size>
               </OCR_RVCT9>
               <OCR_RVCT10>
                 <Type>0</Type>
@@ -335,7 +335,7 @@
               <MiscControls>--reduce_paths</MiscControls>
               <Define>BOARD_PCA10056 CONFIG_GPIO_AS_PINRESET APP_FIFO_ENABLED=1 NRF52840_XXAA NRF_SD_BLE_API_VERSION=5 S140 SOFTDEVICE_PRESENT SWI_DISABLE0 __HEAP_SIZE=0 RETARGET_ENABLED = 1 NRF_LOG_USES_RTT = 0</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\..\config;..\..\..\..\..\..\..\components;..\..\..\..\..\..\..\components\ble\ble_advertising;..\..\..\..\..\..\..\components\ble\ble_db_discovery;..\..\..\..\..\..\..\components\ble\ble_dtm;..\..\..\..\..\..\..\components\ble\ble_racp;..\..\..\..\..\..\..\components\ble\ble_services\ble_ancs_c;..\..\..\..\..\..\..\components\ble\ble_services\ble_ans_c;..\..\..\..\..\..\..\components\ble\ble_services\ble_bas;..\..\..\..\..\..\..\components\ble\ble_services\ble_bas_c;..\..\..\..\..\..\..\components\ble\ble_services\ble_cscs;..\..\..\..\..\..\..\components\ble\ble_services\ble_cts_c;..\..\..\..\..\..\..\components\ble\ble_services\ble_dfu;..\..\..\..\..\..\..\components\ble\ble_services\ble_dis;..\..\..\..\..\..\..\components\ble\ble_services\ble_gls;..\..\..\..\..\..\..\components\ble\ble_services\ble_hids;..\..\..\..\..\..\..\components\ble\ble_services\ble_hrs;..\..\..\..\..\..\..\components\ble\ble_services\ble_hrs_c;..\..\..\..\..\..\..\components\ble\ble_services\ble_hts;..\..\..\..\..\..\..\components\ble\ble_services\ble_ias;..\..\..\..\..\..\..\components\ble\ble_services\ble_ias_c;..\..\..\..\..\..\..\components\ble\ble_services\ble_lbs;..\..\..\..\..\..\..\components\ble\ble_services\ble_lbs_c;..\..\..\..\..\..\..\components\ble\ble_services\ble_lls;..\..\..\..\..\..\..\components\ble\ble_services\ble_nus;..\..\..\..\..\..\..\components\ble\ble_services\ble_nus_c;..\..\..\..\..\..\..\components\ble\ble_services\ble_rscs;..\..\..\..\..\..\..\components\ble\ble_services\ble_rscs_c;..\..\..\..\..\..\..\components\ble\ble_services\ble_tps;..\..\..\..\..\..\..\components\ble\common;..\..\..\..\..\..\..\components\ble\nrf_ble_gatt;..\..\..\..\..\..\..\components\ble\nrf_ble_qwr;..\..\..\..\..\..\..\components\ble\peer_manager;..\..\..\..\..\..\..\components\boards;..\..\..\..\..\..\..\components\drivers_nrf\clock;..\..\..\..\..\..\..\components\drivers_nrf\common;..\..\..\..\..\..\..\components\drivers_nrf\comp;..\..\..\..\..\..\..\components\drivers_nrf\delay;..\..\..\..\..\..\..\components\drivers_nrf\gpiote;..\..\..\..\..\..\..\components\drivers_nrf\hal;..\..\..\..\..\..\..\components\drivers_nrf\i2s;..\..\..\..\..\..\..\components\drivers_nrf\lpcomp;..\..\..\..\..\..\..\components\drivers_nrf\pdm;..\..\..\..\..\..\..\components\drivers_nrf\power;..\..\..\..\..\..\..\components\drivers_nrf\ppi;..\..\..\..\..\..\..\components\drivers_nrf\pwm;..\..\..\..\..\..\..\components\drivers_nrf\qdec;..\..\..\..\..\..\..\components\drivers_nrf\rng;..\..\..\..\..\..\..\components\drivers_nrf\rtc;..\..\..\..\..\..\..\components\drivers_nrf\saadc;..\..\..\..\..\..\..\components\drivers_nrf\spi_master;..\..\..\..\..\..\..\components\drivers_nrf\spi_slave;..\..\..\..\..\..\..\components\drivers_nrf\swi;..\..\..\..\..\..\..\components\drivers_nrf\timer;..\..\..\..\..\..\..\components\drivers_nrf\twi_master;..\..\..\..\..\..\..\components\drivers_nrf\twis_slave;..\..\..\..\..\..\..\components\drivers_nrf\uart;..\..\..\..\..\..\..\components\drivers_nrf\usbd;..\..\..\..\..\..\..\components\drivers_nrf\wdt;..\..\..\..\..\..\..\components\libraries\atomic;..\..\..\..\..\..\..\components\libraries\atomic_fifo;..\..\..\..\..\..\..\components\libraries\balloc;..\..\..\..\..\..\..\components\libraries\bsp;..\..\..\..\..\..\..\components\libraries\button;..\..\..\..\..\..\..\components\libraries\crc16;..\..\..\..\..\..\..\components\libraries\crc32;..\..\..\..\..\..\..\components\libraries\csense;..\..\..\..\..\..\..\components\libraries\csense_drv;..\..\..\..\..\..\..\components\libraries\ecc;..\..\..\..\..\..\..\components\libraries\experimental_cli;..\..\..\..\..\..\..\components\libraries\experimental_log;..\..\..\..\..\..\..\components\libraries\experimental_log\src;..\..\..\..\..\..\..\components\libraries\experimental_memobj;..\..\..\..\..\..\..\components\libraries\experimental_section_vars;..\..\..\..\..\..\..\components\libraries\fds;..\..\..\..\..\..\..\components\libraries\fstorage;..\..\..\..\..\..\..\components\libraries\gpiote;..\..\..\..\..\..\..\components\libraries\hardfault;..\..\..\..\..\..\..\components\libraries\hci;..\..\..\..\..\..\..\components\libraries\led_softblink;..\..\..\..\..\..\..\components\libraries\low_power_pwm;..\..\..\..\..\..\..\components\libraries\mem_manager;..\..\..\..\..\..\..\components\libraries\pwm;..\..\..\..\..\..\..\components\libraries\queue;..\..\..\..\..\..\..\components\libraries\scheduler;..\..\..\..\..\..\..\components\libraries\slip;..\..\..\..\..\..\..\components\libraries\strerror;..\..\..\..\..\..\..\components\libraries\timer;..\..\..\..\..\..\..\components\libraries\twi;..\..\..\..\..\..\..\components\libraries\uart;..\..\..\..\..\..\..\components\libraries\usbd;..\..\..\..\..\..\..\components\libraries\usbd\class\audio;..\..\..\..\..\..\..\components\libraries\usbd\class\cdc;..\..\..\..\..\..\..\components\libraries\usbd\class\cdc\acm;..\..\..\..\..\..\..\components\libraries\usbd\class\hid;..\..\..\..\..\..\..\components\libraries\usbd\class\hid\generic;..\..\..\..\..\..\..\components\libraries\usbd\class\hid\kbd;..\..\..\..\..\..\..\components\libraries\usbd\class\hid\mouse;..\..\..\..\..\..\..\components\libraries\usbd\class\msc;..\..\..\..\..\..\..\components\libraries\usbd\config;..\..\..\..\libraries_util_sdk_clone;..\..\..\..\..\..\..\components\softdevice\common;..\..\..\..\..\..\..\components\softdevice\s140\headers;..\..\..\..\..\..\..\components\softdevice\s140\headers\nrf52;..\..\..\..\..\..\..\components\toolchain;..\..\..\..\..\..\..\external\fprintf;..\..\..\..\..\..\..\external\segger_rtt;..\config;..\..\..\ble_aggregator_config_service;..\..\..\ble_thingy_client;..\..\..\..\..\..\..\components\libraries\fifo</IncludePath>
+              <IncludePath>..\..\..\config;..\..\..\..\..\..\..\components;..\..\..\..\..\..\..\components\ble\ble_advertising;..\..\..\..\..\..\..\components\ble\ble_db_discovery;..\..\..\..\..\..\..\components\ble\ble_dtm;..\..\..\..\..\..\..\components\ble\ble_racp;..\..\..\..\..\..\..\components\ble\ble_services\ble_ancs_c;..\..\..\..\..\..\..\components\ble\ble_services\ble_ans_c;..\..\..\..\..\..\..\components\ble\ble_services\ble_bas;..\..\..\..\..\..\..\components\ble\ble_services\ble_bas_c;..\..\..\..\..\..\..\components\ble\ble_services\ble_cscs;..\..\..\..\..\..\..\components\ble\ble_services\ble_cts_c;..\..\..\..\..\..\..\components\ble\ble_services\ble_dfu;..\..\..\..\..\..\..\components\ble\ble_services\ble_dis;..\..\..\..\..\..\..\components\ble\ble_services\ble_gls;..\..\..\..\..\..\..\components\ble\ble_services\ble_hids;..\..\..\..\..\..\..\components\ble\ble_services\ble_hrs;..\..\..\..\..\..\..\components\ble\ble_services\ble_hrs_c;..\..\..\..\..\..\..\components\ble\ble_services\ble_hts;..\..\..\..\..\..\..\components\ble\ble_services\ble_ias;..\..\..\..\..\..\..\components\ble\ble_services\ble_ias_c;..\..\..\..\..\..\..\components\ble\ble_services\ble_lbs;..\..\..\..\..\..\..\components\ble\ble_services\ble_lbs_c;..\..\..\..\..\..\..\components\ble\ble_services\ble_lls;..\..\..\..\..\..\..\components\ble\ble_services\ble_nus;..\..\..\..\..\..\..\components\ble\ble_services\ble_nus_c;..\..\..\..\..\..\..\components\ble\ble_services\ble_rscs;..\..\..\..\..\..\..\components\ble\ble_services\ble_rscs_c;..\..\..\..\..\..\..\components\ble\ble_services\ble_tps;..\..\..\..\..\..\..\components\ble\common;..\..\..\..\..\..\..\components\ble\nrf_ble_gatt;..\..\..\..\..\..\..\components\ble\nrf_ble_qwr;..\..\..\..\..\..\..\components\ble\peer_manager;..\..\..\..\..\..\..\components\boards;..\..\..\..\..\..\..\components\drivers_nrf\clock;..\..\..\..\..\..\..\components\drivers_nrf\common;..\..\..\..\..\..\..\components\drivers_nrf\comp;..\..\..\..\..\..\..\components\drivers_nrf\delay;..\..\..\..\..\..\..\components\drivers_nrf\gpiote;..\..\..\..\..\..\..\components\drivers_nrf\hal;..\..\..\..\..\..\..\components\drivers_nrf\i2s;..\..\..\..\..\..\..\components\drivers_nrf\lpcomp;..\..\..\..\..\..\..\components\drivers_nrf\pdm;..\..\..\..\..\..\..\components\drivers_nrf\power;..\..\..\..\..\..\..\components\drivers_nrf\ppi;..\..\..\..\..\..\..\components\drivers_nrf\pwm;..\..\..\..\..\..\..\components\drivers_nrf\qdec;..\..\..\..\..\..\..\components\drivers_nrf\rng;..\..\..\..\..\..\..\components\drivers_nrf\rtc;..\..\..\..\..\..\..\components\drivers_nrf\saadc;..\..\..\..\..\..\..\components\drivers_nrf\spi_master;..\..\..\..\..\..\..\components\drivers_nrf\spi_slave;..\..\..\..\..\..\..\components\drivers_nrf\swi;..\..\..\..\..\..\..\components\drivers_nrf\timer;..\..\..\..\..\..\..\components\drivers_nrf\twi_master;..\..\..\..\..\..\..\components\drivers_nrf\twis_slave;..\..\..\..\..\..\..\components\drivers_nrf\uart;..\..\..\..\..\..\..\components\drivers_nrf\usbd;..\..\..\..\..\..\..\components\drivers_nrf\wdt;..\..\..\..\..\..\..\components\libraries\atomic;..\..\..\..\..\..\..\components\libraries\atomic_fifo;..\..\..\..\..\..\..\components\libraries\balloc;..\..\..\..\..\..\..\components\libraries\bsp;..\..\..\..\..\..\..\components\libraries\button;..\..\..\..\..\..\..\components\libraries\crc16;..\..\..\..\..\..\..\components\libraries\crc32;..\..\..\..\..\..\..\components\libraries\csense;..\..\..\..\..\..\..\components\libraries\csense_drv;..\..\..\..\..\..\..\components\libraries\ecc;..\..\..\..\..\..\..\components\libraries\experimental_cli;..\..\..\..\..\..\..\components\libraries\experimental_log;..\..\..\..\..\..\..\components\libraries\experimental_log\src;..\..\..\..\..\..\..\components\libraries\experimental_memobj;..\..\..\..\..\..\..\components\libraries\experimental_section_vars;..\..\..\..\..\..\..\components\libraries\fds;..\..\..\..\..\..\..\components\libraries\fstorage;..\..\..\..\..\..\..\components\libraries\gpiote;..\..\..\..\..\..\..\components\libraries\hardfault;..\..\..\..\..\..\..\components\libraries\hci;..\..\..\..\..\..\..\components\libraries\led_softblink;..\..\..\..\..\..\..\components\libraries\low_power_pwm;..\..\..\..\..\..\..\components\libraries\mem_manager;..\..\..\..\..\..\..\components\libraries\pwm;..\..\..\..\..\..\..\components\libraries\queue;..\..\..\..\..\..\..\components\libraries\scheduler;..\..\..\..\..\..\..\components\libraries\slip;..\..\..\..\..\..\..\components\libraries\strerror;..\..\..\..\..\..\..\components\libraries\timer;..\..\..\..\..\..\..\components\libraries\twi;..\..\..\..\..\..\..\components\libraries\uart;..\..\..\..\..\..\..\components\libraries\usbd;..\..\..\..\..\..\..\components\libraries\usbd\class\audio;..\..\..\..\..\..\..\components\libraries\usbd\class\cdc;..\..\..\..\..\..\..\components\libraries\usbd\class\cdc\acm;..\..\..\..\..\..\..\components\libraries\usbd\class\hid;..\..\..\..\..\..\..\components\libraries\usbd\class\hid\generic;..\..\..\..\..\..\..\components\libraries\usbd\class\hid\kbd;..\..\..\..\..\..\..\components\libraries\usbd\class\hid\mouse;..\..\..\..\..\..\..\components\libraries\usbd\class\msc;..\..\..\..\..\..\..\components\libraries\usbd\config;..\..\..\..\libraries_util_sdk_clone;..\..\..\..\..\..\..\components\softdevice\common;..\..\..\..\..\..\..\examples\ble_peripheral\nrf52-ble-multi-link-multi-role\ble_aggregator\pca10056\s140\s140_nrf52840_6.0.0-6.alpha\s140_nrf52840_6.0.0-6.alpha_API\include;..\..\..\..\..\..\..\examples\ble_peripheral\nrf52-ble-multi-link-multi-role\ble_aggregator\pca10056\s140\s140_nrf52840_6.0.0-6.alpha\s140_nrf52840_6.0.0-6.alpha_API\include\nrf52;..\..\..\..\..\..\..\components\toolchain;..\..\..\..\..\..\..\external\fprintf;..\..\..\..\..\..\..\external\segger_rtt;..\config;..\..\..\ble_aggregator_config_service;..\..\..\ble_thingy_client;..\..\..\..\..\..\..\components\libraries\fifo</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -630,116 +630,6 @@
           <GroupName>nRF_BLE</GroupName>
           <Files>
             <File>
-              <FileName>ble_advdata.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\..\..\..\..\components\ble\common\ble_advdata.c</FilePath>
-              <FileOption>
-                <CommonProperty>
-                  <UseCPPCompiler>0</UseCPPCompiler>
-                  <RVCTCodeConst>0</RVCTCodeConst>
-                  <RVCTZI>0</RVCTZI>
-                  <RVCTOtherData>0</RVCTOtherData>
-                  <ModuleSelection>0</ModuleSelection>
-                  <IncludeInBuild>1</IncludeInBuild>
-                  <AlwaysBuild>2</AlwaysBuild>
-                  <GenerateAssemblyFile>2</GenerateAssemblyFile>
-                  <AssembleAssemblyFile>2</AssembleAssemblyFile>
-                  <PublicsOnly>2</PublicsOnly>
-                  <StopOnExitCode>11</StopOnExitCode>
-                  <CustomArgument></CustomArgument>
-                  <IncludeLibraryModules></IncludeLibraryModules>
-                  <ComprImg>1</ComprImg>
-                </CommonProperty>
-                <FileArmAds>
-                  <Cads>
-                    <interw>2</interw>
-                    <Optim>0</Optim>
-                    <oTime>2</oTime>
-                    <SplitLS>2</SplitLS>
-                    <OneElfS>2</OneElfS>
-                    <Strict>2</Strict>
-                    <EnumInt>2</EnumInt>
-                    <PlainCh>2</PlainCh>
-                    <Ropi>2</Ropi>
-                    <Rwpi>2</Rwpi>
-                    <wLevel>0</wLevel>
-                    <uThumb>2</uThumb>
-                    <uSurpInc>2</uSurpInc>
-                    <uC99>2</uC99>
-                    <useXO>2</useXO>
-                    <v6Lang>0</v6Lang>
-                    <v6LangP>0</v6LangP>
-                    <vShortEn>2</vShortEn>
-                    <vShortWch>2</vShortWch>
-                    <v6Lto>2</v6Lto>
-                    <v6WtE>2</v6WtE>
-                    <v6Rtti>2</v6Rtti>
-                    <VariousControls>
-                      <MiscControls></MiscControls>
-                      <Define></Define>
-                      <Undefine></Undefine>
-                      <IncludePath></IncludePath>
-                    </VariousControls>
-                  </Cads>
-                </FileArmAds>
-              </FileOption>
-            </File>
-            <File>
-              <FileName>ble_advertising.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\..\..\..\..\components\ble\ble_advertising\ble_advertising.c</FilePath>
-              <FileOption>
-                <CommonProperty>
-                  <UseCPPCompiler>0</UseCPPCompiler>
-                  <RVCTCodeConst>0</RVCTCodeConst>
-                  <RVCTZI>0</RVCTZI>
-                  <RVCTOtherData>0</RVCTOtherData>
-                  <ModuleSelection>0</ModuleSelection>
-                  <IncludeInBuild>1</IncludeInBuild>
-                  <AlwaysBuild>2</AlwaysBuild>
-                  <GenerateAssemblyFile>2</GenerateAssemblyFile>
-                  <AssembleAssemblyFile>2</AssembleAssemblyFile>
-                  <PublicsOnly>2</PublicsOnly>
-                  <StopOnExitCode>11</StopOnExitCode>
-                  <CustomArgument></CustomArgument>
-                  <IncludeLibraryModules></IncludeLibraryModules>
-                  <ComprImg>1</ComprImg>
-                </CommonProperty>
-                <FileArmAds>
-                  <Cads>
-                    <interw>2</interw>
-                    <Optim>0</Optim>
-                    <oTime>2</oTime>
-                    <SplitLS>2</SplitLS>
-                    <OneElfS>2</OneElfS>
-                    <Strict>2</Strict>
-                    <EnumInt>2</EnumInt>
-                    <PlainCh>2</PlainCh>
-                    <Ropi>2</Ropi>
-                    <Rwpi>2</Rwpi>
-                    <wLevel>0</wLevel>
-                    <uThumb>2</uThumb>
-                    <uSurpInc>2</uSurpInc>
-                    <uC99>2</uC99>
-                    <useXO>2</useXO>
-                    <v6Lang>0</v6Lang>
-                    <v6LangP>0</v6LangP>
-                    <vShortEn>2</vShortEn>
-                    <vShortWch>2</vShortWch>
-                    <v6Lto>2</v6Lto>
-                    <v6WtE>2</v6WtE>
-                    <v6Rtti>2</v6Rtti>
-                    <VariousControls>
-                      <MiscControls></MiscControls>
-                      <Define></Define>
-                      <Undefine></Undefine>
-                      <IncludePath></IncludePath>
-                    </VariousControls>
-                  </Cads>
-                </FileArmAds>
-              </FileOption>
-            </File>
-            <File>
               <FileName>ble_conn_state.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\..\..\..\components\ble\common\ble_conn_state.c</FilePath>
@@ -958,6 +848,11 @@
                   </Cads>
                 </FileArmAds>
               </FileOption>
+            </File>
+            <File>
+              <FileName>ble_advdata_lrmod.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\ble_advdata_lrmod.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -2720,61 +2615,6 @@
           <GroupName>nRF_SoftDevice</GroupName>
           <Files>
             <File>
-              <FileName>nrf_sdh.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\..\..\..\..\components\softdevice\common\nrf_sdh.c</FilePath>
-              <FileOption>
-                <CommonProperty>
-                  <UseCPPCompiler>0</UseCPPCompiler>
-                  <RVCTCodeConst>0</RVCTCodeConst>
-                  <RVCTZI>0</RVCTZI>
-                  <RVCTOtherData>0</RVCTOtherData>
-                  <ModuleSelection>0</ModuleSelection>
-                  <IncludeInBuild>1</IncludeInBuild>
-                  <AlwaysBuild>2</AlwaysBuild>
-                  <GenerateAssemblyFile>2</GenerateAssemblyFile>
-                  <AssembleAssemblyFile>2</AssembleAssemblyFile>
-                  <PublicsOnly>2</PublicsOnly>
-                  <StopOnExitCode>11</StopOnExitCode>
-                  <CustomArgument></CustomArgument>
-                  <IncludeLibraryModules></IncludeLibraryModules>
-                  <ComprImg>1</ComprImg>
-                </CommonProperty>
-                <FileArmAds>
-                  <Cads>
-                    <interw>2</interw>
-                    <Optim>0</Optim>
-                    <oTime>2</oTime>
-                    <SplitLS>2</SplitLS>
-                    <OneElfS>2</OneElfS>
-                    <Strict>2</Strict>
-                    <EnumInt>2</EnumInt>
-                    <PlainCh>2</PlainCh>
-                    <Ropi>2</Ropi>
-                    <Rwpi>2</Rwpi>
-                    <wLevel>0</wLevel>
-                    <uThumb>2</uThumb>
-                    <uSurpInc>2</uSurpInc>
-                    <uC99>2</uC99>
-                    <useXO>2</useXO>
-                    <v6Lang>0</v6Lang>
-                    <v6LangP>0</v6LangP>
-                    <vShortEn>2</vShortEn>
-                    <vShortWch>2</vShortWch>
-                    <v6Lto>2</v6Lto>
-                    <v6WtE>2</v6WtE>
-                    <v6Rtti>2</v6Rtti>
-                    <VariousControls>
-                      <MiscControls></MiscControls>
-                      <Define></Define>
-                      <Undefine></Undefine>
-                      <IncludePath></IncludePath>
-                    </VariousControls>
-                  </Cads>
-                </FileArmAds>
-              </FileOption>
-            </File>
-            <File>
               <FileName>nrf_sdh_ble.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\..\..\..\components\softdevice\common\nrf_sdh_ble.c</FilePath>
@@ -2883,6 +2723,11 @@
                   </Cads>
                 </FileArmAds>
               </FileOption>
+            </File>
+            <File>
+              <FileName>nrf_sdh_lrmod.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\nrf_sdh_lrmod.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -3517,116 +3362,6 @@
           <GroupName>nRF_BLE</GroupName>
           <Files>
             <File>
-              <FileName>ble_advdata.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\..\..\..\..\components\ble\common\ble_advdata.c</FilePath>
-              <FileOption>
-                <CommonProperty>
-                  <UseCPPCompiler>0</UseCPPCompiler>
-                  <RVCTCodeConst>0</RVCTCodeConst>
-                  <RVCTZI>0</RVCTZI>
-                  <RVCTOtherData>0</RVCTOtherData>
-                  <ModuleSelection>0</ModuleSelection>
-                  <IncludeInBuild>0</IncludeInBuild>
-                  <AlwaysBuild>2</AlwaysBuild>
-                  <GenerateAssemblyFile>2</GenerateAssemblyFile>
-                  <AssembleAssemblyFile>2</AssembleAssemblyFile>
-                  <PublicsOnly>2</PublicsOnly>
-                  <StopOnExitCode>11</StopOnExitCode>
-                  <CustomArgument></CustomArgument>
-                  <IncludeLibraryModules></IncludeLibraryModules>
-                  <ComprImg>1</ComprImg>
-                </CommonProperty>
-                <FileArmAds>
-                  <Cads>
-                    <interw>2</interw>
-                    <Optim>0</Optim>
-                    <oTime>2</oTime>
-                    <SplitLS>2</SplitLS>
-                    <OneElfS>2</OneElfS>
-                    <Strict>2</Strict>
-                    <EnumInt>2</EnumInt>
-                    <PlainCh>2</PlainCh>
-                    <Ropi>2</Ropi>
-                    <Rwpi>2</Rwpi>
-                    <wLevel>0</wLevel>
-                    <uThumb>2</uThumb>
-                    <uSurpInc>2</uSurpInc>
-                    <uC99>2</uC99>
-                    <useXO>2</useXO>
-                    <v6Lang>0</v6Lang>
-                    <v6LangP>0</v6LangP>
-                    <vShortEn>2</vShortEn>
-                    <vShortWch>2</vShortWch>
-                    <v6Lto>2</v6Lto>
-                    <v6WtE>2</v6WtE>
-                    <v6Rtti>2</v6Rtti>
-                    <VariousControls>
-                      <MiscControls></MiscControls>
-                      <Define></Define>
-                      <Undefine></Undefine>
-                      <IncludePath></IncludePath>
-                    </VariousControls>
-                  </Cads>
-                </FileArmAds>
-              </FileOption>
-            </File>
-            <File>
-              <FileName>ble_advertising.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\..\..\..\..\components\ble\ble_advertising\ble_advertising.c</FilePath>
-              <FileOption>
-                <CommonProperty>
-                  <UseCPPCompiler>0</UseCPPCompiler>
-                  <RVCTCodeConst>0</RVCTCodeConst>
-                  <RVCTZI>0</RVCTZI>
-                  <RVCTOtherData>0</RVCTOtherData>
-                  <ModuleSelection>0</ModuleSelection>
-                  <IncludeInBuild>0</IncludeInBuild>
-                  <AlwaysBuild>2</AlwaysBuild>
-                  <GenerateAssemblyFile>2</GenerateAssemblyFile>
-                  <AssembleAssemblyFile>2</AssembleAssemblyFile>
-                  <PublicsOnly>2</PublicsOnly>
-                  <StopOnExitCode>11</StopOnExitCode>
-                  <CustomArgument></CustomArgument>
-                  <IncludeLibraryModules></IncludeLibraryModules>
-                  <ComprImg>1</ComprImg>
-                </CommonProperty>
-                <FileArmAds>
-                  <Cads>
-                    <interw>2</interw>
-                    <Optim>0</Optim>
-                    <oTime>2</oTime>
-                    <SplitLS>2</SplitLS>
-                    <OneElfS>2</OneElfS>
-                    <Strict>2</Strict>
-                    <EnumInt>2</EnumInt>
-                    <PlainCh>2</PlainCh>
-                    <Ropi>2</Ropi>
-                    <Rwpi>2</Rwpi>
-                    <wLevel>0</wLevel>
-                    <uThumb>2</uThumb>
-                    <uSurpInc>2</uSurpInc>
-                    <uC99>2</uC99>
-                    <useXO>2</useXO>
-                    <v6Lang>0</v6Lang>
-                    <v6LangP>0</v6LangP>
-                    <vShortEn>2</vShortEn>
-                    <vShortWch>2</vShortWch>
-                    <v6Lto>2</v6Lto>
-                    <v6WtE>2</v6WtE>
-                    <v6Rtti>2</v6Rtti>
-                    <VariousControls>
-                      <MiscControls></MiscControls>
-                      <Define></Define>
-                      <Undefine></Undefine>
-                      <IncludePath></IncludePath>
-                    </VariousControls>
-                  </Cads>
-                </FileArmAds>
-              </FileOption>
-            </File>
-            <File>
               <FileName>ble_conn_state.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\..\..\..\components\ble\common\ble_conn_state.c</FilePath>
@@ -3845,6 +3580,11 @@
                   </Cads>
                 </FileArmAds>
               </FileOption>
+            </File>
+            <File>
+              <FileName>ble_advdata_lrmod.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\ble_advdata_lrmod.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -5607,61 +5347,6 @@
           <GroupName>nRF_SoftDevice</GroupName>
           <Files>
             <File>
-              <FileName>nrf_sdh.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\..\..\..\..\components\softdevice\common\nrf_sdh.c</FilePath>
-              <FileOption>
-                <CommonProperty>
-                  <UseCPPCompiler>0</UseCPPCompiler>
-                  <RVCTCodeConst>0</RVCTCodeConst>
-                  <RVCTZI>0</RVCTZI>
-                  <RVCTOtherData>0</RVCTOtherData>
-                  <ModuleSelection>0</ModuleSelection>
-                  <IncludeInBuild>0</IncludeInBuild>
-                  <AlwaysBuild>2</AlwaysBuild>
-                  <GenerateAssemblyFile>2</GenerateAssemblyFile>
-                  <AssembleAssemblyFile>2</AssembleAssemblyFile>
-                  <PublicsOnly>2</PublicsOnly>
-                  <StopOnExitCode>11</StopOnExitCode>
-                  <CustomArgument></CustomArgument>
-                  <IncludeLibraryModules></IncludeLibraryModules>
-                  <ComprImg>1</ComprImg>
-                </CommonProperty>
-                <FileArmAds>
-                  <Cads>
-                    <interw>2</interw>
-                    <Optim>0</Optim>
-                    <oTime>2</oTime>
-                    <SplitLS>2</SplitLS>
-                    <OneElfS>2</OneElfS>
-                    <Strict>2</Strict>
-                    <EnumInt>2</EnumInt>
-                    <PlainCh>2</PlainCh>
-                    <Ropi>2</Ropi>
-                    <Rwpi>2</Rwpi>
-                    <wLevel>0</wLevel>
-                    <uThumb>2</uThumb>
-                    <uSurpInc>2</uSurpInc>
-                    <uC99>2</uC99>
-                    <useXO>2</useXO>
-                    <v6Lang>0</v6Lang>
-                    <v6LangP>0</v6LangP>
-                    <vShortEn>2</vShortEn>
-                    <vShortWch>2</vShortWch>
-                    <v6Lto>2</v6Lto>
-                    <v6WtE>2</v6WtE>
-                    <v6Rtti>2</v6Rtti>
-                    <VariousControls>
-                      <MiscControls></MiscControls>
-                      <Define></Define>
-                      <Undefine></Undefine>
-                      <IncludePath></IncludePath>
-                    </VariousControls>
-                  </Cads>
-                </FileArmAds>
-              </FileOption>
-            </File>
-            <File>
               <FileName>nrf_sdh_ble.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\..\..\..\components\softdevice\common\nrf_sdh_ble.c</FilePath>
@@ -5770,6 +5455,11 @@
                   </Cads>
                 </FileArmAds>
               </FileOption>
+            </File>
+            <File>
+              <FileName>nrf_sdh_lrmod.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\nrf_sdh_lrmod.c</FilePath>
             </File>
           </Files>
         </Group>

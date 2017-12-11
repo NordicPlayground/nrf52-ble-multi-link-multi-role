@@ -167,10 +167,10 @@ void app_aggregator_on_central_connect(const ble_gap_evt_t *ble_gap_evt, connect
     tx_command_payload[5] = 0; // LED state;
     tx_command_payload[6] = 0; // RSSI
     tx_command_payload[7] = con_dev_info->phy; // PHY
-    if(strlen(con_dev_info->dev_type) <= MAX_ADV_NAME_LENGTH)
+    if(strlen(con_dev_info->dev_name) <= MAX_ADV_NAME_LENGTH)
     {
-        memcpy(&tx_command_payload[8], con_dev_info->dev_type, strlen(con_dev_info->dev_type));
-        tx_command_payload_length = 8 + strlen(con_dev_info->dev_type);
+        memcpy(&tx_command_payload[8], con_dev_info->dev_name, strlen(con_dev_info->dev_name));
+        tx_command_payload_length = 8 + strlen(con_dev_info->dev_name);
     }
     else 
     {
@@ -329,10 +329,10 @@ void app_aggregator_clear_buffer_update_link_status(void)
             tx_command_payload[5] = m_link_info_list[i].led_state;
             tx_command_payload[6] = m_link_info_list[i].last_rssi;
             tx_command_payload[7] = m_link_info_list[i].rf_phy;
-            if(strlen(m_link_info_list[i].adv_name) <= MAX_ADV_NAME_LENGTH)
+            if(strlen((char *)m_link_info_list[i].adv_name) <= MAX_ADV_NAME_LENGTH)
             {
-                memcpy(&tx_command_payload[8], m_link_info_list[i].adv_name, strlen(m_link_info_list[i].adv_name));
-                tx_command_payload_length = 8 + strlen(m_link_info_list[i].adv_name);
+                memcpy(&tx_command_payload[8], m_link_info_list[i].adv_name, strlen((char *)m_link_info_list[i].adv_name));
+                tx_command_payload_length = 8 + strlen((char *)m_link_info_list[i].adv_name);
             }
             else 
             {

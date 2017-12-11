@@ -48,6 +48,8 @@ void app_aggregator_clear_buffer_update_link_status(void);
 
 void device_list_print(void);
 
+void app_aggregator_all_led_update(uint8_t button_state);
+
 void uart_printf(const char *fmt, ...);
 
 #endif

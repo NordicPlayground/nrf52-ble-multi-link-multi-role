@@ -77,7 +77,7 @@
 #define APP_BLE_OBSERVER_PRIO     1                                     /**< Application's BLE observer priority. You shouldn't need to modify this value. */
 
 // Peripheral parameters
-#define DEVICE_NAME                  "MultiLinkDemo"                    /**< Name of device. Will be included in the advertising data. */
+#define DEVICE_NAME                  "Aggregator 1"                    /**< Name of device. Will be included in the advertising data. */
 #define AGG_CFG_SERVICE_UUID_TYPE    BLE_UUID_TYPE_VENDOR_BEGIN         /**< UUID type for the Nordic UART Service (vendor specific). */
 #define MIN_PERIPHERAL_CON_INT       MSEC_TO_UNITS(50, UNIT_1_25_MS)    /**< Determines minimum connection interval in milliseconds. */
 #define MAX_PERIPHERAL_CON_INT       MSEC_TO_UNITS(200, UNIT_1_25_MS)   /**< Determines maximum connection interval in milliseconds. */
@@ -105,12 +105,12 @@
 
 #define UUID16_SIZE                 2                                   /**< Size of a UUID, in bytes. */
 
-#define THINGY_RSSI_CONNECT_LIMIT   -45
+#define THINGY_RSSI_CONNECT_LIMIT   -55
 
 NRF_BLE_GATT_DEF(m_gatt);                                               /**< GATT module instance. */
 
 BLE_AGG_CFG_SERVICE_DEF(m_agg_cfg_service);                             /**< BLE NUS service instance. */
-BLE_ADVERTISING_DEF(m_advertising);                                     /**< Advertising module instance. */                                                                
+//BLE_ADVERTISING_DEF(m_advertising);                                     /**< Advertising module instance. */                                                                
 
 BLE_LBS_C_ARRAY_DEF(m_lbs_c, NRF_SDH_BLE_CENTRAL_LINK_COUNT);           /**< LED Button client instances. */
 BLE_THINGY_UIS_C_ARRAY_DEF(m_thingy_uis_c, NRF_SDH_BLE_CENTRAL_LINK_COUNT);
@@ -132,7 +132,6 @@ typedef enum {DEVTYPE_NONE, DEVTYPE_BLINKY, DEVTYPE_THINGY} device_type_t;
 char             m_device_name_being_connected_to[30];
 connected_device_info_t m_device_being_connected_info = {DEVTYPE_NONE, m_device_name_being_connected_to, 0};
 
-static ret_code_t led_status_send_to_all(uint8_t button_state, uint8_t r, uint8_t g, uint8_t b);
 static ret_code_t led_status_send_by_mask(uint8_t button_state, uint8_t r, uint8_t g, uint8_t b, uint32_t mask);
 static ret_code_t led_status_on_off_send_by_mask(bool on, uint32_t mask);
 static ret_code_t post_connect_message(uint8_t conn_handle);
@@ -870,7 +869,7 @@ static void advertising_start(void)
     APP_ERROR_CHECK(err_code);
 }
 
-
+#if 0
 /**@brief Function for writing to the LED characteristic of all connected clients.
  *
  * @details Based on if the button is pressed or released, this function writes a high or low
@@ -902,6 +901,7 @@ static ret_code_t led_status_send_to_all(uint8_t button_action, uint8_t r, uint8
     }
     return NRF_SUCCESS;
 }
+#endif
 
 static ret_code_t led_status_send_by_mask(uint8_t button_action, uint8_t r, uint8_t g, uint8_t b, uint32_t mask)
 {
@@ -1004,8 +1004,6 @@ ret_code_t disconnect_all_peripherals()
  */
 static void button_event_handler(uint8_t pin_no, uint8_t button_action)
 {
-    ret_code_t err_code;
-
     switch (pin_no)
     {
         case LEDBUTTON_BUTTON:
