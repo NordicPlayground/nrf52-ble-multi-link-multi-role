@@ -606,14 +606,14 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                              p_gap_evt->conn_handle,
                              p_gap_evt->params.disconnected.reason);
 
-                /*if (ble_conn_state_n_centrals() == 0)
+                if (ble_conn_state_n_centrals() == 0)
                 {
-                    err_code = app_button_disable();
-                    APP_ERROR_CHECK(err_code);
+                    //err_code = app_button_disable();
+                    //APP_ERROR_CHECK(err_code);
 
                     // Turn off connection indication LED
                     bsp_board_led_off(CENTRAL_CONNECTED_LED);
-                }*/
+                }
                 
                 if(p_gap_evt->conn_handle == m_service_discovery_conn_handle)
                 {
