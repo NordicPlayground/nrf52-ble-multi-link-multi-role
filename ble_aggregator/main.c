@@ -90,6 +90,7 @@
 #define CENTRAL_SCANNING_LED        BSP_BOARD_LED_0
 #define CENTRAL_CONNECTED_LED       BSP_BOARD_LED_1
 #define LEDBUTTON_LED               BSP_BOARD_LED_2                     /**< LED to indicate a change of state of the the Button characteristic on the peer. */
+#define CODED_PHY_LED               BSP_BOARD_LED_3                     /**< connected to atleast one CODED phy */
 
 #define LEDBUTTON_BUTTON            BSP_BUTTON_0                        /**< Button that will write to the LED characteristic of the peer. */
 #define BUTTON_DETECTION_DELAY      APP_TIMER_TICKS(50)                 /**< Delay from a GPIOTE event until a button is reported as pushed (in number of timer ticks). */
@@ -121,11 +122,14 @@ static char const m_target_periph_name[] = "NT:";                       /**< Nam
 //static volatile bool m_service_discovery_in_process = false;
 
 static uint16_t   m_service_discovery_conn_handle = BLE_CONN_HANDLE_INVALID;
+static uint16_t   m_coded_phy_conn_handle[NRF_SDH_BLE_TOTAL_LINK_COUNT];
+
 static uint16_t   m_per_con_handle       = BLE_CONN_HANDLE_INVALID;
 static ble_uuid_t m_adv_uuids[]          =                              /**< Universally unique service identifier. */
 {
     {BLE_UUID_AGG_CFG_SERVICE_SERVICE, AGG_CFG_SERVICE_UUID_TYPE}
 };
+
 
 typedef enum {DEVTYPE_NONE, DEVTYPE_BLINKY, DEVTYPE_THINGY} device_type_t;
 
@@ -302,13 +306,7 @@ static void scan_start(void)
     NRF_LOG_INFO("Start scanning for device name %s.", (uint32_t)m_target_periph_name);
 
     ret = sd_ble_gap_scan_start(&m_scan_params);
-    // scanner seems to be started twice in few scenarios (TODO: Find where and why). Causing invalid state error
-    // we safely ignore this for now since this means that scanner is already running, and will be 
-    // restarted after it times out.
-    if(ret != NRF_ERROR_INVALID_STATE)
-    {
-        APP_ERROR_CHECK(ret);
-    }
+    APP_ERROR_CHECK(ret);
 
     ret = bsp_indication_set(BSP_INDICATE_SCANNING);
     APP_ERROR_CHECK(ret);
@@ -508,6 +506,7 @@ static uint8_t peer_addr_LR[2][6];
 static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
 {
     ret_code_t err_code;
+    static uint8_t coded_phy_conn_count = 0;
 
     // For readability.
     ble_gap_evt_t const * p_gap_evt = &p_ble_evt->evt.gap_evt;
@@ -587,6 +586,14 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                 }
                 
                 m_device_being_connected_info.dev_type = DEVTYPE_NONE;
+
+                // check if it was a coded phy connection
+                if(BLE_GAP_PHY_CODED == m_scan_params.scan_phy)
+                {
+                    coded_phy_conn_count++;
+                    m_coded_phy_conn_handle[p_gap_evt->conn_handle] = p_gap_evt->conn_handle;
+                    bsp_board_led_on(CODED_PHY_LED);
+                }
             }
             // Handle links as a peripheral here
             else
@@ -641,6 +648,16 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                 
                 // Notify aggregator service
                 app_aggregator_on_central_disconnect(p_gap_evt);
+
+                if(m_coded_phy_conn_handle[p_gap_evt->conn_handle] != BLE_CONN_HANDLE_INVALID)
+                {
+                    // This is a coded phy link that got disconnected
+                    m_coded_phy_conn_handle[p_gap_evt->conn_handle] = BLE_CONN_HANDLE_INVALID;
+                    if(--coded_phy_conn_count == 0)
+                    {
+                        bsp_board_led_off(CODED_PHY_LED);
+                    }
+                }
             }
             // Handle peripheral disconnect
             else
@@ -660,10 +677,15 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
 
         case BLE_GAP_EVT_TIMEOUT:
         {
-            // We have not specified a timeout for scanning, so only connection attemps can timeout.
             if (p_gap_evt->params.timeout.src == BLE_GAP_TIMEOUT_SRC_CONN)
             {
-                NRF_LOG_DEBUG("Connection request timed out.");
+                // This can only happen with central (initiator request timeout)
+                NRF_LOG_INFO("Connection request timed out.");
+
+#if defined(S140)
+                m_scan_params.scan_phy = (m_scan_params.scan_phy == BLE_GAP_PHY_1MBPS) ? BLE_GAP_PHY_CODED : BLE_GAP_PHY_1MBPS;
+#endif
+                scan_start();
             }
             else if(p_gap_evt->params.timeout.src == BLE_GAP_TIMEOUT_SRC_ADVERTISING)
             {
@@ -674,7 +696,7 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             }
             else if(p_gap_evt->params.timeout.src == BLE_GAP_TIMEOUT_SRC_SCAN)
             {
-                NRF_LOG_DEBUG("Scan timeout - Switching phy and restarting...");
+                NRF_LOG_INFO("Scan timeout - Switching phy and restarting...");
 #if defined(S140)
                 m_scan_params.scan_phy = (m_scan_params.scan_phy == BLE_GAP_PHY_1MBPS) ? BLE_GAP_PHY_CODED : BLE_GAP_PHY_1MBPS;
 #endif
@@ -1259,6 +1281,9 @@ int main(void)
     NRF_LOG_INFO("Multilink example started");
     uart_printf("Multilink example started. Group name \"%s\"\r\n", m_target_periph_name);
 
+    for (int i = 0; i < NRF_SDH_BLE_TOTAL_LINK_COUNT; ++i){
+        m_coded_phy_conn_handle[i] = BLE_CONN_HANDLE_INVALID;
+    }
     // Start scanning for peripherals and initiate connection to devices which  advertise.
     scan_start();
 
