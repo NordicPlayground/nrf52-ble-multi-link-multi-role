@@ -79,8 +79,8 @@
 // Peripheral parameters
 #define DEVICE_NAME                  "Aggregator 1"                    /**< Name of device. Will be included in the advertising data. */
 #define AGG_CFG_SERVICE_UUID_TYPE    BLE_UUID_TYPE_VENDOR_BEGIN         /**< UUID type for the Nordic UART Service (vendor specific). */
-#define MIN_PERIPHERAL_CON_INT       MSEC_TO_UNITS(50, UNIT_1_25_MS)    /**< Determines minimum connection interval in milliseconds. */
-#define MAX_PERIPHERAL_CON_INT       MSEC_TO_UNITS(200, UNIT_1_25_MS)   /**< Determines maximum connection interval in milliseconds. */
+#define MIN_PERIPHERAL_CON_INT       MSEC_TO_UNITS(150, UNIT_1_25_MS)    /**< Determines minimum connection interval in milliseconds. */
+#define MAX_PERIPHERAL_CON_INT       MSEC_TO_UNITS(300, UNIT_1_25_MS)   /**< Determines maximum connection interval in milliseconds. */
 #define PERIPHERAL_SLAVE_LATENCY     0                                  /**< Slave latency. */
 #define PERIPHERAL_CONN_SUP_TIMEOUT  MSEC_TO_UNITS(4000, UNIT_10_MS)    /**< Connection supervisory timeout (4 seconds), Supervision Timeout uses 10 ms units. */
 
@@ -119,6 +119,7 @@ BLE_DB_DISCOVERY_ARRAY_DEF(m_db_disc, NRF_SDH_BLE_CENTRAL_LINK_COUNT);  /**< Dat
 static char const m_target_periph_name[] = "NT:";                       /**< Name of the device we try to connect to. This name is searched for in the scan report data*/
 
 static volatile bool m_service_discovery_in_process = false;
+
 static uint16_t   m_service_discovery_conn_handle = BLE_CONN_HANDLE_INVALID;
 static uint16_t   m_per_con_handle       = BLE_CONN_HANDLE_INVALID;
 static ble_uuid_t m_adv_uuids[]          =                              /**< Universally unique service identifier. */
@@ -299,7 +300,10 @@ static void scan_start(void)
     (void) sd_ble_gap_scan_stop();
 
     NRF_LOG_DEBUG("Start scanning for device name %s.", (uint32_t)m_target_periph_name);
+
     ret = sd_ble_gap_scan_start(&m_scan_params);
+    // TODO: When discovery is complete, we start the scanner, at this moment if one connection is disconnected
+    // then we start the scanner again. So we don't assert for now for this condition.
     APP_ERROR_CHECK(ret);
 
     ret = bsp_indication_set(BSP_INDICATE_SCANNING);
@@ -504,7 +508,7 @@ static void on_adv_report(ble_evt_t const * p_ble_evt)
     }
 }
 
-
+static uint8_t peer_addr_LR[2][6];
 /**@brief Function for handling BLE events.
  *
  * @param[in]   p_ble_evt   Bluetooth stack event.
@@ -526,11 +530,21 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             // Handle central connections
             if(p_gap_evt->params.connected.role == BLE_GAP_ROLE_CENTRAL)
             {
-                NRF_LOG_INFO("Connection 0x%x established, starting DB discovery.",
+                        NRF_LOG_INFO("Peer addr  %02x%02x%02x%02x%02x%02x",
+                        peer_addr_LR[p_gap_evt->conn_handle][0],
+                        peer_addr_LR[p_gap_evt->conn_handle][1],
+                        peer_addr_LR[p_gap_evt->conn_handle][2],
+                        peer_addr_LR[p_gap_evt->conn_handle][3],
+                        peer_addr_LR[p_gap_evt->conn_handle][4],
+                        peer_addr_LR[p_gap_evt->conn_handle][5]);
+
+                NRF_LOG_INFO("Connection 0x%x established , starting DB discovery.",
                              p_gap_evt->conn_handle);
 
+                memcpy(&peer_addr_LR[p_gap_evt->conn_handle][0], &p_gap_evt->params.connected.peer_addr.addr[0], 6);
+
                 //APP_ERROR_CHECK_BOOL(p_gap_evt->conn_handle < NRF_SDH_BLE_CENTRAL_LINK_COUNT);
-                
+
                 switch(m_device_being_connected_info.dev_type)
                 {
                     case DEVTYPE_BLINKY:
@@ -598,7 +612,16 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
         // the LEDs status and start scanning again.
         case BLE_GAP_EVT_DISCONNECTED:
         {
+                NRF_LOG_INFO("Peer addr  %02x%02x%02x%02x%02x%02x",
+                        peer_addr_LR[p_gap_evt->conn_handle][0],
+                        peer_addr_LR[p_gap_evt->conn_handle][1],
+                        peer_addr_LR[p_gap_evt->conn_handle][2],
+                        peer_addr_LR[p_gap_evt->conn_handle][3],
+                        peer_addr_LR[p_gap_evt->conn_handle][4],
+                        peer_addr_LR[p_gap_evt->conn_handle][5]);
+
             NRF_LOG_INFO("GAP_EVT_DISCONNECT: %i", p_gap_evt->conn_handle);
+
             // Handle central disconnections
             if(p_gap_evt->conn_handle != m_per_con_handle)
             {
@@ -739,6 +762,16 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
         } break;
         
         case BLE_GAP_EVT_RSSI_CHANGED:
+                        NRF_LOG_INFO("Peer addr  %02x%02x%02x%02x%02x%02x",
+                        peer_addr_LR[p_gap_evt->conn_handle][0],
+                        peer_addr_LR[p_gap_evt->conn_handle][1],
+                        peer_addr_LR[p_gap_evt->conn_handle][2],
+                        peer_addr_LR[p_gap_evt->conn_handle][3],
+                        peer_addr_LR[p_gap_evt->conn_handle][4],
+                        peer_addr_LR[p_gap_evt->conn_handle][5]);
+
+                     NRF_LOG_INFO("RSSI = %d\r\n",
+                         p_ble_evt->evt.gap_evt.params.rssi_changed.rssi);
             app_aggregator_rssi_changed(p_ble_evt->evt.gap_evt.conn_handle, p_ble_evt->evt.gap_evt.params.rssi_changed.rssi);
             break;
 
@@ -1077,7 +1110,7 @@ static void buttons_init(void)
  */
 static void db_disc_handler(ble_db_discovery_evt_t * p_evt)
 {
-    NRF_LOG_DEBUG("call to ble_lbs_on_db_disc_evt for instance %d and link 0x%x!",
+    NRF_LOG_DEBUG("call to db_disc_handler for instance %d and link 0x%x!",
                   p_evt->conn_handle,
                   p_evt->conn_handle);
 
