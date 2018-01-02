@@ -572,8 +572,6 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                 app_aggregator_on_central_connect(p_gap_evt, &m_device_being_connected_info);
                 
                 // Update LEDs status, and check if we should be looking for more
-                // peripherals to connect to.
-                bsp_board_led_on(CENTRAL_CONNECTED_LED);
                 if (ble_conn_state_n_centrals() == NRF_SDH_BLE_CENTRAL_LINK_COUNT)
                 {
                     bsp_board_led_off(CENTRAL_SCANNING_LED);
@@ -593,6 +591,10 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                     coded_phy_conn_count++;
                     m_coded_phy_conn_handle[p_gap_evt->conn_handle] = p_gap_evt->conn_handle;
                     bsp_board_led_on(CODED_PHY_LED);
+                }
+                else
+                {
+                    bsp_board_led_on(CENTRAL_CONNECTED_LED);
                 }
             }
             // Handle links as a peripheral here
@@ -626,15 +628,6 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                              p_gap_evt->conn_handle,
                              p_gap_evt->params.disconnected.reason);
 
-                if (ble_conn_state_n_centrals() == 0)
-                {
-                    //err_code = app_button_disable();
-                    //APP_ERROR_CHECK(err_code);
-
-                    // Turn off connection indication LED
-                    bsp_board_led_off(CENTRAL_CONNECTED_LED);
-                }
-                
                 if(p_gap_evt->conn_handle == m_service_discovery_conn_handle)
                 {
                     m_service_discovery_conn_handle = BLE_CONN_HANDLE_INVALID;
@@ -656,6 +649,14 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                     if(--coded_phy_conn_count == 0)
                     {
                         bsp_board_led_off(CODED_PHY_LED);
+                    }
+                }
+                else
+                {
+                    if ((ble_conn_state_n_centrals() - coded_phy_conn_count) == 0)
+                    {
+                        // Turn off connection indication LED
+                        bsp_board_led_off(CENTRAL_CONNECTED_LED);
                     }
                 }
             }
