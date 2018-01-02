@@ -79,8 +79,8 @@
 // Peripheral parameters
 #define DEVICE_NAME                  "Aggregator 1"                    /**< Name of device. Will be included in the advertising data. */
 #define AGG_CFG_SERVICE_UUID_TYPE    BLE_UUID_TYPE_VENDOR_BEGIN         /**< UUID type for the Nordic UART Service (vendor specific). */
-#define MIN_PERIPHERAL_CON_INT       MSEC_TO_UNITS(50, UNIT_1_25_MS)    /**< Determines minimum connection interval in milliseconds. */
-#define MAX_PERIPHERAL_CON_INT       MSEC_TO_UNITS(200, UNIT_1_25_MS)   /**< Determines maximum connection interval in milliseconds. */
+#define MIN_PERIPHERAL_CON_INT       MSEC_TO_UNITS(30, UNIT_1_25_MS)    /**< Determines minimum connection interval in milliseconds. */
+#define MAX_PERIPHERAL_CON_INT       MSEC_TO_UNITS(50, UNIT_1_25_MS)   /**< Determines maximum connection interval in milliseconds. */
 #define PERIPHERAL_SLAVE_LATENCY     0                                  /**< Slave latency. */
 #define PERIPHERAL_CONN_SUP_TIMEOUT  MSEC_TO_UNITS(4000, UNIT_10_MS)    /**< Connection supervisory timeout (4 seconds), Supervision Timeout uses 10 ms units. */
 
@@ -90,11 +90,12 @@
 #define CENTRAL_SCANNING_LED        BSP_BOARD_LED_0
 #define CENTRAL_CONNECTED_LED       BSP_BOARD_LED_1
 #define LEDBUTTON_LED               BSP_BOARD_LED_2                     /**< LED to indicate a change of state of the the Button characteristic on the peer. */
+#define CODED_PHY_LED               BSP_BOARD_LED_3                     /**< connected to atleast one CODED phy */
 
 #define LEDBUTTON_BUTTON            BSP_BUTTON_0                        /**< Button that will write to the LED characteristic of the peer. */
 #define BUTTON_DETECTION_DELAY      APP_TIMER_TICKS(50)                 /**< Delay from a GPIOTE event until a button is reported as pushed (in number of timer ticks). */
 
-#define SCAN_INTERVAL               0x00A0                              /**< Determines scan interval in units of 0.625 millisecond. */
+#define SCAN_INTERVAL               0x00F0                              /**< Determines scan interval in units of 0.625 millisecond. */
 #define SCAN_WINDOW                 0x0050                              /**< Determines scan window in units of 0.625 millisecond. */
 #define SCAN_TIMEOUT                0x0100                              /**< Timout when scanning. 0x0000 disables timeout. */
 
@@ -118,13 +119,17 @@ BLE_DB_DISCOVERY_ARRAY_DEF(m_db_disc, NRF_SDH_BLE_CENTRAL_LINK_COUNT);  /**< Dat
 
 static char const m_target_periph_name[] = "NT:";                       /**< Name of the device we try to connect to. This name is searched for in the scan report data*/
 
-static volatile bool m_service_discovery_in_process = false;
+//static volatile bool m_service_discovery_in_process = false;
+
 static uint16_t   m_service_discovery_conn_handle = BLE_CONN_HANDLE_INVALID;
+static uint16_t   m_coded_phy_conn_handle[NRF_SDH_BLE_TOTAL_LINK_COUNT];
+
 static uint16_t   m_per_con_handle       = BLE_CONN_HANDLE_INVALID;
 static ble_uuid_t m_adv_uuids[]          =                              /**< Universally unique service identifier. */
 {
     {BLE_UUID_AGG_CFG_SERVICE_SERVICE, AGG_CFG_SERVICE_UUID_TYPE}
 };
+
 
 typedef enum {DEVTYPE_NONE, DEVTYPE_BLINKY, DEVTYPE_THINGY} device_type_t;
 
@@ -298,7 +303,8 @@ static void scan_start(void)
 
     (void) sd_ble_gap_scan_stop();
 
-    NRF_LOG_DEBUG("Start scanning for device name %s.", (uint32_t)m_target_periph_name);
+    NRF_LOG_INFO("Start scanning for device name %s.", (uint32_t)m_target_periph_name);
+
     ret = sd_ble_gap_scan_start(&m_scan_params);
     APP_ERROR_CHECK(ret);
 
@@ -327,12 +333,6 @@ static void lbs_c_evt_handler(ble_lbs_c_t * p_lbs_c, ble_lbs_c_evt_t * p_lbs_c_e
             err_code = ble_lbs_c_button_notif_enable(p_lbs_c);
             APP_ERROR_CHECK(err_code);
             
-            if(ble_conn_state_n_centrals() < NRF_SDH_BLE_CENTRAL_LINK_COUNT)
-            {
-                scan_start();
-            }
-            
-            m_service_discovery_in_process = false;
         } break; // BLE_LBS_C_EVT_DISCOVERY_COMPLETE
 
         case BLE_LBS_C_EVT_BUTTON_NOTIFICATION:
@@ -380,15 +380,8 @@ static void thingy_uis_c_evt_handler(ble_thingy_uis_c_t * p_thingy_uis_c, ble_th
             err_code = ble_thingy_uis_c_button_notif_enable(p_thingy_uis_c);
             APP_ERROR_CHECK(err_code);
             
-            if(ble_conn_state_n_centrals() < NRF_SDH_BLE_CENTRAL_LINK_COUNT)
-            {
-                scan_start();
-            }
-            
-
             ble_thingy_uis_led_set_constant(p_thingy_uis_c, 255, 255, 255);
 
-            m_service_discovery_in_process = false;
         } break; // BLE_LBS_C_EVT_DISCOVERY_COMPLETE
 
         case BLE_LBS_C_EVT_BUTTON_NOTIFICATION:
@@ -504,7 +497,7 @@ static void on_adv_report(ble_evt_t const * p_ble_evt)
     }
 }
 
-
+static uint8_t peer_addr_LR[2][6];
 /**@brief Function for handling BLE events.
  *
  * @param[in]   p_ble_evt   Bluetooth stack event.
@@ -513,6 +506,7 @@ static void on_adv_report(ble_evt_t const * p_ble_evt)
 static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
 {
     ret_code_t err_code;
+    static uint8_t coded_phy_conn_count = 0;
 
     // For readability.
     ble_gap_evt_t const * p_gap_evt = &p_ble_evt->evt.gap_evt;
@@ -526,11 +520,21 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             // Handle central connections
             if(p_gap_evt->params.connected.role == BLE_GAP_ROLE_CENTRAL)
             {
-                NRF_LOG_INFO("Connection 0x%x established, starting DB discovery.",
+                        NRF_LOG_INFO("Peer addr  %02x%02x%02x%02x%02x%02x",
+                        peer_addr_LR[p_gap_evt->conn_handle][0],
+                        peer_addr_LR[p_gap_evt->conn_handle][1],
+                        peer_addr_LR[p_gap_evt->conn_handle][2],
+                        peer_addr_LR[p_gap_evt->conn_handle][3],
+                        peer_addr_LR[p_gap_evt->conn_handle][4],
+                        peer_addr_LR[p_gap_evt->conn_handle][5]);
+
+                NRF_LOG_INFO("Connection 0x%x established , starting DB discovery.",
                              p_gap_evt->conn_handle);
 
+                memcpy(&peer_addr_LR[p_gap_evt->conn_handle][0], &p_gap_evt->params.connected.peer_addr.addr[0], 6);
+
                 //APP_ERROR_CHECK_BOOL(p_gap_evt->conn_handle < NRF_SDH_BLE_CENTRAL_LINK_COUNT);
-                
+
                 switch(m_device_being_connected_info.dev_type)
                 {
                     case DEVTYPE_BLINKY:
@@ -549,7 +553,6 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                         break;
                 }
 
-                m_service_discovery_in_process = true;
                 m_service_discovery_conn_handle = p_gap_evt->conn_handle;
                 memset(&m_db_disc[p_gap_evt->conn_handle], 0x00, sizeof(ble_db_discovery_t));
                 err_code = ble_db_discovery_start(&m_db_disc[p_gap_evt->conn_handle],
@@ -578,11 +581,19 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                 else
                 {
                     // Resume scanning.
-                    //bsp_board_led_on(CENTRAL_SCANNING_LED);
-                    //scan_start();
+                    bsp_board_led_on(CENTRAL_SCANNING_LED);
+                    scan_start();
                 }
                 
                 m_device_being_connected_info.dev_type = DEVTYPE_NONE;
+
+                // check if it was a coded phy connection
+                if(BLE_GAP_PHY_CODED == m_scan_params.scan_phy)
+                {
+                    coded_phy_conn_count++;
+                    m_coded_phy_conn_handle[p_gap_evt->conn_handle] = p_gap_evt->conn_handle;
+                    bsp_board_led_on(CODED_PHY_LED);
+                }
             }
             // Handle links as a peripheral here
             else
@@ -598,7 +609,16 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
         // the LEDs status and start scanning again.
         case BLE_GAP_EVT_DISCONNECTED:
         {
+                NRF_LOG_INFO("Peer addr  %02x%02x%02x%02x%02x%02x",
+                        peer_addr_LR[p_gap_evt->conn_handle][0],
+                        peer_addr_LR[p_gap_evt->conn_handle][1],
+                        peer_addr_LR[p_gap_evt->conn_handle][2],
+                        peer_addr_LR[p_gap_evt->conn_handle][3],
+                        peer_addr_LR[p_gap_evt->conn_handle][4],
+                        peer_addr_LR[p_gap_evt->conn_handle][5]);
+
             NRF_LOG_INFO("GAP_EVT_DISCONNECT: %i", p_gap_evt->conn_handle);
+
             // Handle central disconnections
             if(p_gap_evt->conn_handle != m_per_con_handle)
             {
@@ -606,32 +626,38 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                              p_gap_evt->conn_handle,
                              p_gap_evt->params.disconnected.reason);
 
-                /*if (ble_conn_state_n_centrals() == 0)
+                if (ble_conn_state_n_centrals() == 0)
                 {
-                    err_code = app_button_disable();
-                    APP_ERROR_CHECK(err_code);
+                    //err_code = app_button_disable();
+                    //APP_ERROR_CHECK(err_code);
 
                     // Turn off connection indication LED
                     bsp_board_led_off(CENTRAL_CONNECTED_LED);
-                }*/
+                }
                 
                 if(p_gap_evt->conn_handle == m_service_discovery_conn_handle)
                 {
-                    m_service_discovery_in_process = false;
                     m_service_discovery_conn_handle = BLE_CONN_HANDLE_INVALID;
                 }
 
-                // Start scanning if we are not currently in the service discovery state
-                if(!m_service_discovery_in_process)
-                {
-                    scan_start();
-                }
+                // Start scanning
+                scan_start();
 
                 // Turn on LED for indicating scanning
                 bsp_board_led_on(CENTRAL_SCANNING_LED);
                 
                 // Notify aggregator service
                 app_aggregator_on_central_disconnect(p_gap_evt);
+
+                if(m_coded_phy_conn_handle[p_gap_evt->conn_handle] != BLE_CONN_HANDLE_INVALID)
+                {
+                    // This is a coded phy link that got disconnected
+                    m_coded_phy_conn_handle[p_gap_evt->conn_handle] = BLE_CONN_HANDLE_INVALID;
+                    if(--coded_phy_conn_count == 0)
+                    {
+                        bsp_board_led_off(CODED_PHY_LED);
+                    }
+                }
             }
             // Handle peripheral disconnect
             else
@@ -651,10 +677,15 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
 
         case BLE_GAP_EVT_TIMEOUT:
         {
-            // We have not specified a timeout for scanning, so only connection attemps can timeout.
             if (p_gap_evt->params.timeout.src == BLE_GAP_TIMEOUT_SRC_CONN)
             {
-                NRF_LOG_DEBUG("Connection request timed out.");
+                // This can only happen with central (initiator request timeout)
+                NRF_LOG_INFO("Connection request timed out.");
+
+#if defined(S140)
+                m_scan_params.scan_phy = (m_scan_params.scan_phy == BLE_GAP_PHY_1MBPS) ? BLE_GAP_PHY_CODED : BLE_GAP_PHY_1MBPS;
+#endif
+                scan_start();
             }
             else if(p_gap_evt->params.timeout.src == BLE_GAP_TIMEOUT_SRC_ADVERTISING)
             {
@@ -665,7 +696,7 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             }
             else if(p_gap_evt->params.timeout.src == BLE_GAP_TIMEOUT_SRC_SCAN)
             {
-                NRF_LOG_DEBUG("Scan timeout - Switching phy and restarting...");
+                NRF_LOG_INFO("Scan timeout - Switching phy and restarting...");
 #if defined(S140)
                 m_scan_params.scan_phy = (m_scan_params.scan_phy == BLE_GAP_PHY_1MBPS) ? BLE_GAP_PHY_CODED : BLE_GAP_PHY_1MBPS;
 #endif
@@ -739,6 +770,16 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
         } break;
         
         case BLE_GAP_EVT_RSSI_CHANGED:
+                        NRF_LOG_INFO("Peer addr  %02x%02x%02x%02x%02x%02x",
+                        peer_addr_LR[p_gap_evt->conn_handle][0],
+                        peer_addr_LR[p_gap_evt->conn_handle][1],
+                        peer_addr_LR[p_gap_evt->conn_handle][2],
+                        peer_addr_LR[p_gap_evt->conn_handle][3],
+                        peer_addr_LR[p_gap_evt->conn_handle][4],
+                        peer_addr_LR[p_gap_evt->conn_handle][5]);
+
+                     NRF_LOG_INFO("RSSI = %d\r\n",
+                         p_ble_evt->evt.gap_evt.params.rssi_changed.rssi);
             app_aggregator_rssi_changed(p_ble_evt->evt.gap_evt.conn_handle, p_ble_evt->evt.gap_evt.params.rssi_changed.rssi);
             break;
 
@@ -1077,7 +1118,7 @@ static void buttons_init(void)
  */
 static void db_disc_handler(ble_db_discovery_evt_t * p_evt)
 {
-    NRF_LOG_DEBUG("call to ble_lbs_on_db_disc_evt for instance %d and link 0x%x!",
+    NRF_LOG_DEBUG("call to db_disc_handler for instance %d and link 0x%x!",
                   p_evt->conn_handle,
                   p_evt->conn_handle);
 
@@ -1240,6 +1281,9 @@ int main(void)
     NRF_LOG_INFO("Multilink example started");
     uart_printf("Multilink example started. Group name \"%s\"\r\n", m_target_periph_name);
 
+    for (int i = 0; i < NRF_SDH_BLE_TOTAL_LINK_COUNT; ++i){
+        m_coded_phy_conn_handle[i] = BLE_CONN_HANDLE_INVALID;
+    }
     // Start scanning for peripherals and initiate connection to devices which  advertise.
     scan_start();
 
