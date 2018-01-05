@@ -724,7 +724,6 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             APP_ERROR_CHECK(err_code);
         } break;
 
-#if defined(S132)
         case BLE_GAP_EVT_PHY_UPDATE_REQUEST:
         {
             NRF_LOG_DEBUG("PHY update request.");
@@ -736,7 +735,6 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             err_code = sd_ble_gap_phy_update(p_ble_evt->evt.gap_evt.conn_handle, &phys);
             APP_ERROR_CHECK(err_code);
         } break;
-#endif
 
         case BLE_GAP_EVT_PHY_UPDATE:
         {
