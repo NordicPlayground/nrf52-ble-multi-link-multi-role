@@ -79,10 +79,14 @@
 // Peripheral parameters
 #define DEVICE_NAME                  "Aggregator 1"                    /**< Name of device. Will be included in the advertising data. */
 #define AGG_CFG_SERVICE_UUID_TYPE    BLE_UUID_TYPE_VENDOR_BEGIN         /**< UUID type for the Nordic UART Service (vendor specific). */
-#define MIN_PERIPHERAL_CON_INT       MSEC_TO_UNITS(30, UNIT_1_25_MS)    /**< Determines minimum connection interval in milliseconds. */
-#define MAX_PERIPHERAL_CON_INT       MSEC_TO_UNITS(50, UNIT_1_25_MS)   /**< Determines maximum connection interval in milliseconds. */
+#define MIN_PERIPHERAL_CON_INT       MSEC_TO_UNITS(50, UNIT_1_25_MS)    /**< Determines minimum connection interval in milliseconds. */
+#define MAX_PERIPHERAL_CON_INT       MSEC_TO_UNITS(100, UNIT_1_25_MS)   /**< Determines maximum connection interval in milliseconds. */
 #define PERIPHERAL_SLAVE_LATENCY     0                                  /**< Slave latency. */
 #define PERIPHERAL_CONN_SUP_TIMEOUT  MSEC_TO_UNITS(4000, UNIT_10_MS)    /**< Connection supervisory timeout (4 seconds), Supervision Timeout uses 10 ms units. */
+
+#define FIRST_CONN_PARAMS_UPDATE_DELAY  APP_TIMER_TICKS(5000)                       /**< Time from initiating event (connect or start of notification) to first time sd_ble_gap_conn_param_update is called (5 seconds). */
+#define NEXT_CONN_PARAMS_UPDATE_DELAY   APP_TIMER_TICKS(30000)                      /**< Time between each call to sd_ble_gap_conn_param_update after the first call (30 seconds). */
+#define MAX_CONN_PARAMS_UPDATE_COUNT    3    
 
 #define PERIPHERAL_ADV_INTERVAL                100                      /**< The advertising interval (in units of 0.625 ms. This value corresponds to 40 ms). */
 #define PERIPHERAL_ADV_TIMEOUT_IN_SECONDS      0                        /**< The advertising timeout (in units of seconds). */
@@ -99,10 +103,10 @@
 #define SCAN_WINDOW                 0x0050                              /**< Determines scan window in units of 0.625 millisecond. */
 #define SCAN_TIMEOUT                0x0100                              /**< Timout when scanning. 0x0000 disables timeout. */
 
-#define MIN_CONNECTION_INTERVAL     MSEC_TO_UNITS(30, UNIT_1_25_MS)    /**< Determines minimum connection interval in milliseconds. */
-#define MAX_CONNECTION_INTERVAL     MSEC_TO_UNITS(60, UNIT_1_25_MS)     /**< Determines maximum connection interval in milliseconds. */
+#define MIN_CONNECTION_INTERVAL     MSEC_TO_UNITS(50, UNIT_1_25_MS)    /**< Determines minimum connection interval in milliseconds. */
+#define MAX_CONNECTION_INTERVAL     MSEC_TO_UNITS(50, UNIT_1_25_MS)     /**< Determines maximum connection interval in milliseconds. */
 #define SLAVE_LATENCY               0                                   /**< Determines slave latency in terms of connection events. */
-#define SUPERVISION_TIMEOUT         MSEC_TO_UNITS(4000, UNIT_10_MS)     /**< Determines supervision time-out in units of 10 milliseconds. */
+#define SUPERVISION_TIMEOUT         MSEC_TO_UNITS(8000, UNIT_10_MS)     /**< Determines supervision time-out in units of 10 milliseconds. */
 
 #define UUID16_SIZE                 2                                   /**< Size of a UUID, in bytes. */
 
@@ -332,6 +336,14 @@ static void lbs_c_evt_handler(ble_lbs_c_t * p_lbs_c, ble_lbs_c_evt_t * p_lbs_c_e
             // LED Button service discovered. Enable notification of Button.
             err_code = ble_lbs_c_button_notif_enable(p_lbs_c);
             APP_ERROR_CHECK(err_code);
+
+            ble_gap_conn_params_t conn_params;
+            conn_params.max_conn_interval = MAX_CONNECTION_INTERVAL;
+            conn_params.min_conn_interval = MIN_CONNECTION_INTERVAL;
+            conn_params.slave_latency     = SLAVE_LATENCY;
+            conn_params.conn_sup_timeout  = SUPERVISION_TIMEOUT;
+
+            sd_ble_gap_conn_param_update(p_lbs_c_evt->conn_handle, &conn_params);
             
         } break; // BLE_LBS_C_EVT_DISCOVERY_COMPLETE
 
@@ -381,6 +393,14 @@ static void thingy_uis_c_evt_handler(ble_thingy_uis_c_t * p_thingy_uis_c, ble_th
             APP_ERROR_CHECK(err_code);
             
             ble_thingy_uis_led_set_constant(p_thingy_uis_c, 255, 255, 255);
+            
+            ble_gap_conn_params_t conn_params;
+            conn_params.max_conn_interval = MAX_CONNECTION_INTERVAL;
+            conn_params.min_conn_interval = MIN_CONNECTION_INTERVAL;
+            conn_params.slave_latency     = SLAVE_LATENCY;
+            conn_params.conn_sup_timeout  = SUPERVISION_TIMEOUT;
+
+            sd_ble_gap_conn_param_update(p_thingy_uis_c_evt->conn_handle, &conn_params);
 
         } break; // BLE_LBS_C_EVT_DISCOVERY_COMPLETE
 
@@ -1135,6 +1155,62 @@ static void db_discovery_init(void)
 }
 
 
+/**@brief Function for handling an event from the Connection Parameters Module.
+ *
+ * @details This function will be called for all events in the Connection Parameters Module
+ *          which are passed to the application.
+ *
+ * @note All this function does is to disconnect. This could have been done by simply setting
+ *       the disconnect_on_fail config parameter, but instead we use the event handler
+ *       mechanism to demonstrate its use.
+ *
+ * @param[in] p_evt  Event received from the Connection Parameters Module.
+ */
+static void on_conn_params_evt(ble_conn_params_evt_t * p_evt)
+{
+    uint32_t err_code;
+
+    if (p_evt->evt_type == BLE_CONN_PARAMS_EVT_FAILED)
+    {
+        err_code = sd_ble_gap_disconnect(m_per_con_handle, BLE_HCI_CONN_INTERVAL_UNACCEPTABLE);
+        APP_ERROR_CHECK(err_code);
+    }
+}
+
+
+/**@brief Function for handling errors from the Connection Parameters module.
+ *
+ * @param[in] nrf_error  Error code containing information about what went wrong.
+ */
+static void conn_params_error_handler(uint32_t nrf_error)
+{
+    APP_ERROR_HANDLER(nrf_error);
+}
+
+
+/**@brief Function for initializing the Connection Parameters module.
+ */
+static void conn_params_init(void)
+{
+    uint32_t               err_code;
+    ble_conn_params_init_t cp_init;
+
+    memset(&cp_init, 0, sizeof(cp_init));
+
+    cp_init.p_conn_params                  = NULL;
+    cp_init.first_conn_params_update_delay = FIRST_CONN_PARAMS_UPDATE_DELAY;
+    cp_init.next_conn_params_update_delay  = NEXT_CONN_PARAMS_UPDATE_DELAY;
+    cp_init.max_conn_params_update_count   = MAX_CONN_PARAMS_UPDATE_COUNT;
+    cp_init.start_on_notify_cccd_handle    = BLE_GATT_HANDLE_INVALID;
+    cp_init.disconnect_on_fail             = false;
+    cp_init.evt_handler                    = on_conn_params_evt;
+    cp_init.error_handler                  = conn_params_error_handler;
+
+    err_code = ble_conn_params_init(&cp_init);
+    APP_ERROR_CHECK(err_code);
+}
+
+
 /** @brief Function to sleep until a BLE event is received by the application.
  */
 static void power_manage(void)
@@ -1276,6 +1352,7 @@ int main(void)
     thingy_uis_c_init();
     ble_conn_state_init();
     advertising_data_set();
+    conn_params_init();
 
     NRF_LOG_INFO("Multilink example started");
     uart_printf("Multilink example started. Group name \"%s\"\r\n", m_target_periph_name);
