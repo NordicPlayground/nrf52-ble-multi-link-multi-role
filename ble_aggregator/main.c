@@ -517,7 +517,7 @@ static void on_adv_report(ble_evt_t const * p_ble_evt)
     }
 }
 
-static uint8_t peer_addr_LR[2][6];
+static uint8_t peer_addr_LR[NRF_SDH_BLE_CENTRAL_LINK_COUNT][6];
 /**@brief Function for handling BLE events.
  *
  * @param[in]   p_ble_evt   Bluetooth stack event.
