@@ -78,14 +78,14 @@
 // ### Change the device name to include your group prefix plus your own unique name
 // ### For example, if your group prefix is 'GRP1:' and your name is 'John' the advertising name should be 'GRP1:John'
 // ### WARNING: Don't make the name longer than 25 characters, or it won't fit in the advertise packet. 
-#define DEVICE_NAME                     "NT:John"                             /**< Name of device. Will be included in the advertising data. */
+#define DEVICE_NAME                     "NT:Blinky"                             /**< Name of device. Will be included in the advertising data. */
 // ### ----------------------------------------------------
 
 #define APP_BLE_OBSERVER_PRIO           1                                       /**< Application's BLE observer priority. You shouldn't need to modify this value. */
 #define APP_BLE_CONN_CFG_TAG            1                                       /**< A tag identifying the SoftDevice BLE configuration. */
 
 #define APP_ADV_INTERVAL                64                                      /**< The advertising interval (in units of 0.625 ms; this value corresponds to 40 ms). */
-#define APP_ADV_TIMEOUT_IN_SECONDS      BLE_GAP_ADV_TIMEOUT_GENERAL_UNLIMITED   /**< The advertising time-out (in units of seconds). When set to 0, we will never time out. */
+#define APP_ADV_DURATION                BLE_GAP_ADV_TIMEOUT_GENERAL_UNLIMITED   /**< The advertising time-out (in units of seconds). When set to 0, we will never time out. */
 
 #define MIN_CONN_INTERVAL               MSEC_TO_UNITS(30, UNIT_1_25_MS)        /**< Minimum acceptable connection interval (0.5 seconds). */
 #define MAX_CONN_INTERVAL               MSEC_TO_UNITS(50, UNIT_1_25_MS)        /**< Maximum acceptable connection interval (1 second). */
@@ -105,6 +105,25 @@ BLE_LBS_DEF(m_lbs);                                                             
 NRF_BLE_GATT_DEF(m_gatt);                                                       /**< GATT module instance. */
 
 static uint16_t m_conn_handle = BLE_CONN_HANDLE_INVALID;                        /**< Handle of the current connection. */
+static uint8_t  m_adv_handle = BLE_GAP_ADV_SET_HANDLE_NOT_SET;                  /**< Advertising handle used to identify an advertising set. */
+static uint8_t m_enc_advdata[BLE_GAP_ADV_SET_DATA_SIZE_MAX];                    /**< Buffer for storing an encoded advertising set. */
+static uint8_t m_enc_scan_response_data[BLE_GAP_ADV_SET_DATA_SIZE_MAX];         /**< Buffer for storing an encoded scan data. */
+
+/**@brief Struct that contains pointers to the encoded advertising data. */
+static ble_gap_adv_data_t m_adv_data =
+{
+    .adv_data =
+    {
+        .p_data = m_enc_advdata,
+        .len    = BLE_GAP_ADV_SET_DATA_SIZE_MAX
+    },
+    .scan_rsp_data =
+    {
+        .p_data = m_enc_scan_response_data,
+        .len    = BLE_GAP_ADV_SET_DATA_SIZE_MAX
+
+    }
+};
 
 // ### ------------------ TASK 4: STEP 1 ------------------
 // ### Use the APP_TIMER_DEF macro to define a new app_timer, and call it m_data_update_timer
@@ -149,7 +168,7 @@ void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
  */
 static void leds_init(void)
 {
-    bsp_board_leds_init();
+    bsp_board_init(BSP_INIT_LEDS);
 }
 
 
@@ -192,13 +211,6 @@ static void gap_params_init(void)
 
     err_code = sd_ble_gap_ppcp_set(&gap_conn_params);
     APP_ERROR_CHECK(err_code);
-
-// ### ------------------ TASK 2: STEP 1 ------------------
-// ### Change the TX output power of the BLE stack by calling sd_ble_gap_tx_power_set(int8_t tx_power)
-// ### Try different values and see how they affect the maximum range that you can get between the peripheral and the central
-// ### Hint: Some legal TX power values are: -40, -20, 0, 4, 8
-
-// ### ----------------------------------------------------
 }
 
 
@@ -224,7 +236,7 @@ static void advertising_init(void)
 
     ble_uuid_t adv_uuids[] = {{LBS_UUID_SERVICE, m_lbs.uuid_type}};
 
-    // Build and set advertising data
+    // Build and set advertising data.
     memset(&advdata, 0, sizeof(advdata));
 
     advdata.name_type          = BLE_ADVDATA_FULL_NAME;
@@ -236,8 +248,33 @@ static void advertising_init(void)
     srdata.uuids_complete.uuid_cnt = sizeof(adv_uuids) / sizeof(adv_uuids[0]);
     srdata.uuids_complete.p_uuids  = adv_uuids;
 
-    err_code = ble_advdata_set(&advdata, &srdata);
+    err_code = ble_advdata_encode(&advdata, m_adv_data.adv_data.p_data, &m_adv_data.adv_data.len);
     APP_ERROR_CHECK(err_code);
+
+    err_code = ble_advdata_encode(&srdata, m_adv_data.scan_rsp_data.p_data, &m_adv_data.scan_rsp_data.len);
+    APP_ERROR_CHECK(err_code);
+
+    ble_gap_adv_params_t adv_params;
+
+    // Set advertising parameters.
+    memset(&adv_params, 0, sizeof(adv_params));
+
+    adv_params.primary_phy     = BLE_GAP_PHY_1MBPS;
+    adv_params.duration        = APP_ADV_DURATION;
+    adv_params.properties.type = BLE_GAP_ADV_TYPE_CONNECTABLE_SCANNABLE_UNDIRECTED;
+    adv_params.p_peer_addr     = NULL;
+    adv_params.filter_policy   = BLE_GAP_ADV_FP_ANY;
+    adv_params.interval        = APP_ADV_INTERVAL;
+
+    err_code = sd_ble_gap_adv_set_configure(&m_adv_handle, &m_adv_data, &adv_params);
+    APP_ERROR_CHECK(err_code);
+    
+// ### ------------------ TASK 2: STEP 1 ------------------
+// ### Change the TX output power of the BLE stack by calling sd_ble_gap_tx_power_set(int8_t tx_power)
+// ### Try different values and see how they affect the maximum range that you can get between the peripheral and the central
+// ### Hint: Some legal TX power values are: -40, -20, 0, 4, 8
+
+// ### ----------------------------------------------------
 }
 
 
@@ -336,19 +373,10 @@ static void conn_params_init(void)
 static void advertising_start(void)
 {
     ret_code_t           err_code;
-    ble_gap_adv_params_t adv_params;
 
-    // Start advertising
-    memset(&adv_params, 0, sizeof(adv_params));
-
-    adv_params.type        = BLE_GAP_ADV_TYPE_ADV_IND;
-    adv_params.p_peer_addr = NULL;
-    adv_params.fp          = BLE_GAP_ADV_FP_ANY;
-    adv_params.interval    = APP_ADV_INTERVAL;
-    adv_params.timeout     = APP_ADV_TIMEOUT_IN_SECONDS;
-
-    err_code = sd_ble_gap_adv_start(&adv_params, APP_BLE_CONN_CFG_TAG);
+    err_code = sd_ble_gap_adv_start(m_adv_handle, APP_BLE_CONN_CFG_TAG);
     APP_ERROR_CHECK(err_code);
+
     bsp_board_led_on(ADVERTISING_LED);
 }
 
@@ -618,9 +646,9 @@ int main(void)
     buttons_init();
     ble_stack_init();
     gap_params_init();
-    gatt_init();
     services_init();
-    advertising_init();
+    advertising_init();    
+    gatt_init();
     conn_params_init();
 
     // Start execution.
