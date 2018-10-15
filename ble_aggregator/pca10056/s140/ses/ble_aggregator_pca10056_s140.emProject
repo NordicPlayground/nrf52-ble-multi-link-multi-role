@@ -1,9 +1,6 @@
 <!DOCTYPE CrossStudio_Project_File>
-<solution
-  Name="ble_app_multilink_central_pca10056_s140"
-  target="8"
-  version="2">
-  <project Name="ble_app_multilink_central_pca10056_s140">
+<solution Name="ble_aggregator_pca10056_s140" target="8" version="2">
+  <project Name="ble_aggregator_pca10056_s140">
     <configuration
       Connection="USB 683067600"
       Name="Common"

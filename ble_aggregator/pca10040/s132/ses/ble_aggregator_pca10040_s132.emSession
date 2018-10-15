@@ -21,10 +21,16 @@
   <MemoryWindow addressSpace="" dataSize="1" autoEvaluate="0" viewMode="0" addressOrder="0" columnsText="" refreshPeriod="0" name="ble_app_multilink_central_pca10040_s132" radix="16" sizeText="" addressText=""/>
  </Memory4>
  <Project>
-  <ProjectSessionItem path="ble_app_multilink_central_pca10040_s132"/>
-  <ProjectSessionItem path="ble_app_multilink_central_pca10040_s132;ble_app_multilink_central_pca10040_s132"/>
-  <ProjectSessionItem path="ble_app_multilink_central_pca10040_s132;ble_app_multilink_central_pca10040_s132;Application"/>
-  <ProjectSessionItem path="ble_app_multilink_central_pca10040_s132;ble_app_multilink_central_pca10040_s132;nRF_Libraries"/>
+  <ProjectSessionItem path="ble_aggregator_pca10040_s132"/>
+  <ProjectSessionItem path="ble_aggregator_pca10040_s132;ble_aggregator_pca10040_s132"/>
+  <ProjectSessionItem path="ble_aggregator_pca10040_s132;ble_aggregator_pca10040_s132;Application"/>
+  <ProjectSessionItem path="ble_aggregator_pca10040_s132;ble_aggregator_pca10040_s132;None"/>
+  <ProjectSessionItem path="ble_aggregator_pca10040_s132;ble_aggregator_pca10040_s132;nRF_BLE"/>
+  <ProjectSessionItem path="ble_aggregator_pca10040_s132;ble_aggregator_pca10040_s132;nRF_BLE_Services"/>
+  <ProjectSessionItem path="ble_aggregator_pca10040_s132;ble_aggregator_pca10040_s132;nRF_Drivers"/>
+  <ProjectSessionItem path="ble_aggregator_pca10040_s132;ble_aggregator_pca10040_s132;nRF_Libraries"/>
+  <ProjectSessionItem path="ble_aggregator_pca10040_s132;ble_aggregator_pca10040_s132;nRF_Log"/>
+  <ProjectSessionItem path="ble_aggregator_pca10040_s132;ble_aggregator_pca10040_s132;Segger Startup Files"/>
  </Project>
  <Register1>
   <RegisterWindow visibleNodes="CPU - Current Context/r0;CPU - Current Context/r1;CPU - Current Context/r2;CPU - Current Context/r3;CPU - Current Context/r4;CPU - Current Context/r5;CPU - Current Context/r6;CPU - Current Context/r7;CPU - Current Context/r8;CPU - Current Context/r9;CPU - Current Context/r10;CPU - Current Context/r11;CPU - Current Context/r12;CPU - Current Context/sp(r13);CPU - Current Context/lr(r14);CPU - Current Context/pc(r15);CPU - Current Context/apsr;CPU/r0;CPU/r1;CPU/r2;CPU/r3;CPU/r4;CPU/r5;CPU/r6;CPU/r7;CPU/r8;CPU/r9;CPU/r10;CPU/r11;CPU/r12;CPU/sp(r13);CPU/lr(r14);CPU/pc(r15);CPU/xpsr;CPU/msp;CPU/psp;CPU/cfbp" binaryNodes="" asciiNodes="" openNodes="CPU - Current Context" name="ble_app_multilink_central_pca10040_s132" decimalNodes="" octalNodes="" unsignedNodes=""/>
@@ -57,9 +63,18 @@
   <Watches active="0" update="Never"/>
  </Watch4>
  <Files>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="575" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../main.c" selected="1" top="530" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="51" y="11407" useTextEdit="1" useBinaryEdit="0" left="0" path="../config/sdk_config.h" selected="0" top="11358" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="98" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../components/libraries/util/app_error_weak.c" selected="0" top="29" codecName=""/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="1383" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../main.c" selected="1" top="1301" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="11504" useTextEdit="1" useBinaryEdit="0" left="0" path="../config/sdk_config.h" selected="0" top="11466" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="39" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../../components/libraries/log/src/nrf_log_backend_rtt.c" selected="0" top="0" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="70" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../../components/libraries/log/src/nrf_log_frontend.c" selected="0" top="23" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="0" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../ble_aggregator_config_service/ble_agg_config_service.h" selected="0" top="0" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="71" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../ble_thingy_client/ble_thingy_uis_c.h" selected="0" top="18" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="92" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../ble_aggregator_config_service/ble_agg_config_service.c" selected="0" top="43" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="0" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../app_aggregator.h" selected="0" top="0" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="74" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../../components/libraries/uart/app_uart_fifo.c" selected="0" top="22" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="57" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../../components/ble/common/ble_conn_params.c" selected="0" top="14" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="99" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../../components/libraries/util/app_error_weak.c" selected="0" top="78" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="72" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../../components/libraries/util/app_error.c" selected="0" top="51" codecName="Default"/>
  </Files>
- <ARMCrossStudioWindow activeProject="ble_app_multilink_central_pca10040_s132" fileDialogDefaultFilter="*.c" autoConnectTarget="J-Link" buildConfiguration="Release" debugSearchFileMap="" fileDialogInitialDirectory="" debugSearchPath="" autoConnectCapabilities="3711"/>
+ <ARMCrossStudioWindow activeProject="ble_app_multilink_central_pca10040_s132" fileDialogDefaultFilter="*.c" autoConnectTarget="J-Link" buildConfiguration="Release" debugSearchFileMap="" fileDialogInitialDirectory="C:/Nordic_Semiconductor/nRF5_SDK_15.2.0/components/ble/common" debugSearchPath="" autoConnectCapabilities="3199"/>
 </session>

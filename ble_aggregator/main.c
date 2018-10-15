@@ -279,7 +279,7 @@ static void gap_params_init(void)
     err_code = sd_ble_gap_ppcp_set(&gap_conn_params);
     APP_ERROR_CHECK(err_code);
 
-    err_code = sd_ble_gap_tx_power_set(BLE_GAP_TX_POWER_ROLE_SCAN_INIT, BLE_CONN_HANDLE_INVALID, 8);
+    err_code = sd_ble_gap_tx_power_set(BLE_GAP_TX_POWER_ROLE_SCAN_INIT, BLE_CONN_HANDLE_INVALID, 4);
     APP_ERROR_CHECK(err_code);
 }
 
@@ -653,7 +653,7 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                 err_code = sd_ble_gap_rssi_start(p_gap_evt->conn_handle, 5, 4);
                 APP_ERROR_CHECK(err_code);
 
-                err_code = sd_ble_gap_tx_power_set(BLE_GAP_TX_POWER_ROLE_CONN, p_gap_evt->conn_handle, 8);
+                err_code = sd_ble_gap_tx_power_set(BLE_GAP_TX_POWER_ROLE_CONN, p_gap_evt->conn_handle, 4);
                 APP_ERROR_CHECK(err_code);
 
                 // Notify the aggregator service
@@ -961,8 +961,8 @@ static void advertising_data_set(void)
     adv_params.primary_phy   = BLE_GAP_PHY_1MBPS;
     adv_params.secondary_phy = BLE_GAP_PHY_1MBPS;
 #else
-        .primary_phy   = BLE_GAP_PHY_1MBPS,
-        .secondary_phy = BLE_GAP_PHY_1MBPS,
+    adv_params.primary_phy   = BLE_GAP_PHY_1MBPS,
+    adv_params.secondary_phy = BLE_GAP_PHY_1MBPS,
 #endif
     
     err_code = sd_ble_gap_adv_set_configure(&m_adv_handle, &adv_packet, &adv_params);
