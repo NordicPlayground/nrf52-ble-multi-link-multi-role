@@ -76,7 +76,7 @@
 #define APP_BLE_OBSERVER_PRIO     3                                     /**< Application's BLE observer priority. You shouldn't need to modify this value. */
 
 // Peripheral parameters
-#define DEVICE_NAME                  "Aggregator 1"                    /**< Name of device. Will be included in the advertising data. */
+#define DEVICE_NAME                  "Aggregatorz"                    /**< Name of device. Will be included in the advertising data. */
 #define AGG_CFG_SERVICE_UUID_TYPE    BLE_UUID_TYPE_VENDOR_BEGIN         /**< UUID type for the Nordic UART Service (vendor specific). */
 #define MIN_PERIPHERAL_CON_INT       MSEC_TO_UNITS(50, UNIT_1_25_MS)    /**< Determines minimum connection interval in milliseconds. */
 #define MAX_PERIPHERAL_CON_INT       MSEC_TO_UNITS(100, UNIT_1_25_MS)   /**< Determines maximum connection interval in milliseconds. */
