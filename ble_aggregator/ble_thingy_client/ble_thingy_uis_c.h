@@ -92,33 +92,21 @@ typedef struct
 } ble_thingy_uis_button_t;
 
 /**@brief Structure(s) containing the LED value. */
-#if defined(__CC_ARM)
-typedef __packed struct
-#else
-typedef __attribute__((__packed__)) struct 
-#endif
+typedef struct 
 {
     uint8_t r;
     uint8_t g;
     uint8_t b;
 }ble_thingy_uis_led_mode_constant_t;
 
-#if defined(__CC_ARM)
-typedef __packed struct
-#else
-typedef __attribute__((__packed__)) struct 
-#endif
+typedef struct 
 {
     uint8_t color;
     uint8_t intensity;
     uint16_t delay;
 }ble_thingy_uis_led_mode_breathe_t;
 
-#if defined(__CC_ARM)
-typedef __packed struct
-#else
-typedef __attribute__((__packed__)) struct 
-#endif
+typedef struct 
 {
     uint8_t color;
     uint8_t intensity;
@@ -127,18 +115,12 @@ typedef __attribute__((__packed__)) struct
 enum {THINGY_UIS_LED_MODE_OFF, THINGY_UIS_LED_MODE_CONSTANT, THINGY_UIS_LED_MODE_BREATHE, THINGY_UIS_LED_MODE_ONESHOT};
 enum {THINGY_UIS_LED_COLOR_RED = 1, THINGY_UIS_LED_COLOR_GREEN, THINGY_UIS_LED_COLOR_YELLOW, THINGY_UIS_LED_COLOR_BLUE, THINGY_UIS_LED_COLOR_PURPLE, THINGY_UIS_LED_COLOR_CYAN, THINGY_UIS_LED_COLOR_WHITE};
 
-#if defined(__CC_ARM)
-typedef __packed struct
-#else
-typedef __attribute__((__packed__)) struct 
-#endif
+typedef struct 
 {
   uint8_t mode;  
-#if defined(__CC_ARM)
-     __packed union
-#else
-    __attribute__((__packed__)) union 
-#endif
+
+  union 
+
   {
       ble_thingy_uis_led_mode_constant_t constant;
       ble_thingy_uis_led_mode_breathe_t breathe;
