@@ -2,7 +2,7 @@
 <solution Name="ble_aggregator_pca10056_s140" target="8" version="2">
   <project Name="ble_aggregator_pca10056_s140">
     <configuration
-      Connection="USB 683067600"
+      Connection="USB 683484640"
       Name="Common"
       arm_architecture="v7EM"
       arm_core_type="Cortex-M4"

@@ -76,7 +76,7 @@
 #define APP_BLE_OBSERVER_PRIO     3                                     /**< Application's BLE observer priority. You shouldn't need to modify this value. */
 
 // Peripheral parameters
-#define DEVICE_NAME                  "Aggregatorz"                    /**< Name of device. Will be included in the advertising data. */
+#define DEVICE_NAME                  "Aggregator"                       /**< Name of device. Will be included in the advertising data. */
 #define AGG_CFG_SERVICE_UUID_TYPE    BLE_UUID_TYPE_VENDOR_BEGIN         /**< UUID type for the Nordic UART Service (vendor specific). */
 #define MIN_PERIPHERAL_CON_INT       MSEC_TO_UNITS(50, UNIT_1_25_MS)    /**< Determines minimum connection interval in milliseconds. */
 #define MAX_PERIPHERAL_CON_INT       MSEC_TO_UNITS(100, UNIT_1_25_MS)   /**< Determines maximum connection interval in milliseconds. */
@@ -120,7 +120,7 @@ BLE_THINGY_UIS_C_ARRAY_DEF(m_thingy_uis_c, NRF_SDH_BLE_CENTRAL_LINK_COUNT);
 BLE_DB_DISCOVERY_ARRAY_DEF(m_db_disc, NRF_SDH_BLE_CENTRAL_LINK_COUNT);  /**< Database discovery module instances. */
 
 static char const m_target_periph_name[] = "NT:";                       /**< Name of the device we try to connect to. This name is searched for in the scan report data*/
-
+static char const m_target_blinky_name[] = "MLThingy";
 //static volatile bool m_service_discovery_in_process = false;
 
 static uint16_t   m_service_discovery_conn_handle = BLE_CONN_HANDLE_INVALID;
@@ -494,7 +494,7 @@ static void on_adv_report(ble_evt_t const * p_ble_evt)
         adv_data.size   = p_gap_evt->params.adv_report.data.len;
 
         // Search for advertising names.
-        bool found_name = false;
+        bool found_name = false, found_blinky_name = false;
         err_code = adv_report_parse(BLE_GAP_AD_TYPE_COMPLETE_LOCAL_NAME,
                                     &adv_data,
                                     &dev_name);
@@ -535,20 +535,24 @@ static void on_adv_report(ble_evt_t const * p_ble_evt)
                     }
                     m_device_being_connected_info.dev_type = DEVTYPE_BLINKY;
                 }
+                else if(memcmp(m_target_blinky_name, dev_name.p_data, strlen(m_target_blinky_name)) == 0)
+                {
+                    found_blinky_name = true;
+                }
             }
         }
         
         // Look for Thingy UUID
         // Filter on RSSI to avoid connecting to everything in the room
         const uint8_t thingy_service_uuid[] = {0x42, 0x00, 0x74, 0xA9, 0xFF, 0x52, 0x10, 0x9B, 0x33, 0x49, 0x35, 0x9B, 0x00, 0x01, 0x68, 0xEF};
-        if(p_gap_evt->params.adv_report.rssi > THINGY_RSSI_CONNECT_LIMIT)
+        if(p_gap_evt->params.adv_report.rssi > THINGY_RSSI_CONNECT_LIMIT || found_blinky_name)
         {
             err_code = adv_report_parse(BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_MORE_AVAILABLE, &adv_data, &service_uuid);
             if (err_code == NRF_SUCCESS)
             {
                 if (memcmp(service_uuid.p_data, thingy_service_uuid, 16) == 0)
                 {
-                    NRF_LOG_INFO("Thingy!!");
+                    NRF_LOG_INFO(found_blinky_name ? "Named Thingy!!" : "Thingy!!");
                     if(found_name)
                     {
                         memcpy(m_device_name_being_connected_to, 
@@ -1337,7 +1341,7 @@ static void gatt_init(void)
 
 
 static void process_app_commands()
-{               
+{           
     if(agg_cmd_received != 0)
     {          
         uint32_t mask;
