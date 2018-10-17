@@ -354,8 +354,9 @@ uint32_t ble_thingy_uis_led_status_send(ble_thingy_uis_c_t * p_ble_thingy_uis_c,
     {
         return NRF_ERROR_INVALID_STATE;
     }
-
-    NRF_LOG_DEBUG("writing Thingy UI LED status");
+    
+    NRF_LOG_DEBUG("writing Thingy UI LED status: Mode %i, %i, %i, %i", (int)led_state->mode,
+        (int)led_state->params.constant.r, (int)led_state->params.constant.g, (int)led_state->params.constant.b);
     tx_message_t * p_msg;
 
     p_msg              = &m_tx_buffer[m_tx_insert_index++];

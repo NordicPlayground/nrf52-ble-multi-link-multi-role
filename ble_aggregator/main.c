@@ -397,6 +397,8 @@ static void lbs_c_evt_handler(ble_lbs_c_t * p_lbs_c, ble_lbs_c_evt_t * p_lbs_c_e
                 conn_params.conn_sup_timeout  = SUPERVISION_TIMEOUT;
 
                 sd_ble_gap_conn_param_update(p_lbs_c_evt->conn_handle, &conn_params);
+                
+                scan_start();
             } 
             break; // BLE_LBS_C_EVT_DISCOVERY_COMPLETE
 
@@ -454,6 +456,8 @@ static void thingy_uis_c_evt_handler(ble_thingy_uis_c_t * p_thingy_uis_c, ble_th
             conn_params.conn_sup_timeout  = SUPERVISION_TIMEOUT;
 
             sd_ble_gap_conn_param_update(p_thingy_uis_c_evt->conn_handle, &conn_params);
+            
+            scan_start();
 
         } break; // BLE_LBS_C_EVT_DISCOVERY_COMPLETE
 
@@ -671,8 +675,8 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                 else
                 {
                     // Resume scanning.
-                    bsp_board_led_on(CENTRAL_SCANNING_LED);
-                    scan_start();
+                    //bsp_board_led_on(CENTRAL_SCANNING_LED);
+                    //scan_start();
                 }
                 
                 m_device_being_connected_info.dev_type = DEVTYPE_NONE;
@@ -1004,7 +1008,8 @@ static ret_code_t led_status_send_to_all(uint8_t button_action)
 
         if(err_code != NRF_SUCCESS)
         {
-            err_code = ble_thingy_uis_led_set_constant(&m_thingy_uis_c[i], button_action ? 255 : 0, button_action ? 255 : 0, button_action ? 255     : 0);
+            err_code = ble_thingy_uis_led_set_on_off(&m_thingy_uis_c[i], button_action);
+            //err_code = ble_thingy_uis_led_set_constant(&m_thingy_uis_c[i], button_action ? 255 : 0, button_action ? 255 : 0, button_action ? 255 : 0);
             if (err_code != NRF_SUCCESS &&
                 err_code != BLE_ERROR_INVALID_CONN_HANDLE &&
                 err_code != NRF_ERROR_INVALID_STATE)

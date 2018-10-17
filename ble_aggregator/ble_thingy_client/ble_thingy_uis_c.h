@@ -45,6 +45,7 @@
 #include "ble.h"
 #include "ble_db_discovery.h"
 #include "nrf_sdh_ble.h"
+#include "app_util_platform.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -92,21 +93,21 @@ typedef struct
 } ble_thingy_uis_button_t;
 
 /**@brief Structure(s) containing the LED value. */
-typedef struct 
+typedef PACKED_STRUCT 
 {
     uint8_t r;
     uint8_t g;
     uint8_t b;
 }ble_thingy_uis_led_mode_constant_t;
 
-typedef struct 
+typedef PACKED_STRUCT 
 {
     uint8_t color;
     uint8_t intensity;
     uint16_t delay;
 }ble_thingy_uis_led_mode_breathe_t;
 
-typedef struct 
+typedef PACKED_STRUCT 
 {
     uint8_t color;
     uint8_t intensity;
