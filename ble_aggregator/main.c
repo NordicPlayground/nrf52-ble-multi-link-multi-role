@@ -99,8 +99,8 @@
 #define BUTTON_DETECTION_DELAY      APP_TIMER_TICKS(50)                 /**< Delay from a GPIOTE event until a button is reported as pushed (in number of timer ticks). */
 
 #define SCAN_INTERVAL               160//0x00F0                              /**< Determines scan interval in units of 0.625 millisecond. */
-#define SCAN_WINDOW                80// 0x0050                              /**< Determines scan window in units of 0.625 millisecond. */
-#define SCAN_TIMEOUT               0x0800                              /**< Timout when scanning. 0x0000 disables timeout. */
+#define SCAN_WINDOW                 80// 0x0050                              /**< Determines scan window in units of 0.625 millisecond. */
+#define SCAN_TIMEOUT                0x0200                              /**< Timout when scanning. 0x0000 disables timeout. */
 
 #define MIN_CONNECTION_INTERVAL     MSEC_TO_UNITS(50, UNIT_1_25_MS)    /**< Determines minimum connection interval in milliseconds. */
 #define MAX_CONNECTION_INTERVAL     MSEC_TO_UNITS(200, UNIT_1_25_MS)     /**< Determines maximum connection interval in milliseconds. */
@@ -188,13 +188,13 @@ static void enable_gpio_debug(void)
 #endif
 }
 
-static uint8_t m_scan_buffer_data[BLE_GAP_SCAN_BUFFER_MIN]; /**< buffer where advertising reports will be stored by the SoftDevice. */
+static uint8_t m_scan_buffer_data[BLE_GAP_SCAN_BUFFER_EXTENDED_MIN]; /**< buffer where advertising reports will be stored by the SoftDevice. */
 
 /**@brief Pointer to the buffer where advertising reports will be stored by the SoftDevice. */
 static ble_data_t m_scan_buffer =
 {
     m_scan_buffer_data,
-    BLE_GAP_SCAN_BUFFER_MIN
+    BLE_GAP_SCAN_BUFFER_EXTENDED_MIN
 };
 
 /**@brief Scan parameters requested for scanning and connection. */
@@ -209,7 +209,6 @@ static ble_gap_scan_params_t m_scan_params =
     .scan_phys         = BLE_GAP_PHY_1MBPS,
     .filter_policy     = BLE_GAP_SCAN_FP_ACCEPT_ALL,
     .channel_mask      = {0,0,0,0,0},
-
 };
 
 /**@brief Connection parameters requested for connection. */
@@ -350,20 +349,24 @@ static uint32_t adv_report_parse(uint8_t type, uint8_array_t * p_advdata, uint8_
     return NRF_ERROR_NOT_FOUND;
 }
 
+static bool m_scan_mode_coded_phy = false;
 
 /**@brief Function to start scanning. */
-static void scan_start(void)
+static void scan_start(bool coded_phy)
 {
     ret_code_t ret;
 
     //(void) sd_ble_gap_scan_stop();
 
-    NRF_LOG_INFO("Start scanning for device name %s.", (uint32_t)m_target_periph_name);
-    m_scan_buffer.len = 31;
+    NRF_LOG_INFO("Scan start: Name - %s, phy - %s", (uint32_t)m_target_periph_name, coded_phy ? "Coded" : "1Mbps");
+    m_scan_buffer.len = BLE_GAP_SCAN_BUFFER_EXTENDED_MIN;
+    m_scan_params.scan_phys = coded_phy ? BLE_GAP_PHY_CODED : BLE_GAP_PHY_1MBPS;
+    m_scan_params.extended = coded_phy ? 1 : 0;
     ret = sd_ble_gap_scan_start(&m_scan_params, &m_scan_buffer);
     APP_ERROR_CHECK(ret);
     // Turn on the LED to signal scanning.
     bsp_board_led_on(CENTRAL_SCANNING_LED);
+    m_scan_mode_coded_phy = coded_phy;
 }
 
 
@@ -398,7 +401,7 @@ static void lbs_c_evt_handler(ble_lbs_c_t * p_lbs_c, ble_lbs_c_evt_t * p_lbs_c_e
 
                 sd_ble_gap_conn_param_update(p_lbs_c_evt->conn_handle, &conn_params);
                 
-                scan_start();
+                scan_start(m_scan_mode_coded_phy);
             } 
             break; // BLE_LBS_C_EVT_DISCOVERY_COMPLETE
 
@@ -457,7 +460,7 @@ static void thingy_uis_c_evt_handler(ble_thingy_uis_c_t * p_thingy_uis_c, ble_th
 
             sd_ble_gap_conn_param_update(p_thingy_uis_c_evt->conn_handle, &conn_params);
             
-            scan_start();
+            scan_start(m_scan_mode_coded_phy);
 
         } break; // BLE_LBS_C_EVT_DISCOVERY_COMPLETE
 
@@ -778,18 +781,12 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                 // This can only happen with central (initiator request timeout)
                 NRF_LOG_INFO("Connection request timed out.");
 
-#if defined(S140)
-                m_scan_params.scan_phys = (m_scan_params.scan_phys == BLE_GAP_PHY_1MBPS) ? BLE_GAP_PHY_1MBPS : BLE_GAP_PHY_1MBPS;
-#endif
-                scan_start();
+                scan_start(m_scan_mode_coded_phy);
             }
             else if(p_gap_evt->params.timeout.src == BLE_GAP_TIMEOUT_SRC_SCAN)
             {
-                //NRF_LOG_INFO("Scan timeout - Switching phy and restarting...");
-#if defined(S140)
-                m_scan_params.scan_phys = (m_scan_params.scan_phys == BLE_GAP_PHY_1MBPS) ? BLE_GAP_PHY_1MBPS : BLE_GAP_PHY_1MBPS;
-#endif
-                scan_start();
+                // On scan timeout, restart scanning in the opposite mode (1M vs coded)
+                scan_start(!m_scan_mode_coded_phy);
             }
         } break;
         
@@ -965,14 +962,9 @@ static void advertising_data_set(void)
     adv_params.filter_policy = BLE_GAP_ADV_FP_ANY;
     adv_params.interval      = PERIPHERAL_ADV_INTERVAL;
     adv_params.duration      = PERIPHERAL_ADV_TIMEOUT_IN_SECONDS * 100;
-#if defined(S140)
     adv_params.primary_phy   = BLE_GAP_PHY_1MBPS;
     adv_params.secondary_phy = BLE_GAP_PHY_1MBPS;
-#else
-    adv_params.primary_phy   = BLE_GAP_PHY_1MBPS,
-    adv_params.secondary_phy = BLE_GAP_PHY_1MBPS,
-#endif
-    
+
     err_code = sd_ble_gap_adv_set_configure(&m_adv_handle, &adv_packet, &adv_params);
     APP_ERROR_CHECK(err_code);
 }
@@ -1419,7 +1411,7 @@ int main(void)
         m_coded_phy_conn_handle[i] = BLE_CONN_HANDLE_INVALID;
     }
     // Start scanning for peripherals and initiate connection to devices which  advertise.
-    scan_start();
+    scan_start(false);
 
     // Start advertising
     advertising_start();
