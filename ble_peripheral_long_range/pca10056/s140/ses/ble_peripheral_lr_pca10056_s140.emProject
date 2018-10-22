@@ -85,7 +85,6 @@
     </folder>
     <folder Name="Application">
       <file file_name="../config/sdk_config.h" />
-      <file file_name="../../../radio_time_analysis.c" />
       <file file_name="../../../main.c" />
     </folder>
     <folder Name="nRF_Segger_RTT">

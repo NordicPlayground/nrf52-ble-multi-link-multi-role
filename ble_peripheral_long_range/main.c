@@ -55,7 +55,6 @@
 #include "ble_conn_params.h"
 #include "nrf_sdh.h"
 #include "nrf_sdh_ble.h"
-#include "radio_time_analysis.h"
 #include "boards.h"
 #include "app_timer.h"
 #include "app_button.h"
@@ -567,10 +566,6 @@ int main(void)
     leds_init();
     timers_init();
 
-    // This function enables analysis of the RX time in the RTT log
-    // This can be used to measure the impact of changing the PHY, by measuring the time of each packet over the air
-    //radio_analysis_enable();
-	
     log_init();
     buttons_init();
     ble_stack_init();
