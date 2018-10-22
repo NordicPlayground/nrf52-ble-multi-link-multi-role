@@ -366,6 +366,7 @@ static void scan_led_state_set(bool adv_enabled, bool coded_phy)
     if(current_state != ((adv_enabled ? 0x01 : 0) | (coded_phy ? 0x02 : 0)))
     {
         app_timer_stop(m_scan_led_blink_timer_id);
+        bsp_board_led_off(CENTRAL_SCANNING_LED);
         if(adv_enabled)
         {
             app_timer_start(m_scan_led_blink_timer_id, APP_TIMER_TICKS(coded_phy ? 400 : 100), 0);
