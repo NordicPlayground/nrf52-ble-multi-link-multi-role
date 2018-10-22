@@ -98,12 +98,12 @@
 #define LEDBUTTON_BUTTON            BSP_BUTTON_0                        /**< Button that will write to the LED characteristic of the peer. */
 #define BUTTON_DETECTION_DELAY      APP_TIMER_TICKS(50)                 /**< Delay from a GPIOTE event until a button is reported as pushed (in number of timer ticks). */
 
-#define SCAN_INTERVAL               160//0x00F0                              /**< Determines scan interval in units of 0.625 millisecond. */
-#define SCAN_WINDOW                 80// 0x0050                              /**< Determines scan window in units of 0.625 millisecond. */
+#define SCAN_INTERVAL               160//0x00F0                         /**< Determines scan interval in units of 0.625 millisecond. */
+#define SCAN_WINDOW                 80// 0x0050                         /**< Determines scan window in units of 0.625 millisecond. */
 #define SCAN_TIMEOUT                0x0200                              /**< Timout when scanning. 0x0000 disables timeout. */
 
-#define MIN_CONNECTION_INTERVAL     MSEC_TO_UNITS(50, UNIT_1_25_MS)    /**< Determines minimum connection interval in milliseconds. */
-#define MAX_CONNECTION_INTERVAL     MSEC_TO_UNITS(200, UNIT_1_25_MS)     /**< Determines maximum connection interval in milliseconds. */
+#define MIN_CONNECTION_INTERVAL     MSEC_TO_UNITS(50, UNIT_1_25_MS)     /**< Determines minimum connection interval in milliseconds. */
+#define MAX_CONNECTION_INTERVAL     MSEC_TO_UNITS(200, UNIT_1_25_MS)    /**< Determines maximum connection interval in milliseconds. */
 #define SLAVE_LATENCY               0                                   /**< Determines slave latency in terms of connection events. */
 #define SUPERVISION_TIMEOUT         MSEC_TO_UNITS(8000, UNIT_10_MS)     /**< Determines supervision time-out in units of 10 milliseconds. */
 
@@ -118,6 +118,8 @@ BLE_AGG_CFG_SERVICE_DEF(m_agg_cfg_service);                             /**< BLE
 BLE_LBS_C_ARRAY_DEF(m_lbs_c, NRF_SDH_BLE_CENTRAL_LINK_COUNT);           /**< LED Button client instances. */
 BLE_THINGY_UIS_C_ARRAY_DEF(m_thingy_uis_c, NRF_SDH_BLE_CENTRAL_LINK_COUNT);
 BLE_DB_DISCOVERY_ARRAY_DEF(m_db_disc, NRF_SDH_BLE_CENTRAL_LINK_COUNT);  /**< Database discovery module instances. */
+
+APP_TIMER_DEF(m_scan_led_blink_timer_id);
 
 static char const m_target_periph_name[] = "NT:";                       /**< Name of the device we try to connect to. This name is searched for in the scan report data*/
 static char const m_target_blinky_name[] = "MLThingy";
@@ -351,6 +353,28 @@ static uint32_t adv_report_parse(uint8_t type, uint8_array_t * p_advdata, uint8_
 
 static bool m_scan_mode_coded_phy = false;
 
+
+static void scan_led_blink_callback(void *p)
+{
+    bsp_board_led_invert(CENTRAL_SCANNING_LED);
+}
+
+
+static void scan_led_state_set(bool adv_enabled, bool coded_phy)
+{
+    static uint32_t current_state = 0;
+    if(current_state != ((adv_enabled ? 0x01 : 0) | (coded_phy ? 0x02 : 0)))
+    {
+        app_timer_stop(m_scan_led_blink_timer_id);
+        if(adv_enabled)
+        {
+            app_timer_start(m_scan_led_blink_timer_id, APP_TIMER_TICKS(coded_phy ? 400 : 100), 0);
+        }
+        current_state = (adv_enabled ? 0x01 : 0) | (coded_phy ? 0x02 : 0);
+    }
+}
+
+
 /**@brief Function to start scanning. */
 static void scan_start(bool coded_phy)
 {
@@ -364,8 +388,8 @@ static void scan_start(bool coded_phy)
     m_scan_params.extended = coded_phy ? 1 : 0;
     ret = sd_ble_gap_scan_start(&m_scan_params, &m_scan_buffer);
     APP_ERROR_CHECK(ret);
-    // Turn on the LED to signal scanning.
-    bsp_board_led_on(CENTRAL_SCANNING_LED);
+
+    scan_led_state_set(true, coded_phy);
     m_scan_mode_coded_phy = coded_phy;
 }
 
@@ -593,6 +617,10 @@ static void on_adv_report(ble_evt_t const * p_ble_evt)
         }
         else APP_ERROR_CHECK(err_code);   
     }
+    else
+    {
+        scan_led_state_set(false, false);
+    }
 }
 
 static uint8_t peer_addr_LR[NRF_SDH_BLE_CENTRAL_LINK_COUNT][6];
@@ -731,12 +759,6 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                 {
                     m_service_discovery_conn_handle = BLE_CONN_HANDLE_INVALID;
                 }
-
-                // Start scanning
-                //scan_start();
-
-                // Turn on LED for indicating scanning
-                bsp_board_led_on(CENTRAL_SCANNING_LED);
                 
                 // Notify aggregator service
                 app_aggregator_on_central_disconnect(p_gap_evt);
@@ -1322,6 +1344,9 @@ static void timer_init(void)
 {
     ret_code_t err_code = app_timer_init();
     APP_ERROR_CHECK(err_code);
+    
+    err_code = app_timer_create(&m_scan_led_blink_timer_id, APP_TIMER_MODE_REPEATED, scan_led_blink_callback);
+    APP_ERROR_CHECK(err_code);
 }
 
 
@@ -1416,9 +1441,6 @@ int main(void)
     // Start advertising
     advertising_start();
     
-    // Turn on the LED to signal scanning.
-    bsp_board_led_on(CENTRAL_SCANNING_LED);
-        
     err_code = app_button_enable();
     APP_ERROR_CHECK(err_code);
     

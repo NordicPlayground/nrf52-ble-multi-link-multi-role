@@ -121,7 +121,7 @@
       <file file_name="../../../../../../../components/softdevice/common/nrf_sdh_soc.c" />
     </folder>
     <configuration Connection="USB 683239344" Name="Release" />
-    <configuration Connection="USB 683067600" Name="Debug" />
+    <configuration Connection="USB 683675396" Name="Debug" />
   </project>
   <configuration
     Name="Release"
