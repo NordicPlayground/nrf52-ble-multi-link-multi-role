@@ -570,7 +570,18 @@ static void button_event_handler(uint8_t pin_no, uint8_t button_action)
         case TX_POWER_BUTTON:
             if(button_action == APP_BUTTON_PUSH)
             {
-                m_application_state.tx_power = (m_application_state.tx_power + 1) % 2;
+                m_application_state.tx_power = (m_application_state.tx_power + 1) % 3;
+                int8_t tx_power = (int8_t)(m_application_state.tx_power * 4);
+                if(m_application_state.app_state == APP_STATE_CONNECTED)
+                {
+                    err_code = sd_ble_gap_tx_power_set(BLE_GAP_TX_POWER_ROLE_CONN, m_conn_handle, tx_power);
+                    APP_ERROR_CHECK(err_code);
+                }
+                else
+                {
+                    err_code = sd_ble_gap_tx_power_set(BLE_GAP_TX_POWER_ROLE_ADV, m_adv_handle, tx_power);
+                    APP_ERROR_CHECK(err_code);
+                }   
                 display_update();
             }
             break;
