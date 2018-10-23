@@ -7202,6 +7202,11 @@ void _UG_ButtonUpdate(UG_WINDOW* wnd, UG_OBJECT* obj)
       }
       else
       {
+          UG_WindowGetArea(wnd,&a);
+          obj->a_abs.xs = obj->a_rel.xs + a.xs;
+          obj->a_abs.ys = obj->a_rel.ys + a.ys;
+          obj->a_abs.xe = obj->a_rel.xe + a.xs;
+          obj->a_abs.ye = obj->a_rel.ye + a.ys;
           if ( !(btn->style & BTN_STYLE_NO_FILL) )
             UG_FillFrame(obj->a_abs.xs, obj->a_abs.ys, obj->a_abs.xe, obj->a_abs.ye, wnd->bc);
       }
@@ -8155,6 +8160,11 @@ void _UG_TextboxUpdate(UG_WINDOW* wnd, UG_OBJECT* obj)
       }
       else
       {
+         UG_WindowGetArea(wnd,&a);
+         obj->a_abs.xs = obj->a_rel.xs + a.xs;
+         obj->a_abs.ys = obj->a_rel.ys + a.ys;
+         obj->a_abs.xe = obj->a_rel.xe + a.xs;
+         obj->a_abs.ye = obj->a_rel.ye + a.ys;
          UG_FillFrame(obj->a_abs.xs, obj->a_abs.ys, obj->a_abs.xe, obj->a_abs.ye, wnd->bc);
       }
       obj->state &= ~OBJ_STATE_UPDATE;
@@ -8289,6 +8299,11 @@ void _UG_ImageUpdate(UG_WINDOW* wnd, UG_OBJECT* obj)
       }
       else
       {
+         UG_WindowGetArea(wnd,&a);
+         obj->a_abs.xs = obj->a_rel.xs + a.xs;
+         obj->a_abs.ys = obj->a_rel.ys + a.ys;
+         obj->a_abs.xe = obj->a_rel.xs + ((UG_BMP*)img->img)->width + a.xs;
+         obj->a_abs.ye = obj->a_rel.ys + ((UG_BMP*)img->img)->height + a.ys;
          UG_FillFrame(obj->a_abs.xs, obj->a_abs.ys, obj->a_abs.xe, obj->a_abs.ye, wnd->bc);
       }
       obj->state &= ~OBJ_STATE_UPDATE;

@@ -425,7 +425,7 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             bsp_board_led_off(ADVERTISING_LED);
             m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
             
-            err_code = sd_ble_gap_rssi_start(m_conn_handle, 4, 0);
+            err_code = sd_ble_gap_rssi_start(m_conn_handle, 2, 2);
             APP_ERROR_CHECK(err_code);
             
             m_application_state.app_state = APP_STATE_CONNECTED;

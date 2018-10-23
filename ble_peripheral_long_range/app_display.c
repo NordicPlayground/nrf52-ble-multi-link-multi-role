@@ -208,6 +208,18 @@ void app_display_update_main_screen(app_display_content_t *content)
         UG_ButtonSetBackColor(&window_1, BTN_ID_2, display_app_state_button_color[content->app_state]); 
         UG_ButtonSetForeColor(&window_1, BTN_ID_2, display_app_state_button_font_color[content->app_state]);
         UG_ButtonSetText(&window_1, BTN_ID_2, display_string_app_state[content->app_state]); 
+        if(content->app_state == APP_STATE_CONNECTED)
+        {
+            UG_TextboxShow(&window_1, TXB_ID_3);
+            UG_TextboxShow(&window_1, TXB_ID_5);
+            UG_TextboxShow(&window_1, TXB_ID_7);
+        }
+        else
+        {
+            UG_TextboxHide(&window_1, TXB_ID_3);
+            UG_TextboxHide(&window_1, TXB_ID_5);
+            UG_TextboxHide(&window_1, TXB_ID_7);            
+        }
     }
     if(first_update || content->led_on != content_previous.led_on)
     {
