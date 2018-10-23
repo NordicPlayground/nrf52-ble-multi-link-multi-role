@@ -72,7 +72,11 @@
 #define ADVERTISING_LED                 BSP_BOARD_LED_0                         /**< Is on when device is advertising. */
 #define CONNECTED_LED                   BSP_BOARD_LED_1                         /**< Is on when device has connected. */
 #define LEDBUTTON_LED                   BSP_BOARD_LED_2                         /**< LED to be toggled with the help of the LED Button Service. */
-#define LEDBUTTON_BUTTON                BSP_BUTTON_0                            /**< Button that will trigger the notification event with the LED Button Service */
+
+#define PHY_BUTTON                      BSP_BUTTON_0
+#define TX_POWER_BUTTON                 BSP_BUTTON_1
+#define APP_STATE_BUTTON                BSP_BUTTON_2
+#define LEDBUTTON_BUTTON                BSP_BUTTON_3                            /**< Button that will trigger the notification event with the LED Button Service */
 
 #define DEVICE_NAME                     "NT:LR Blinky"                          /**< Name of device. Will be included in the advertising data. */
 
@@ -81,6 +85,7 @@
 
 #define APP_ADV_INTERVAL                300                                      /**< The advertising interval (in units of 0.625 ms; this value corresponds to 40 ms). */
 #define APP_ADV_DURATION                BLE_GAP_ADV_TIMEOUT_GENERAL_UNLIMITED   /**< The advertising time-out (in units of seconds). When set to 0, we will never time out. */
+#define RESTART_ADVERTISING_TIMEOUT_MS  2000
 
 #define MIN_CONN_INTERVAL               MSEC_TO_UNITS(100, UNIT_1_25_MS)        /**< Minimum acceptable connection interval (0.5 seconds). */
 #define MAX_CONN_INTERVAL               MSEC_TO_UNITS(200, UNIT_1_25_MS)        /**< Maximum acceptable connection interval (1 second). */
@@ -98,6 +103,8 @@
 
 BLE_LBS_DEF(m_lbs);                                                             /**< LED Button Service instance. */
 NRF_BLE_GATT_DEF(m_gatt);                                                       /**< GATT module instance. */
+
+APP_TIMER_DEF(m_restart_advertising_timer_id);
 
 static uint16_t m_conn_handle = BLE_CONN_HANDLE_INVALID;                        /**< Handle of the current connection. */
 
@@ -121,6 +128,10 @@ static ble_gap_adv_data_t m_adv_data =
     }
 };
 
+static void display_update(void);
+static void advertising_start(void);
+
+app_display_content_t m_application_state = {0};                                   /**< Struct containing the dynamic content of the display */
 
 /**@brief Function for assert macro callback.
  *
@@ -149,6 +160,12 @@ static void leds_init(void)
 }
 
 
+static void restart_advertising_callback(void *p)
+{
+    advertising_start();
+}
+
+
 /**@brief Function for the Timer initialization.
  *
  * @details Initializes the timer module.
@@ -157,6 +174,9 @@ static void timers_init(void)
 {
     // Initialize timer module, making it use the scheduler
     ret_code_t err_code = app_timer_init();
+    APP_ERROR_CHECK(err_code);
+    
+    err_code = app_timer_create(&m_restart_advertising_timer_id, APP_TIMER_MODE_SINGLE_SHOT, restart_advertising_callback);
     APP_ERROR_CHECK(err_code);
 }
 
@@ -260,12 +280,15 @@ static void led_write_handler(uint16_t conn_handle, ble_lbs_t * p_lbs, uint8_t l
     {
         bsp_board_led_on(LEDBUTTON_LED);
         NRF_LOG_INFO("Received LED ON!");
+        m_application_state.led_on = true;
     }
     else
     {
         bsp_board_led_off(LEDBUTTON_LED);
         NRF_LOG_INFO("Received LED OFF!");
+        m_application_state.led_on = false;
     }
+    display_update();
 }
 
 
@@ -344,11 +367,19 @@ static void conn_params_init(void)
 static void advertising_start(void)
 {
     ret_code_t           err_code;
-
+    
     err_code = sd_ble_gap_adv_start(m_adv_handle, APP_BLE_CONN_CFG_TAG);
-    APP_ERROR_CHECK(err_code);
-
-    bsp_board_led_on(ADVERTISING_LED);
+    if(err_code == NRF_SUCCESS)
+    {
+        bsp_board_led_on(ADVERTISING_LED);
+    
+        m_application_state.app_state = APP_STATE_ADVERTISING;
+        display_update();
+    }
+    else
+    {
+        APP_ERROR_CHECK(err_code);
+    }
 }
 
 
@@ -368,18 +399,21 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             bsp_board_led_on(CONNECTED_LED);
             bsp_board_led_off(ADVERTISING_LED);
             m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
-
-            err_code = app_button_enable();
-            APP_ERROR_CHECK(err_code);
+            
+            m_application_state.app_state = APP_STATE_CONNECTED;
+            display_update();
             break;
 
         case BLE_GAP_EVT_DISCONNECTED:
             NRF_LOG_INFO("Disconnected");
             bsp_board_led_off(CONNECTED_LED);
             m_conn_handle = BLE_CONN_HANDLE_INVALID;
-            err_code = app_button_disable();
+
+            m_application_state.app_state = APP_STATE_DISCONNECTED;
+            display_update();
+            
+            err_code = app_timer_start(m_restart_advertising_timer_id, APP_TIMER_TICKS(RESTART_ADVERTISING_TIMEOUT_MS), 0);
             APP_ERROR_CHECK(err_code);
-            advertising_start();
             break;
 
         case BLE_GAP_EVT_SEC_PARAMS_REQUEST:
@@ -492,6 +526,25 @@ static void button_event_handler(uint8_t pin_no, uint8_t button_action)
     
     switch (pin_no)
     {
+        case PHY_BUTTON:
+    
+            break;
+        
+        case TX_POWER_BUTTON:
+            if(button_action == APP_BUTTON_PUSH)
+            {
+                m_application_state.tx_power = (m_application_state.tx_power + 1) % 2;
+                display_update();
+            }
+            break;
+        
+        case APP_STATE_BUTTON:
+            if(button_action == APP_BUTTON_PUSH && m_application_state.app_state == APP_STATE_IDLE)
+            {
+                advertising_start();
+            }
+            break;
+        
         case LEDBUTTON_BUTTON:
             NRF_LOG_INFO("Send button state change.");
             err_code = ble_lbs_on_button_change(m_conn_handle, &m_lbs, button_action);
@@ -502,17 +555,8 @@ static void button_event_handler(uint8_t pin_no, uint8_t button_action)
             {
                 APP_ERROR_CHECK(err_code);
             }
-            break;
-            
-        case BUTTON_2:
-          if(button_action == APP_BUTTON_PUSH)
-            {
-                NRF_LOG_INFO("Send phy update request.");
-                phys.rx_phys = BLE_GAP_PHY_2MBPS;
-                phys.tx_phys = BLE_GAP_PHY_2MBPS;
-                err_code = sd_ble_gap_phy_update(m_conn_handle, &phys);
-                APP_ERROR_CHECK(err_code);        
-            }
+            m_application_state.button_pressed = button_action;
+            display_update();
             break;
 
         default:
@@ -531,8 +575,10 @@ static void buttons_init(void)
     //The array must be static because a pointer to it will be saved in the button handler module.
     static app_button_cfg_t buttons[] =
     {
-        {LEDBUTTON_BUTTON, false, BUTTON_PULL, button_event_handler},
-        {BUTTON_2, false, BUTTON_PULL, button_event_handler}
+        {PHY_BUTTON,       false, BUTTON_PULL, button_event_handler},
+        {TX_POWER_BUTTON,  false, BUTTON_PULL, button_event_handler},
+        {APP_STATE_BUTTON, false, BUTTON_PULL, button_event_handler},
+        {LEDBUTTON_BUTTON, false, BUTTON_PULL, button_event_handler}
     };
 
     err_code = app_button_init(buttons, sizeof(buttons) / sizeof(buttons[0]),
@@ -549,6 +595,22 @@ static void log_init(void)
     NRF_LOG_DEFAULT_BACKENDS_INIT();
 }
 
+static void display_update()
+{
+    static bool first_update = true;
+    if(first_update)
+    {
+        m_application_state.main_title = "Blinky Long Range";
+        app_display_create_main_screen(&m_application_state);
+        first_update = false;
+    }
+    else
+    {
+       app_display_update_main_screen(&m_application_state);
+    }
+    app_display_update();
+}
+
 
 /**@brief Function for the Power Manager.
  */
@@ -563,6 +625,8 @@ static void power_manage(void)
  */
 int main(void)
 {
+    ret_code_t err_code;
+    
     // Initialize.
     leds_init();
     timers_init();
@@ -578,15 +642,16 @@ int main(void)
 
     // Start execution.
     NRF_LOG_INFO("Blinky example started.");
-    advertising_start();
     
     app_display_init();
-    app_display_draw_main_screen();
+    display_update();
 
+    err_code = app_button_enable();
+    APP_ERROR_CHECK(err_code);
+    
     // Enter main loop.
     for (;;)
     {
-        app_display_update();
         if (NRF_LOG_PROCESS() == false)
         {
             power_manage();
