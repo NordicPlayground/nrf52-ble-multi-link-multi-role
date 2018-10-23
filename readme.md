@@ -24,7 +24,7 @@ To attend the exercise each person will need the following:
 - 1x micro USB cable
 - [Segger Embedded Studio](https://www.segger.com/products/development-tools/embedded-studio/)
 - The latest version of the [J-Link Software and Documentation pack](https://www.segger.com/downloads/jlink#)
-- [nRF5_SDK_v14.0.0](http://developer.nordicsemi.com/nRF5_SDK/nRF5_SDK_v14.x.x/nRF5_SDK_14.0.0_3bcc1f7.zip)
+- [nRF5_SDK_v15.2.0](http://developer.nordicsemi.com/nRF5_SDK/nRF5_SDK_v15.x.x/nRF5_SDK_15.2.0_9412b96.zip)
 
 Each group will need the following for the aggregator
 - 1x nRF52840 PDK
@@ -32,10 +32,10 @@ Each group will need the following for the aggregator
 
 ## Preparations
 1) The *ble_app_multi_link_multi_role* folder will have to be copied into your local SDKv14 folder in order for the examples to compile. 
-Create a folder under *\nRF5_SDK_14.0.0\examples\\* called *training* and copy the ble_app_multi_link_multi_role folder into it. When you are finished it should look like this:
+Create a folder under *\nRF5_SDK_15.2.0\examples\\* called *training* and copy the ble_app_multi_link_multi_role folder into it. When you are finished it should look like this:
 ![SDK examples folder](https://github.com/NordicSemiconductor/nrf52-ble-multi-link-multi-role/blob/master/pics/sdk_folder.png)
 2) One person in each group needs to set up the aggregator. Ask the Nordic attendants for help if you are unsure who should set up the aggregator. 
-   * Open the aggregator Segger project file: *\nRF5_SDK_14.0.0\examples\training\ble_app_multi_link_multi_role\ble_aggregator\pca10056\s140\ses\ble_aggregator_pca10056_s140.emProject*
+   * Open the aggregator Segger project file: *\nRF5_SDK_15.2.0\examples\training\ble_app_multi_link_multi_role\ble_aggregator\pca10056\s140\ses\ble_aggregator_pca10056_s140.emProject*
    * Change the m_target_periph_name define on line 120 of main.c to something unique, so that only members of your group will be able to connect to your aggregator. 
    * Change the DEVICE_NAME define on line 81 of main.c to something unique if you want to use the Android application, so that you know which aggregator to connect to. 
    * Build the project and download the code to an nRF52840 PDK. 
@@ -45,7 +45,7 @@ Create a folder under *\nRF5_SDK_14.0.0\examples\\* called *training* and copy t
 
 ## Task 1 - Change advertising name and connect to the central device
 1) Open the ble_peripheral example project, available here: 
-*\nRF5_SDK_14.0.0\examples\training\ble_app_multi_link_multi_role\ble_peripheral\pca10056\s140\ses\ble_peripheral_pca10056_s140.emProject*
+*\nRF5_SDK_15.2.0\examples\training\ble_app_multi_link_multi_role\ble_peripheral\pca10056\s140\ses\ble_peripheral_pca10056_s140.emProject*
 
 2) Change the DEVICE_NAME define at the top of main.c to include your central group prefix plus your own unique name.
    For example, if your group prefix is *'GRP1:'* and your name is *'John'* the advertising name should be *'GRP1:John'*.
@@ -124,7 +124,7 @@ Create a folder under *\nRF5_SDK_14.0.0\examples\\* called *training* and copy t
 ## Task 4 - Add an app_timer instance to send automatic updates every 5 seconds
 
 1) At the top of main.c, use the *APP_TIMER_DEF* macro to define a new app_timer instance. You can call the instance variable *m_data_update_timer*. 
-  Hint: For more help on using the app_timer library, refer to the [app_timer documentation](https://infocenter.nordicsemi.com/topic/com.nordic.infocenter.sdk5.v14.0.0/lib_timer.html?cp=4_0_0_3_43)
+  Hint: For more help on using the app_timer library, refer to the [app_timer documentation](https://infocenter.nordicsemi.com/topic/com.nordic.infocenter.sdk5.v15.2.0/lib_timer.html?cp=4_0_0_3_43)
   
 2) At the top of main.c, create the callback function that will be called by the app_timer library
    This function will need to be on the form *void func(void \*p_context)*
