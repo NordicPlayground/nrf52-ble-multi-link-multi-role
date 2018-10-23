@@ -383,6 +383,31 @@ static void advertising_start(void)
 }
 
 
+static void ble_go_to_idle(void)
+{
+    ret_code_t err_code;
+    switch(m_application_state.app_state)
+    {
+        case APP_STATE_ADVERTISING:
+            err_code = sd_ble_gap_adv_stop(m_adv_handle);
+            APP_ERROR_CHECK(err_code);
+            break;
+            
+        case APP_STATE_CONNECTED:
+            err_code = sd_ble_gap_disconnect(m_conn_handle, BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
+            APP_ERROR_CHECK(err_code);
+            break;
+            
+        case APP_STATE_DISCONNECTED:
+            err_code = app_timer_stop(m_restart_advertising_timer_id);
+            APP_ERROR_CHECK(err_code);
+            break;
+    }
+    m_application_state.app_state = APP_STATE_IDLE;
+    display_update();
+}
+
+
 /**@brief Function for handling BLE events.
  *
  * @param[in]   p_ble_evt   Bluetooth stack event.
@@ -400,6 +425,9 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             bsp_board_led_off(ADVERTISING_LED);
             m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
             
+            err_code = sd_ble_gap_rssi_start(m_conn_handle, 4, 0);
+            APP_ERROR_CHECK(err_code);
+            
             m_application_state.app_state = APP_STATE_CONNECTED;
             display_update();
             break;
@@ -408,12 +436,16 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             NRF_LOG_INFO("Disconnected");
             bsp_board_led_off(CONNECTED_LED);
             m_conn_handle = BLE_CONN_HANDLE_INVALID;
+            m_application_state.rssi = 0;
 
-            m_application_state.app_state = APP_STATE_DISCONNECTED;
-            display_update();
+            if(m_application_state.app_state == APP_STATE_CONNECTED)
+            {
+                m_application_state.app_state = APP_STATE_DISCONNECTED;
+                display_update();
             
-            err_code = app_timer_start(m_restart_advertising_timer_id, APP_TIMER_TICKS(RESTART_ADVERTISING_TIMEOUT_MS), 0);
-            APP_ERROR_CHECK(err_code);
+                err_code = app_timer_start(m_restart_advertising_timer_id, APP_TIMER_TICKS(RESTART_ADVERTISING_TIMEOUT_MS), 0);
+                APP_ERROR_CHECK(err_code);
+            }
             break;
 
         case BLE_GAP_EVT_SEC_PARAMS_REQUEST:
@@ -481,6 +513,11 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             }
         } break; // BLE_GATTS_EVT_RW_AUTHORIZE_REQUEST
         
+        case BLE_GAP_EVT_RSSI_CHANGED:
+            m_application_state.rssi = p_ble_evt->evt.gap_evt.params.rssi_changed.rssi;
+            display_update();
+            break;
+            
         default:
             // No implementation needed.
             break;
@@ -539,9 +576,16 @@ static void button_event_handler(uint8_t pin_no, uint8_t button_action)
             break;
         
         case APP_STATE_BUTTON:
-            if(button_action == APP_BUTTON_PUSH && m_application_state.app_state == APP_STATE_IDLE)
+            if(button_action == APP_BUTTON_PUSH)
             {
-                advertising_start();
+                if(m_application_state.app_state == APP_STATE_IDLE)
+                {
+                    advertising_start();
+                }
+                else
+                {
+                    ble_go_to_idle();
+                }
             }
             break;
         

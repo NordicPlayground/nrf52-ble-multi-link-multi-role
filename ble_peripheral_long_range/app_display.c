@@ -135,34 +135,18 @@ void app_display_create_main_screen(app_display_content_t *content)
     /* Create "RSSI" textbox (TXB_ID_3) */
     UG_TextboxCreate(&window_1, &textbox_rssi_label, TXB_ID_3, TXT_ID_3_X_LOCATION, TXT_ID_3_Y_LOCATION, TXT_ID_3_X_LOCATION+TXT_ID_3_WIDTH, TXT_ID_3_Y_LOCATION+TXT_ID_3_HEIGHT);  
     UG_TextboxSetFont(&window_1, TXB_ID_3, &FONT_8X12);
-    UG_TextboxSetText(&window_1 , TXB_ID_3 , "RSSI: ") ;
+    UG_TextboxSetText(&window_1 , TXB_ID_3 , "RSSI:") ;
     UG_TextboxSetForeColor (&window_1 , TXB_ID_3 , FONT_COLOR_TEXT ) ;
     UG_TextboxSetBackColor (&window_1 , TXB_ID_3 , FILL_COLOR_TEXT ); 
     UG_TextboxSetAlignment (&window_1 , TXB_ID_3 , ALIGN_CENTER );
 
-    /* Create "PER" textbox (TXB_ID_4) */
-    UG_TextboxCreate(&window_1, &textbox_per_label, TXB_ID_4, TXT_ID_4_X_LOCATION, TXT_ID_4_Y_LOCATION, TXT_ID_4_X_LOCATION+TXT_ID_4_WIDTH, TXT_ID_4_Y_LOCATION+TXT_ID_4_HEIGHT);  
-    UG_TextboxSetFont(&window_1, TXB_ID_4, &FONT_8X12);
-    UG_TextboxSetText(&window_1 , TXB_ID_4 , "PER: ") ;
-    UG_TextboxSetForeColor (&window_1 , TXB_ID_4 , FONT_COLOR_TEXT ) ;
-    UG_TextboxSetBackColor (&window_1 , TXB_ID_4 , FILL_COLOR_TEXT ); 
-    UG_TextboxSetAlignment (&window_1 , TXB_ID_4 , ALIGN_CENTER );
-
     /* Create "RSSI" textbox for the numbers (TXB_ID_5) */
     UG_TextboxCreate(&window_1, &textbox_rssi_number, TXB_ID_5, TXT_ID_5_X_LOCATION, TXT_ID_5_Y_LOCATION, TXT_ID_5_X_LOCATION+TXT_ID_5_WIDTH, TXT_ID_5_Y_LOCATION+TXT_ID_5_HEIGHT);  
     UG_TextboxSetFont(&window_1, TXB_ID_5, &FONT_8X12);
-    UG_TextboxSetText(&window_1 , TXB_ID_5 , "###") ;
+    UG_TextboxSetText(&window_1 , TXB_ID_5 , "-") ;
     UG_TextboxSetForeColor (&window_1 , TXB_ID_5 , FONT_COLOR_TEXT ) ;
     UG_TextboxSetBackColor (&window_1 , TXB_ID_5 , FILL_COLOR_TEXT ); 
     UG_TextboxSetAlignment (&window_1 , TXB_ID_5 , ALIGN_CENTER );
-
-    /* Create "PER" textbox for the numbers (TXB_ID_6) */
-    UG_TextboxCreate(&window_1, &textbox_per_number, TXB_ID_6, TXT_ID_6_X_LOCATION, TXT_ID_6_Y_LOCATION, TXT_ID_6_X_LOCATION+TXT_ID_6_WIDTH, TXT_ID_6_Y_LOCATION+TXT_ID_6_HEIGHT);  
-    UG_TextboxSetFont(&window_1, TXB_ID_6, &FONT_8X12);
-    UG_TextboxSetText(&window_1 , TXB_ID_6 , "###") ;
-    UG_TextboxSetForeColor (&window_1 , TXB_ID_6 , FONT_COLOR_TEXT ) ;
-    UG_TextboxSetBackColor (&window_1 , TXB_ID_6 , FILL_COLOR_TEXT ); 
-    UG_TextboxSetAlignment (&window_1 , TXB_ID_6 , ALIGN_CENTER );
 
     /* Create "dBm" textbox for the RSSI metric (TXB_ID_7) */
     UG_TextboxCreate(&window_1, &textbox_dbm_label, TXB_ID_7, TXT_ID_7_X_LOCATION, TXT_ID_7_Y_LOCATION, TXT_ID_7_X_LOCATION+TXT_ID_7_WIDTH, TXT_ID_7_Y_LOCATION+TXT_ID_7_HEIGHT);  
@@ -172,6 +156,23 @@ void app_display_create_main_screen(app_display_content_t *content)
     UG_TextboxSetBackColor (&window_1 , TXB_ID_7 , FILL_COLOR_TEXT ); 
     UG_TextboxSetAlignment (&window_1 , TXB_ID_7 , ALIGN_CENTER );
 
+#if 0
+    /* Create "PER" textbox (TXB_ID_4) */
+    UG_TextboxCreate(&window_1, &textbox_per_label, TXB_ID_4, TXT_ID_4_X_LOCATION, TXT_ID_4_Y_LOCATION, TXT_ID_4_X_LOCATION+TXT_ID_4_WIDTH, TXT_ID_4_Y_LOCATION+TXT_ID_4_HEIGHT);  
+    UG_TextboxSetFont(&window_1, TXB_ID_4, &FONT_8X12);
+    UG_TextboxSetText(&window_1 , TXB_ID_4 , "PER: ") ;
+    UG_TextboxSetForeColor (&window_1 , TXB_ID_4 , FONT_COLOR_TEXT ) ;
+    UG_TextboxSetBackColor (&window_1 , TXB_ID_4 , FILL_COLOR_TEXT ); 
+    UG_TextboxSetAlignment (&window_1 , TXB_ID_4 , ALIGN_CENTER );
+
+    /* Create "PER" textbox for the numbers (TXB_ID_6) */
+    UG_TextboxCreate(&window_1, &textbox_per_number, TXB_ID_6, TXT_ID_6_X_LOCATION, TXT_ID_6_Y_LOCATION, TXT_ID_6_X_LOCATION+TXT_ID_6_WIDTH, TXT_ID_6_Y_LOCATION+TXT_ID_6_HEIGHT);  
+    UG_TextboxSetFont(&window_1, TXB_ID_6, &FONT_8X12);
+    UG_TextboxSetText(&window_1 , TXB_ID_6 , "###") ;
+    UG_TextboxSetForeColor (&window_1 , TXB_ID_6 , FONT_COLOR_TEXT ) ;
+    UG_TextboxSetBackColor (&window_1 , TXB_ID_6 , FILL_COLOR_TEXT ); 
+    UG_TextboxSetAlignment (&window_1 , TXB_ID_6 , ALIGN_CENTER );
+    
     /* Create "%" textbox for the PER metric (TXB_ID_8) */
     UG_TextboxCreate(&window_1, &textbox_percentage_label, TXB_ID_8, TXT_ID_8_X_LOCATION, TXT_ID_8_Y_LOCATION, TXT_ID_8_X_LOCATION+TXT_ID_8_WIDTH, TXT_ID_8_Y_LOCATION+TXT_ID_8_HEIGHT);  
     UG_TextboxSetFont(&window_1, TXB_ID_8, &FONT_8X12);
@@ -179,6 +180,7 @@ void app_display_create_main_screen(app_display_content_t *content)
     UG_TextboxSetForeColor (&window_1 , TXB_ID_8 , FONT_COLOR_TEXT ) ;
     UG_TextboxSetBackColor (&window_1 , TXB_ID_8 , FILL_COLOR_TEXT ); 
     UG_TextboxSetAlignment (&window_1 , TXB_ID_8 , ALIGN_CENTER );
+#endif 
 
     /* Update the dynamic elements of the screen */
     app_display_update_main_screen(content);
@@ -186,7 +188,9 @@ void app_display_create_main_screen(app_display_content_t *content)
     /* Finally , show the window */
     UG_WindowShow( &window_1 ) ;
 }
-    
+
+static char sprintf_buf[64];
+
 void app_display_update_main_screen(app_display_content_t *content)
 {
     static app_display_content_t content_previous = {0};
@@ -216,6 +220,11 @@ void app_display_update_main_screen(app_display_content_t *content)
         UG_ButtonSetBackColor(&window_1, BTN_ID_4, display_on_off_color[content->button_pressed ? 1 : 0]); 
         UG_ButtonSetForeColor(&window_1, BTN_ID_4, display_on_off_font_color[content->button_pressed ? 1 : 0]);
         UG_ButtonSetText(&window_1, BTN_ID_4, display_string_led_state[content->button_pressed ? 1 : 0]); 
+    }
+    if(content->rssi != content_previous.rssi)
+    {
+        sprintf(sprintf_buf, "%i", (int)content->rssi);
+        UG_TextboxSetText(&window_1 , TXB_ID_5 , content->rssi != 0 ? sprintf_buf : "-") ;
     }
     first_update = false;
     content_previous = *content;
