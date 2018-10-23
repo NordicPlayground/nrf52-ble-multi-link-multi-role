@@ -60,6 +60,7 @@
 #include "app_button.h"
 #include "ble_lbs.h"
 #include "nrf_ble_gatt.h"
+#include "app_display.h"
 
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
@@ -578,10 +579,14 @@ int main(void)
     // Start execution.
     NRF_LOG_INFO("Blinky example started.");
     advertising_start();
+    
+    app_display_init();
+    app_display_draw_main_screen();
 
     // Enter main loop.
     for (;;)
     {
+        app_display_update();
         if (NRF_LOG_PROCESS() == false)
         {
             power_manage();
