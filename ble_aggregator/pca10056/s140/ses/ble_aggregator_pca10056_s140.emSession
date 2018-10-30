@@ -70,6 +70,7 @@
    <Watchpoint numelements="0" expression="sr_data" evalMode="0" name="sr_data" radix="-1" linenumber="949" filename="../../../main.c" list=""/>
    <Watchpoint numelements="0" expression="m_scan_params" evalMode="0" name="m_scan_params" radix="16" linenumber="387" filename="../../../main.c" list=""/>
    <Watchpoint numelements="0" expression="p_gap_evt" evalMode="1" name="p_gap_evt" radix="-1" linenumber="801" filename="../../../main.c" list=""/>
+   <Watchpoint numelements="20" expression="m_link_info_list" evalMode="2" name="m_link_info_list" radix="-1" linenumber="338" filename="../../../app_aggregator.c" list=""/>
   </Watches>
  </Watch1>
  <Watch2>
@@ -82,8 +83,11 @@
   <Watches active="0" update="Never"/>
  </Watch4>
  <Files>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="759" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../main.c" selected="1" top="750" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="1414" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../main.c" selected="1" top="1361" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="161" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../../components/libraries/util/app_error.h" selected="0" top="110" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="393" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../app_aggregator.c" selected="0" top="340" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="12" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../app_aggregator.h" selected="0" top="0" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="385" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../ble_thingy_client/ble_thingy_uis_c.c" selected="0" top="332" codecName="Default"/>
  </Files>
  <ARMCrossStudioWindow activeProject="ble_aggregator_pca10056_s140" fileDialogDefaultFilter="*.c" autoConnectTarget="J-Link" buildConfiguration="Debug" debugSearchFileMap="" fileDialogInitialDirectory="C:/Nordic_Semiconductor/nRF5_SDK_15.2.0/examples/_too/nrf52-ble-multi-link-multi-role/ble_aggregator" debugSearchPath="" autoConnectCapabilities="3711"/>
 </session>

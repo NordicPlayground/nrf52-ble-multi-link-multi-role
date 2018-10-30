@@ -164,17 +164,20 @@ void app_aggregator_on_central_connect(const ble_gap_evt_t *ble_gap_evt, connect
     tx_command_payload[2] = ble_gap_evt->conn_handle & 0xFF;
     tx_command_payload[3] = con_dev_info->dev_type & 0xFF;
     tx_command_payload[4] = 0; //Button state
-    tx_command_payload[5] = 0; // LED state;
-    tx_command_payload[6] = 0; // RSSI
-    tx_command_payload[7] = con_dev_info->phy; // PHY
+    tx_command_payload[5] = 1; // LED state;
+    tx_command_payload[6] = 0xFF; // Color R
+    tx_command_payload[7] = 0xFF; // Color G
+    tx_command_payload[8] = 0xFF; // Color B
+    tx_command_payload[9] = 0; // RSSI
+    tx_command_payload[10] = con_dev_info->phy; // PHY
     if(strlen(con_dev_info->dev_name) <= MAX_ADV_NAME_LENGTH)
     {
-        memcpy(&tx_command_payload[8], con_dev_info->dev_name, strlen(con_dev_info->dev_name));
-        tx_command_payload_length = 8 + strlen(con_dev_info->dev_name);
+        memcpy(&tx_command_payload[11], con_dev_info->dev_name, strlen(con_dev_info->dev_name));
+        tx_command_payload_length = 11 + strlen(con_dev_info->dev_name);
     }
     else 
     {
-        tx_command_payload_length = 8;
+        tx_command_payload_length = 11;
     }
     cmd_buffer_put(tx_command_payload, tx_command_payload_length);
 }
@@ -253,6 +256,20 @@ void app_aggregator_on_led_update(uint8_t led_state, uint32_t conn_handle_mask)
     }
 }
 
+void app_aggregator_on_led_color_set(uint8_t r, uint8_t g, uint8_t b, uint32_t conn_handle_mask)
+{
+    for(int i = 0; i < MAX_NUMBER_OF_LINKS; i++)
+    {
+        if(m_link_info_list[i].conn_handle < 32 && ((conn_handle_mask & (1 << m_link_info_list[i].conn_handle)) != 0))
+        {
+            NRF_LOG_DEBUG("Device %i color update: %i, %i, %i", m_link_info_list[i].conn_handle, r, g, b);
+            m_link_info_list[i].led_color[APP_AGGR_COL_IND_RED]   = r;
+            m_link_info_list[i].led_color[APP_AGGR_COL_IND_GREEN] = g;
+            m_link_info_list[i].led_color[APP_AGGR_COL_IND_BLUE]  = b;
+        }
+    }
+}
+
 void app_aggregator_rssi_changed(uint16_t conn_handle, int8_t rssi)
 {
     uint16_t device_index = device_list_search(conn_handle);
@@ -312,10 +329,15 @@ bool app_aggregator_flush_ble_commands(void)
     return false;
 }
 
-void app_aggregator_clear_buffer_update_link_status(void)
+void app_aggregator_clear_buffer(void)
 {
     cmd_buffer_flush();
+}
 
+void app_aggregator_update_link_status(void)
+{
+    NRF_LOG_INFO("Clear buffer update link status");
+    
     for(int i = 0; i < MAX_NUMBER_OF_LINKS; i++)
     {
         if(m_link_info_list[i].conn_handle != BLE_CONN_HANDLE_INVALID)
@@ -327,18 +349,22 @@ void app_aggregator_clear_buffer_update_link_status(void)
             tx_command_payload[3] = m_link_info_list[i].device_type;
             tx_command_payload[4] = m_link_info_list[i].button_state;
             tx_command_payload[5] = m_link_info_list[i].led_state;
-            tx_command_payload[6] = m_link_info_list[i].last_rssi;
-            tx_command_payload[7] = m_link_info_list[i].rf_phy;
+            tx_command_payload[6] = m_link_info_list[i].led_color[APP_AGGR_COL_IND_RED];
+            tx_command_payload[7] = m_link_info_list[i].led_color[APP_AGGR_COL_IND_GREEN];
+            tx_command_payload[8] = m_link_info_list[i].led_color[APP_AGGR_COL_IND_BLUE];
+            tx_command_payload[9] = m_link_info_list[i].last_rssi;
+            tx_command_payload[10] = m_link_info_list[i].rf_phy;
             if(strlen((char *)m_link_info_list[i].adv_name) <= MAX_ADV_NAME_LENGTH)
             {
-                memcpy(&tx_command_payload[8], m_link_info_list[i].adv_name, strlen((char *)m_link_info_list[i].adv_name));
-                tx_command_payload_length = 8 + strlen((char *)m_link_info_list[i].adv_name);
+                memcpy(&tx_command_payload[11], m_link_info_list[i].adv_name, strlen((char *)m_link_info_list[i].adv_name));
+                tx_command_payload_length = 11 + strlen((char *)m_link_info_list[i].adv_name);
             }
             else 
             {
-                tx_command_payload_length = 8;
+                tx_command_payload_length = 11;
             }
             cmd_buffer_put(tx_command_payload, tx_command_payload_length);
+            NRF_LOG_HEXDUMP_INFO(tx_command_payload, tx_command_payload_length);
         }
     }
 
@@ -370,7 +396,10 @@ static void device_connected(uint16_t conn_handle, connected_device_info_t *con_
             m_link_info_list[new_device_index].conn_handle = conn_handle;
             m_link_info_list[new_device_index].device_type = con_dev_info->dev_type; 
             m_link_info_list[new_device_index].button_state = 0; 
-            m_link_info_list[new_device_index].led_state = 0; 
+            m_link_info_list[new_device_index].led_state = 1; 
+            m_link_info_list[new_device_index].led_color[0] = 0xFF;
+            m_link_info_list[new_device_index].led_color[1] = 0xFF;
+            m_link_info_list[new_device_index].led_color[2] = 0xFF;
             device_name_length = (strlen(con_dev_info->dev_name) > MAX_ADV_NAME_LENGTH) ? MAX_ADV_NAME_LENGTH : strlen(con_dev_info->dev_name);
             memcpy(m_link_info_list[new_device_index].adv_name, con_dev_info->dev_name, device_name_length);
             for(int i = device_name_length; i < MAX_ADV_NAME_LENGTH; i++) m_link_info_list[new_device_index].adv_name[i] = ' ';

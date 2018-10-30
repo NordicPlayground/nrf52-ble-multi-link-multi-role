@@ -78,10 +78,10 @@
 // Peripheral parameters
 #define DEVICE_NAME                  "Aggregator"                       /**< Name of device. Will be included in the advertising data. */
 #define AGG_CFG_SERVICE_UUID_TYPE    BLE_UUID_TYPE_VENDOR_BEGIN         /**< UUID type for the Nordic UART Service (vendor specific). */
-#define MIN_PERIPHERAL_CON_INT       MSEC_TO_UNITS(50, UNIT_1_25_MS)    /**< Determines minimum connection interval in milliseconds. */
-#define MAX_PERIPHERAL_CON_INT       MSEC_TO_UNITS(100, UNIT_1_25_MS)   /**< Determines maximum connection interval in milliseconds. */
+#define MIN_PERIPHERAL_CON_INT       MSEC_TO_UNITS(100, UNIT_1_25_MS)    /**< Determines minimum connection interval in milliseconds. */
+#define MAX_PERIPHERAL_CON_INT       MSEC_TO_UNITS(200, UNIT_1_25_MS)   /**< Determines maximum connection interval in milliseconds. */
 #define PERIPHERAL_SLAVE_LATENCY     0                                  /**< Slave latency. */
-#define PERIPHERAL_CONN_SUP_TIMEOUT  MSEC_TO_UNITS(4000, UNIT_10_MS)    /**< Connection supervisory timeout (4 seconds), Supervision Timeout uses 10 ms units. */
+#define PERIPHERAL_CONN_SUP_TIMEOUT  MSEC_TO_UNITS(10000, UNIT_10_MS)    /**< Connection supervisory timeout (4 seconds), Supervision Timeout uses 10 ms units. */
 
 #define FIRST_CONN_PARAMS_UPDATE_DELAY  APP_TIMER_TICKS(5000)                       /**< Time from initiating event (connect or start of notification) to first time sd_ble_gap_conn_param_update is called (5 seconds). */
 #define NEXT_CONN_PARAMS_UPDATE_DELAY   APP_TIMER_TICKS(30000)                      /**< Time between each call to sd_ble_gap_conn_param_update after the first call (30 seconds). */
@@ -96,13 +96,14 @@
 #define CODED_PHY_LED               BSP_BOARD_LED_3                     /**< connected to atleast one CODED phy */
 
 #define LEDBUTTON_BUTTON            BSP_BUTTON_0                        /**< Button that will write to the LED characteristic of the peer. */
+#define SCAN_START_STOP_BUTTON      BSP_BUTTON_1
 #define BUTTON_DETECTION_DELAY      APP_TIMER_TICKS(50)                 /**< Delay from a GPIOTE event until a button is reported as pushed (in number of timer ticks). */
 
 #define SCAN_INTERVAL               160//0x00F0                         /**< Determines scan interval in units of 0.625 millisecond. */
 #define SCAN_WINDOW                 80// 0x0050                         /**< Determines scan window in units of 0.625 millisecond. */
 #define SCAN_TIMEOUT                0x0200                              /**< Timout when scanning. 0x0000 disables timeout. */
 
-#define MIN_CONNECTION_INTERVAL     MSEC_TO_UNITS(50, UNIT_1_25_MS)     /**< Determines minimum connection interval in milliseconds. */
+#define MIN_CONNECTION_INTERVAL     MSEC_TO_UNITS(100, UNIT_1_25_MS)     /**< Determines minimum connection interval in milliseconds. */
 #define MAX_CONNECTION_INTERVAL     MSEC_TO_UNITS(200, UNIT_1_25_MS)    /**< Determines maximum connection interval in milliseconds. */
 #define SLAVE_LATENCY               0                                   /**< Determines slave latency in terms of connection events. */
 #define SUPERVISION_TIMEOUT         MSEC_TO_UNITS(8000, UNIT_10_MS)     /**< Determines supervision time-out in units of 10 milliseconds. */
@@ -120,6 +121,7 @@ BLE_THINGY_UIS_C_ARRAY_DEF(m_thingy_uis_c, NRF_SDH_BLE_CENTRAL_LINK_COUNT);
 BLE_DB_DISCOVERY_ARRAY_DEF(m_db_disc, NRF_SDH_BLE_CENTRAL_LINK_COUNT);  /**< Database discovery module instances. */
 
 APP_TIMER_DEF(m_scan_led_blink_timer_id);
+APP_TIMER_DEF(m_post_message_delay_timer_id);
 
 static char const m_target_periph_name[] = "NT:";                       /**< Name of the device we try to connect to. This name is searched for in the scan report data*/
 static char const m_target_blinky_name[] = "MLThingy";
@@ -198,6 +200,7 @@ static ble_data_t m_scan_buffer =
     m_scan_buffer_data,
     BLE_GAP_SCAN_BUFFER_EXTENDED_MIN
 };
+static bool m_scanning_enabled = true;
 
 /**@brief Scan parameters requested for scanning and connection. */
 static ble_gap_scan_params_t m_scan_params =
@@ -382,16 +385,33 @@ static void scan_start(bool coded_phy)
     ret_code_t ret;
 
     //(void) sd_ble_gap_scan_stop();
+    if(m_scanning_enabled)
+    {
+        NRF_LOG_DEBUG("Scan start: Name - %s, phy - %s", (uint32_t)m_target_periph_name, coded_phy ? "Coded" : "1Mbps");
+        m_scan_buffer.len = BLE_GAP_SCAN_BUFFER_EXTENDED_MIN;
+        m_scan_params.scan_phys = coded_phy ? BLE_GAP_PHY_CODED : BLE_GAP_PHY_1MBPS;
+        m_scan_params.extended = coded_phy ? 1 : 0;
+        ret = sd_ble_gap_scan_start(&m_scan_params, &m_scan_buffer);
+        if(ret == NRF_ERROR_INVALID_STATE)
+        {
+            NRF_LOG_INFO("scan start invalid state");
+        }
+        else APP_ERROR_CHECK(ret);
 
-    NRF_LOG_INFO("Scan start: Name - %s, phy - %s", (uint32_t)m_target_periph_name, coded_phy ? "Coded" : "1Mbps");
-    m_scan_buffer.len = BLE_GAP_SCAN_BUFFER_EXTENDED_MIN;
-    m_scan_params.scan_phys = coded_phy ? BLE_GAP_PHY_CODED : BLE_GAP_PHY_1MBPS;
-    m_scan_params.extended = coded_phy ? 1 : 0;
-    ret = sd_ble_gap_scan_start(&m_scan_params, &m_scan_buffer);
-    APP_ERROR_CHECK(ret);
+        scan_led_state_set(true, coded_phy);
+        m_scan_mode_coded_phy = coded_phy;
+    }
+}
 
-    scan_led_state_set(true, coded_phy);
-    m_scan_mode_coded_phy = coded_phy;
+static void scan_stop(void)
+{
+    NRF_LOG_DEBUG("scan_stop()");
+    uint32_t err_code = sd_ble_gap_scan_stop();
+    if(err_code != NRF_SUCCESS)
+    {
+        NRF_LOG_ERROR("scan_stop() failed with error code: %x", err_code);
+    }  
+    scan_led_state_set(false, false);
 }
 
 
@@ -616,7 +636,7 @@ static void on_adv_report(ble_evt_t const * p_ble_evt)
         {
             NRF_LOG_ERROR("scan_start invalid state!!");
         }
-        else APP_ERROR_CHECK(err_code);   
+        else APP_ERROR_CHECK(err_code);
     }
     else
     {
@@ -731,7 +751,8 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                 m_per_con_handle = p_gap_evt->conn_handle;
                 NRF_LOG_INFO("Peripheral connection 0x%x established.", m_per_con_handle);    
                 
-                app_aggregator_clear_buffer_update_link_status();
+                //app_aggregator_clear_buffer_update_link_status();
+                app_timer_start(m_post_message_delay_timer_id, APP_TIMER_TICKS(5000), 0);
             }
         } break; // BLE_GAP_EVT_CONNECTED
 
@@ -781,12 +802,18 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                         bsp_board_led_off(CENTRAL_CONNECTED_LED);
                     }
                 }
+                
+                // Start scanning, in case the disconnect happened during service discovery
+                scan_start(m_scan_mode_coded_phy);
             }
             // Handle peripheral disconnect
             else
             {
                 NRF_LOG_INFO("Peripheral connection disconnected (reason: 0x%x)", p_gap_evt->params.disconnected.reason);
                 m_per_con_handle = BLE_CONN_HANDLE_INVALID;
+                
+                app_aggregator_clear_buffer();
+                app_timer_stop(m_post_message_delay_timer_id);
                 
                 // Start advertising
                 advertising_start();
@@ -1040,14 +1067,18 @@ static ret_code_t led_status_send_to_all(uint8_t button_action)
 static ret_code_t led_status_send_by_mask(uint8_t button_action, uint8_t r, uint8_t g, uint8_t b, uint32_t mask)
 {
     ret_code_t err_code;
+    
+    app_aggregator_on_led_color_set(r, g, b, mask);
 
     for (uint32_t i = 0; i < NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
     {
         if((mask & (1 << i)) != 0)
         {
+            // First, try to access the devices as a Blinky device
             err_code = ble_lbs_led_status_send(&m_lbs_c[i], button_action);
             if(err_code != NRF_SUCCESS)
             {
+                // If the blinky call fails, assume this is a Thingy device
                 err_code = ble_thingy_uis_led_set_constant(&m_thingy_uis_c[i], button_action ? r : 0, button_action ? g : 0, button_action ? b : 0);
                 if (err_code != NRF_SUCCESS &&
                     err_code != BLE_ERROR_INVALID_CONN_HANDLE &&
@@ -1099,7 +1130,7 @@ ret_code_t post_connect_message(uint8_t conn_handle)
         
         if(m_thingy_uis_c[i].conn_handle == conn_handle)
         {
-            err_code = ble_thingy_uis_led_set_constant(&m_thingy_uis_c[i], 255, 255, 255);           
+            err_code = ble_thingy_uis_led_set_constant(&m_thingy_uis_c[i], 255, 255, 255);  
         }
     }
     return err_code;
@@ -1115,16 +1146,16 @@ ret_code_t disconnect_all_peripherals()
             err_code = sd_ble_gap_disconnect(m_lbs_c[i].conn_handle, BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
             if(err_code != NRF_SUCCESS)
             {
-                return err_code;
+                //return err_code;
             }
         }
         
-        if(m_thingy_uis_c[i].conn_handle != BLE_CONN_HANDLE_INVALID)
+        else if(m_thingy_uis_c[i].conn_handle != BLE_CONN_HANDLE_INVALID)
         {
-            err_code = sd_ble_gap_disconnect(m_lbs_c[i].conn_handle, BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
+            err_code = sd_ble_gap_disconnect(m_thingy_uis_c[i].conn_handle, BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
             if(err_code != NRF_SUCCESS)
             {
-                return err_code;
+                //return err_code;
             }
         }
     }    
@@ -1149,6 +1180,21 @@ static void button_event_handler(uint8_t pin_no, uint8_t button_action)
                 NRF_LOG_INFO("LBS write LED state %d", button_action);
             }
             break;
+            
+        case SCAN_START_STOP_BUTTON:
+            if(button_action == APP_BUTTON_PUSH)
+            {
+                m_scanning_enabled = !m_scanning_enabled;
+                if(m_scanning_enabled)
+                {
+                    scan_start(false);
+                }
+                else
+                {
+                    scan_stop();
+                }
+            }
+            break;
 
         default:
             APP_ERROR_HANDLER(pin_no);
@@ -1166,7 +1212,8 @@ static void buttons_init(void)
    // The array must be static because a pointer to it will be saved in the button handler module.
     static app_button_cfg_t buttons[] =
     {
-        {LEDBUTTON_BUTTON, false, BUTTON_PULL, button_event_handler}
+        {LEDBUTTON_BUTTON, false, BUTTON_PULL, button_event_handler},
+        {SCAN_START_STOP_BUTTON, false, BUTTON_PULL, button_event_handler}
     };
 
     err_code = app_button_init(buttons, ARRAY_SIZE(buttons), BUTTON_DETECTION_DELAY);
@@ -1338,6 +1385,10 @@ static void uart_init()
     APP_ERROR_CHECK(err_code);
 }
 
+void post_message_connect_callback(void *p)
+{
+    app_aggregator_update_link_status();
+}
 
 /** @brief Function for initializing the timer.
  */
@@ -1348,6 +1399,8 @@ static void timer_init(void)
     
     err_code = app_timer_create(&m_scan_led_blink_timer_id, APP_TIMER_MODE_REPEATED, scan_led_blink_callback);
     APP_ERROR_CHECK(err_code);
+    
+    err_code = app_timer_create(&m_post_message_delay_timer_id, APP_TIMER_MODE_SINGLE_SHOT, post_message_connect_callback);
 }
 
 
