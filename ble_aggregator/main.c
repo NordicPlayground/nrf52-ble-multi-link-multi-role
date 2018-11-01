@@ -90,8 +90,8 @@
 #define PERIPHERAL_ADV_INTERVAL                100                      /**< The advertising interval (in units of 0.625 ms. This value corresponds to 40 ms). */
 #define PERIPHERAL_ADV_TIMEOUT_IN_SECONDS      0                        /**< The advertising timeout (in units of seconds). */
 
-#define CENTRAL_SCANNING_LED        BSP_BOARD_LED_0
-#define CENTRAL_CONNECTED_LED       BSP_BOARD_LED_1
+#define PERIPHERAL_ADV_CON_LED      BSP_BOARD_LED_0
+#define CENTRAL_SCANNING_LED        BSP_BOARD_LED_1
 #define LEDBUTTON_LED               BSP_BOARD_LED_2                     /**< LED to indicate a change of state of the the Button characteristic on the peer. */
 #define CODED_PHY_LED               BSP_BOARD_LED_3                     /**< connected to atleast one CODED phy */
 
@@ -120,6 +120,7 @@ BLE_LBS_C_ARRAY_DEF(m_lbs_c, NRF_SDH_BLE_CENTRAL_LINK_COUNT);           /**< LED
 BLE_THINGY_UIS_C_ARRAY_DEF(m_thingy_uis_c, NRF_SDH_BLE_CENTRAL_LINK_COUNT);
 BLE_DB_DISCOVERY_ARRAY_DEF(m_db_disc, NRF_SDH_BLE_CENTRAL_LINK_COUNT);  /**< Database discovery module instances. */
 
+APP_TIMER_DEF(m_adv_led_blink_timer_id);
 APP_TIMER_DEF(m_scan_led_blink_timer_id);
 APP_TIMER_DEF(m_post_message_delay_timer_id);
 
@@ -356,6 +357,10 @@ static uint32_t adv_report_parse(uint8_t type, uint8_array_t * p_advdata, uint8_
 
 static bool m_scan_mode_coded_phy = false;
 
+static void adv_led_blink_callback(void *p)
+{
+    bsp_board_led_invert(PERIPHERAL_ADV_CON_LED);
+}
 
 static void scan_led_blink_callback(void *p)
 {
@@ -740,10 +745,6 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                     m_coded_phy_conn_handle[p_gap_evt->conn_handle] = p_gap_evt->conn_handle;
                     bsp_board_led_on(CODED_PHY_LED);
                 }
-                else
-                {
-                    bsp_board_led_on(CENTRAL_CONNECTED_LED);
-                }
             }
             // Handle links as a peripheral here
             else
@@ -751,8 +752,11 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                 m_per_con_handle = p_gap_evt->conn_handle;
                 NRF_LOG_INFO("Peripheral connection 0x%x established.", m_per_con_handle);    
                 
-                //app_aggregator_clear_buffer_update_link_status();
-                app_timer_start(m_post_message_delay_timer_id, APP_TIMER_TICKS(5000), 0);
+                app_timer_start(m_post_message_delay_timer_id, APP_TIMER_TICKS(2000), 0);
+                
+                app_timer_stop(m_adv_led_blink_timer_id);
+                
+                bsp_board_led_on(PERIPHERAL_ADV_CON_LED);
             }
         } break; // BLE_GAP_EVT_CONNECTED
 
@@ -794,14 +798,6 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                         bsp_board_led_off(CODED_PHY_LED);
                     }
                 }
-                else
-                {
-                    if ((ble_conn_state_central_conn_count() - coded_phy_conn_count) == 0)
-                    {
-                        // Turn off connection indication LED
-                        bsp_board_led_off(CENTRAL_CONNECTED_LED);
-                    }
-                }
                 
                 // Start scanning, in case the disconnect happened during service discovery
                 scan_start(m_scan_mode_coded_phy);
@@ -814,6 +810,8 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                 
                 app_aggregator_clear_buffer();
                 app_timer_stop(m_post_message_delay_timer_id);
+                
+                bsp_board_led_off(PERIPHERAL_ADV_CON_LED);
                 
                 // Start advertising
                 advertising_start();
@@ -1026,6 +1024,9 @@ static void advertising_start(void)
     NRF_LOG_INFO("Starting advertising.");
     
     ret_code_t err_code = sd_ble_gap_adv_start(m_adv_handle, APP_BLE_CONN_CFG_TAG);
+    APP_ERROR_CHECK(err_code);
+    
+    err_code = app_timer_start(m_adv_led_blink_timer_id, APP_TIMER_TICKS(500), 0);
     APP_ERROR_CHECK(err_code);
 }
 
@@ -1396,7 +1397,10 @@ static void timer_init(void)
 {
     ret_code_t err_code = app_timer_init();
     APP_ERROR_CHECK(err_code);
-    
+
+    err_code = app_timer_create(&m_adv_led_blink_timer_id, APP_TIMER_MODE_REPEATED, adv_led_blink_callback);
+    APP_ERROR_CHECK(err_code);
+
     err_code = app_timer_create(&m_scan_led_blink_timer_id, APP_TIMER_MODE_REPEATED, scan_led_blink_callback);
     APP_ERROR_CHECK(err_code);
     
