@@ -60,6 +60,7 @@
 #include "app_button.h"
 #include "ble_lbs_extended.h"
 #include "nrf_ble_gatt.h"
+#include "nrf_delay.h"
 
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
@@ -79,6 +80,9 @@
 #define TX_POWER_BUTTON                 BSP_BUTTON_1
 #define APP_STATE_BUTTON                BSP_BUTTON_2
 #define LEDBUTTON_BUTTON                BSP_BUTTON_3                            /**< Button that will trigger the notification event with the LED Button Service */
+
+#define LED_MATRIX_COLOR_IDLE           0x003F0000
+#define LED_MATRIX_COLOR_CONNECTED      0x00003F00
 
 #define DEVICE_NAME                     "NT:LR Blinky CL"                       /**< Name of device. Will be included in the advertising data. */
 
@@ -115,6 +119,7 @@ static uint8_t m_enc_advdata[BLE_GAP_ADV_SET_DATA_SIZE_MAX];                    
 static uint8_t m_enc_scan_response_data[BLE_GAP_ADV_SET_DATA_SIZE_MAX];         /**< Buffer for storing an encoded scan data. */
 
 static nrf_lcd_t led_matrix = GFX_LED_DRV_MATRIX;
+static uint32_t m_led_matrix_color = 0x00FFFFFF;
 
 /**@brief Struct that contains pointers to the encoded advertising data. */
 static ble_gap_adv_data_t m_adv_data =
@@ -133,6 +138,7 @@ static ble_gap_adv_data_t m_adv_data =
 };
 
 static void advertising_start(void);
+static void neopixel_stripe_set_color(uint32_t color);
 
 /**@brief Function for assert macro callback.
  *
@@ -280,20 +286,24 @@ static void led_write_handler(uint16_t conn_handle, ble_lbs_t * p_lbs, uint8_t l
     if (led_state)
     {
         bsp_board_led_on(LEDBUTTON_LED);
+        neopixel_stripe_set_color(m_led_matrix_color);
         NRF_LOG_INFO("Received LED ON!");
     }
     else
     {
         bsp_board_led_off(LEDBUTTON_LED);
+        neopixel_stripe_set_color(0x00000000);
         NRF_LOG_INFO("Received LED OFF!");
     }
 }
 
 static void led_color_write_handler(uint16_t conn_handle, ble_lbs_t * p_lbs, uint32_t color)
 {
-    bsp_board_led_off(LEDBUTTON_LED);
     NRF_LOG_INFO("LED Color changed: %i", color);
+    neopixel_stripe_set_color(color);
+    m_led_matrix_color = color;
 }
+
 
 
 /**@brief Function for initializing services that will be used by the application.
@@ -403,12 +413,16 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             
             err_code = sd_ble_gap_rssi_start(m_conn_handle, 2, 2);
             APP_ERROR_CHECK(err_code);
+
+            neopixel_stripe_set_color(LED_MATRIX_COLOR_CONNECTED);
             break;
 
         case BLE_GAP_EVT_DISCONNECTED:
             NRF_LOG_INFO("Disconnected");
             bsp_board_led_off(CONNECTED_LED);
             m_conn_handle = BLE_CONN_HANDLE_INVALID;
+            advertising_start();
+            neopixel_stripe_set_color(LED_MATRIX_COLOR_IDLE);
             break;
 
         case BLE_GAP_EVT_SEC_PARAMS_REQUEST:
@@ -639,11 +653,6 @@ int main(void)
     log_init();
     buttons_init();
     ble_stack_init();
-    gap_params_init();
-    services_init();
-    advertising_init();
-    gatt_init();
-    conn_params_init();
 
     err_code = sd_clock_hfclk_request();
     APP_ERROR_CHECK(err_code);
@@ -652,10 +661,15 @@ int main(void)
     {
 	sd_clock_hfclk_is_running(&is_running);
     }
-
     neopixel_init();
 
-    neopixel_stripe_set_color(0x007F7F7F);
+    gap_params_init();
+    services_init();
+    advertising_init();
+    gatt_init();
+    conn_params_init();
+
+    neopixel_stripe_set_color(LED_MATRIX_COLOR_IDLE);
 
     // Start execution.
     NRF_LOG_INFO("Blinky color example started.");
