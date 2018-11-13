@@ -76,7 +76,9 @@
   <Watches active="0" update="Never"/>
  </Watch4>
  <Files>
-  <SessionOpenFile windowGroup="DockEditLeft" x="30" y="611" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../main.c" selected="1" top="26" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="89" y="272" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../main.c" selected="1" top="221" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="85" y="65" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../common/ble_lbs_extended/ble_lbs_extended.c" selected="0" top="31" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="60" y="124" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../common/ble_lbs_extended/ble_lbs_extended.h" selected="0" top="84" codecName="Default"/>
  </Files>
- <ARMCrossStudioWindow activeProject="ble_peripheral_lr_pca10056_s140" fileDialogDefaultFilter="*.c" autoConnectTarget="J-Link" buildConfiguration="Debug" debugSearchFileMap="" fileDialogInitialDirectory="C:/Nordic_Semiconductor/nRF5_SDK_15.2.0/examples/_too/nrf52-ble-multi-link-multi-role/common/adafruit_touch_display/ugui" debugSearchPath="" autoConnectCapabilities="3711"/>
+ <ARMCrossStudioWindow activeProject="ble_peripheral_lr_pca10056_s140" fileDialogDefaultFilter="" autoConnectTarget="J-Link" buildConfiguration="Debug" debugSearchFileMap="" fileDialogInitialDirectory="C:/Nordic_Semiconductor/nRF5_SDK_15.2.0_9412b96/examples/_too/nrf52-ble-multi-link-multi-role/common/ble_lbs_extended" debugSearchPath="" autoConnectCapabilities="3199"/>
 </session>

@@ -65,6 +65,9 @@
 #include "nrf_log_ctrl.h"
 #include "nrf_log_default_backends.h"
 
+#include "drv_ws2812.h"
+#include "drv_ws2812_gfx_glue_layer.h"
+#include "nrf_gfx.h"
 
 #define APP_FEATURE_NOT_SUPPORTED       BLE_GATT_STATUS_ATTERR_APP_BEGIN + 2    /**< Reply when unsupported features are requested. */
 
@@ -110,6 +113,8 @@ static uint16_t m_conn_handle = BLE_CONN_HANDLE_INVALID;                        
 static uint8_t m_adv_handle = BLE_GAP_ADV_SET_HANDLE_NOT_SET;                   /**< Advertising handle used to identify an advertising set. */
 static uint8_t m_enc_advdata[BLE_GAP_ADV_SET_DATA_SIZE_MAX];                    /**< Buffer for storing an encoded advertising set. */
 static uint8_t m_enc_scan_response_data[BLE_GAP_ADV_SET_DATA_SIZE_MAX];         /**< Buffer for storing an encoded scan data. */
+
+static nrf_lcd_t led_matrix = GFX_LED_DRV_MATRIX;
 
 /**@brief Struct that contains pointers to the encoded advertising data. */
 static ble_gap_adv_data_t m_adv_data =
@@ -595,6 +600,32 @@ static void power_manage(void)
 }
 
 
+static void neopixel_init(void)
+{    
+    uint32_t err_code; 
+    
+    static lcd_cb_t lcd_cb;
+    lcd_cb.height = LED_MATRIX_HEIGHT;
+    lcd_cb.width = LED_MATRIX_WIDTH;
+    lcd_cb.rotation = NRF_LCD_ROTATE_0;
+    lcd_cb.state = NRFX_DRV_STATE_UNINITIALIZED;
+
+    led_matrix.p_lcd_cb = &lcd_cb;
+    err_code = nrf_gfx_init(&led_matrix);
+    APP_ERROR_CHECK(err_code);
+    nrf_gfx_screen_fill(&led_matrix, 0x00);
+    nrf_gfx_display(&led_matrix);
+}
+
+
+static void neopixel_stripe_set_color(uint32_t color)
+{
+    static nrf_gfx_line_t l = {0,0,10,0,1};	
+    APP_ERROR_CHECK(nrf_gfx_line_draw(&led_matrix, &l, color));
+    nrf_gfx_display(&led_matrix);
+}
+
+
 /**@brief Function for application main entry.
  */
 int main(void)
@@ -613,6 +644,18 @@ int main(void)
     advertising_init();
     gatt_init();
     conn_params_init();
+
+    err_code = sd_clock_hfclk_request();
+    APP_ERROR_CHECK(err_code);
+    uint32_t is_running = 0;
+    while(is_running != 1)
+    {
+	sd_clock_hfclk_is_running(&is_running);
+    }
+
+    neopixel_init();
+
+    neopixel_stripe_set_color(0x007F7F7F);
 
     // Start execution.
     NRF_LOG_INFO("Blinky color example started.");
