@@ -58,7 +58,7 @@
 #include "boards.h"
 #include "app_timer.h"
 #include "app_button.h"
-#include "ble_lbs.h"
+#include "ble_lbs_extended.h"
 #include "nrf_ble_gatt.h"
 
 #include "nrf_log.h"
@@ -282,6 +282,12 @@ static void led_write_handler(uint16_t conn_handle, ble_lbs_t * p_lbs, uint8_t l
         bsp_board_led_off(LEDBUTTON_LED);
         NRF_LOG_INFO("Received LED OFF!");
     }
+}
+
+static void led_color_write_handler(uint16_t conn_handle, ble_lbs_t * p_lbs, uint32_t color)
+{
+    bsp_board_led_off(LEDBUTTON_LED);
+    NRF_LOG_INFO("LED Color changed: %i", color);
 }
 
 
