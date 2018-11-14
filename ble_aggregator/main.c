@@ -59,7 +59,7 @@
 #include "ble_advdata.h"
 #include "ble_conn_params.h"
 #include "ble_db_discovery.h"
-#include "ble_lbs_c.h"
+#include "ble_lbs_c_extended.h"
 #include "ble_thingy_uis_c.h"
 #include "ble_conn_state.h"
 #include "nrf_ble_gatt.h"
@@ -1068,6 +1068,7 @@ static ret_code_t led_status_send_to_all(uint8_t button_action)
 static ret_code_t led_status_send_by_mask(uint8_t button_action, uint8_t r, uint8_t g, uint8_t b, uint32_t mask)
 {
     ret_code_t err_code;
+    uint8_t colors[3] = {r, g, b};
     
     app_aggregator_on_led_color_set(r, g, b, mask);
 
@@ -1076,7 +1077,8 @@ static ret_code_t led_status_send_by_mask(uint8_t button_action, uint8_t r, uint
         if((mask & (1 << i)) != 0)
         {
             // First, try to access the devices as a Blinky device
-            err_code = ble_lbs_led_status_send(&m_lbs_c[i], button_action);
+            err_code = ble_lbs_led_color_send(&m_lbs_c[i], colors);
+            //err_code = ble_lbs_led_status_send(&m_lbs_c[i], button_action);
             if(err_code != NRF_SUCCESS)
             {
                 // If the blinky call fails, assume this is a Thingy device

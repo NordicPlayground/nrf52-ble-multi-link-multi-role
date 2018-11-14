@@ -314,6 +314,7 @@ static void services_init(void)
     ble_lbs_init_t init;
 
     init.led_write_handler = led_write_handler;
+    init.led_col_write_handler = led_color_write_handler;
 
     err_code = ble_lbs_init(&m_lbs, &init);
     APP_ERROR_CHECK(err_code);

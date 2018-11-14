@@ -62,7 +62,7 @@ static void on_write(ble_lbs_t * p_lbs, ble_evt_t const * p_ble_evt)
         && (p_evt_write->len == 4)
         && (p_lbs->led_col_write_handler != NULL))
     {
-        uint32_t color = p_evt_write->data[0] | p_evt_write->data[1] << 8 | p_evt_write->data[2] << 16;
+        uint32_t color = p_evt_write->data[0] << 16 | p_evt_write->data[1] << 8 | p_evt_write->data[2] << 0;
         p_lbs->led_col_write_handler(p_ble_evt->evt.gap_evt.conn_handle, p_lbs, color);
     }
 }
@@ -93,6 +93,7 @@ uint32_t ble_lbs_init(ble_lbs_t * p_lbs, const ble_lbs_init_t * p_lbs_init)
 
     // Initialize service structure.
     p_lbs->led_write_handler = p_lbs_init->led_write_handler;
+    p_lbs->led_col_write_handler = p_lbs_init->led_col_write_handler;
 
     // Add service.
     ble_uuid128_t base_uuid = {LBS_UUID_BASE};
