@@ -866,6 +866,16 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             APP_ERROR_CHECK(err_code);
         } break;
 
+        case BLE_GAP_EVT_PHY_UPDATE:
+        {
+            ble_gap_evt_phy_update_t phy_update = p_ble_evt->evt.gap_evt.params.phy_update;
+            if(phy_update.status == BLE_HCI_STATUS_CODE_SUCCESS)
+            {
+                NRF_LOG_INFO("PHY updated: %i, %i", phy_update.tx_phy, phy_update.rx_phy);
+                app_aggregator_phy_update(p_ble_evt->evt.gap_evt.conn_handle, phy_update.tx_phy, phy_update.rx_phy);
+            }
+        } break;
+
         case BLE_GATTC_EVT_TIMEOUT:
         {
             // Disconnect on GATT Client timeout event.
@@ -1078,7 +1088,6 @@ static ret_code_t led_status_send_by_mask(uint8_t button_action, uint8_t r, uint
         {
             // First, try to access the devices as a Blinky device
             err_code = ble_lbs_led_color_send(&m_lbs_c[i], colors);
-            //err_code = ble_lbs_led_status_send(&m_lbs_c[i], button_action);
             if(err_code != NRF_SUCCESS)
             {
                 // If the blinky call fails, assume this is a Thingy device
