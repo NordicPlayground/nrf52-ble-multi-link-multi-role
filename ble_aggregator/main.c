@@ -95,8 +95,10 @@
 #define LEDBUTTON_LED               BSP_BOARD_LED_2                     /**< LED to indicate a change of state of the the Button characteristic on the peer. */
 #define CODED_PHY_LED               BSP_BOARD_LED_3                     /**< connected to atleast one CODED phy */
 
-#define LEDBUTTON_BUTTON            BSP_BUTTON_0                        /**< Button that will write to the LED characteristic of the peer. */
+#define CENTRAL_DISCONNECT_BUTTON   BSP_BUTTON_0                        /**< Button that will write to the LED characteristic of the peer. */
 #define SCAN_START_STOP_BUTTON      BSP_BUTTON_1
+#define LEDBUTTON_BUTTON            BSP_BUTTON_2
+
 #define BUTTON_DETECTION_DELAY      APP_TIMER_TICKS(50)                 /**< Delay from a GPIOTE event until a button is reported as pushed (in number of timer ticks). */
 
 #define SCAN_INTERVAL               160//0x00F0                         /**< Determines scan interval in units of 0.625 millisecond. */
@@ -1185,14 +1187,13 @@ static void button_event_handler(uint8_t pin_no, uint8_t button_action)
 
     switch (pin_no)
     {
-        case LEDBUTTON_BUTTON:
-            err_code = led_status_send_to_all(button_action);
-            if (err_code == NRF_SUCCESS)
+        case CENTRAL_DISCONNECT_BUTTON:
+            if(m_per_con_handle != BLE_CONN_HANDLE_INVALID)
             {
-                NRF_LOG_INFO("LBS write LED state %d", button_action);
+                sd_ble_gap_disconnect(m_per_con_handle, BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
             }
             break;
-            
+        
         case SCAN_START_STOP_BUTTON:
             if(button_action == APP_BUTTON_PUSH)
             {
@@ -1205,6 +1206,14 @@ static void button_event_handler(uint8_t pin_no, uint8_t button_action)
                 {
                     scan_stop();
                 }
+            }
+            break;
+
+        case LEDBUTTON_BUTTON:
+            err_code = led_status_send_to_all(button_action);
+            if (err_code == NRF_SUCCESS)
+            {
+                NRF_LOG_INFO("LBS write LED state %d", button_action);
             }
             break;
 
@@ -1224,8 +1233,9 @@ static void buttons_init(void)
    // The array must be static because a pointer to it will be saved in the button handler module.
     static app_button_cfg_t buttons[] =
     {
-        {LEDBUTTON_BUTTON, false, BUTTON_PULL, button_event_handler},
-        {SCAN_START_STOP_BUTTON, false, BUTTON_PULL, button_event_handler}
+        {CENTRAL_DISCONNECT_BUTTON, false, BUTTON_PULL, button_event_handler},
+        {SCAN_START_STOP_BUTTON,    false, BUTTON_PULL, button_event_handler},
+        {LEDBUTTON_BUTTON,          false, BUTTON_PULL, button_event_handler}
     };
 
     err_code = app_button_init(buttons, ARRAY_SIZE(buttons), BUTTON_DETECTION_DELAY);
