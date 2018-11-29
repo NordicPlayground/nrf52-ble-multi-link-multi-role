@@ -111,6 +111,18 @@ typedef struct
     void (* lcd_rect_draw)(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint32_t color);
 
     /**
+     * @brief Function for drawing a buffer to memory.
+     *
+     * @param[in] x             Horizontal coordinate of the point where to start drawing the rectangle.
+     * @param[in] y             Vertical coordinate of the point where to start drawing the rectangle.
+     * @param[in] width         Width of the image.
+     * @param[in] height        Height of the image.
+     * @param[in] p_data        Void pointer to the pixel data.
+     * @param[in] length        Length of the data buffer in bytes.
+     */
+    void (* lcd_buffer_draw)(uint16_t x, uint16_t y, uint16_t width, uint16_t height, void * p_data, uint32_t length);
+
+    /**
      * @brief Function for displaying data from an internal frame buffer.
      *
      * This function may be used when functions for drawing do not write directly to

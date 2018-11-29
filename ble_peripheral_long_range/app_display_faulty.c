@@ -1,6 +1,7 @@
 #include "app_display.h"
 #include "ugui.h"
 #include "nrf_gfx_ext.h"
+#include "images.h"
 
 UG_WINDOW window_1;
 char m_summary_string1[64];
@@ -38,8 +39,9 @@ UG_BUTTON power_button;
 UG_BUTTON adv_button;
 UG_BUTTON led_button;
 UG_BUTTON button_button;
+UG_IMAGE  image_1;
 
-#define MAX_OBJECTS 19
+#define MAX_OBJECTS 20
 
 UG_OBJECT obj_buff_wnd_1[MAX_OBJECTS];
 
@@ -181,6 +183,9 @@ void app_display_create_main_screen(app_display_content_t *content)
     UG_TextboxSetBackColor (&window_1 , TXB_ID_8 , FILL_COLOR_TEXT ); 
     UG_TextboxSetAlignment (&window_1 , TXB_ID_8 , ALIGN_CENTER );
 #endif 
+
+    UG_ImageCreate(&window_1, &image_1, IMG_ID_0, 0, 228, 30, 250);
+    UG_ImageSetBMP(&window_1, IMG_ID_0, &bmp_nordicsemi);
 
     /* Update the dynamic elements of the screen */
     app_display_update_main_screen(content);

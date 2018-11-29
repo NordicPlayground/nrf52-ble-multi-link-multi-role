@@ -4646,6 +4646,7 @@ UG_S16 UG_Init(UG_GUI* g, UG_S16 x, UG_S16 y, const nrf_lcd_t *p_nrf_lcd)
    p_lcd = p_nrf_lcd;   
    UG_DriverRegister(DRIVER_DRAW_LINE, (void*)_HW_draw_line);
    UG_DriverRegister(DRIVER_FILL_FRAME, (void*)_HW_fill_frame);
+   UG_DriverRegister(DRIVER_DRAW_BUFFER, (void*)_HW_draw_buffer);
       
    return 1;
 }
@@ -5385,6 +5386,43 @@ void _UG_PutChar( char chr, UG_S16 x, UG_S16 y, UG_COLOR fc, UG_COLOR bc, const 
 		  }
 	  }
    }
+   /* Extended option, using draw_buffer function */
+   else if(gui->driver[DRIVER_DRAW_BUFFER].state & DRIVER_ENABLED) 
+   {
+      static uint16_t char_buf[16*16];
+      fc = (fc << 8) | (fc >> 8);
+      bc = (bc << 8) | (bc >> 8);
+      if (font->font_type == FONT_TYPE_1BPP)
+      {
+         index = (bt - font->start_char) * font->char_height * bn;
+         for(j = 0; j < font->char_height; j++)
+         {
+            c = actual_char_width;
+            for(i = 0; i < bn; i++)
+            {
+               b = font->p[index++];
+               for(k = 0; (k < 8) && c; k++)
+               {
+                  if(b & 0x01)
+                  {
+                     char_buf[k + i * 8 + j * actual_char_width] = fc;
+                  }
+                  else
+                  {
+                     char_buf[k + i * 8 + j * actual_char_width] = bc;
+                  }
+                  b >>= 1;
+                  c--;
+               }
+            }
+         }
+         _HW_draw_buffer(x, y, x + actual_char_width, y + font->char_height, (void *)char_buf, actual_char_width * font->char_height * 2);
+      }
+      else if (font->font_type == FONT_TYPE_8BPP)
+      {
+
+      }   
+   }
    else
    {
 	   /*Not accelerated output*/
@@ -5861,7 +5899,7 @@ void UG_DrawBMP( UG_S16 xp, UG_S16 yp, UG_BMP* bmp )
    UG_U8 r,g,b;
    UG_U16* p;
    UG_U16 tmp;
-   UG_COLOR c;
+   UG_U32 c;
 
    if ( bmp->p == NULL ) return;
 
@@ -5874,34 +5912,11 @@ void UG_DrawBMP( UG_S16 xp, UG_S16 yp, UG_BMP* bmp )
    {
       return;
    }
-
-   xs = xp;
-   for(y=0;y<bmp->height;y++)
-   {
-      xp = xs;
-      for(x=0;x<bmp->width;x++)
-      {
-             tmp = *p++;
-             //MQ  10/8/17  Test if conversion is even needed
-             if (bmp->colors == BMP_RGB565) {
-                 /* Convert RGB565 to RGB888 */
-                 r = (tmp>>11)&0x1F;
-                 r<<=3;
-                 g = (tmp>>5)&0x3F;
-                 g<<=2;
-                 b = (tmp)&0x1F;
-                 b<<=3;
-                 c = ((UG_COLOR)r<<16) | ((UG_COLOR)g<<8) | (UG_COLOR)b;
-                 UG_DrawPixel( xp++ , yp , c );
-             }
-             else {
-                 //Assume already RGB888 format
-                 UG_DrawPixel( xp++, yp, tmp ); 
-             }
-             //TODO: Handle case of RGB555
-      }
-      yp++;
-   }
+   nrf_gfx_rect_t bmp_rect = {.x = xp,
+                              .y = yp, 
+                              .width = bmp->width,
+                              .height = bmp->height};
+   nrf_gfx_buffer_draw(p_lcd, &bmp_rect, (void *)bmp->p, bmp->width * bmp->height * 2);
 }
 
 void UG_TouchUpdate( UG_S16 xp, UG_S16 yp, UG_U8 state )
@@ -8343,6 +8358,20 @@ UG_RESULT _HW_fill_frame( UG_S16 x1, UG_S16 y1, UG_S16 x2 , UG_S16 y2 , UG_COLOR
     err_code = nrf_gfx_rect_draw(p_lcd, &rect, 0, c, 1);
     APP_ERROR_CHECK(err_code);
     return UG_RESULT_OK;
+}
+
+UG_RESULT _HW_draw_buffer(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, void *p_data, UG_U32 length)
+{
+    nrf_gfx_rect_t rect;
+    ret_code_t err_code;
+    
+    rect.x = x1;
+    rect.y = y1;
+    rect.width = x2 - x1;
+    rect.height = y2 - y1;
+    err_code = nrf_gfx_buffer_draw(p_lcd, &rect, p_data, length);
+    APP_ERROR_CHECK(err_code);
+    return UG_RESULT_OK;    
 }
 
 void UserSetPixel (UG_S16 x, UG_S16 y, UG_COLOR c) 

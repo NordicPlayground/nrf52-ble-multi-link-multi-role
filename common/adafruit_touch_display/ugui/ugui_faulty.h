@@ -548,10 +548,11 @@ typedef struct
 #define DRIVER_ENABLED                                (1<<1)
 
 /* Supported drivers */
-#define NUMBER_OF_DRIVERS                             3
+#define NUMBER_OF_DRIVERS                             4
 #define DRIVER_DRAW_LINE                              0
 #define DRIVER_FILL_FRAME                             1
 #define DRIVER_FILL_AREA                              2
+#define DRIVER_DRAW_BUFFER                            3
 
 /* -------------------------------------------------------------------------------- */
 /* -- µGUI CORE STRUCTURE                                                        -- */
@@ -1057,6 +1058,7 @@ UG_RESULT UG_ImageSetBMP( UG_WINDOW* wnd, UG_U8 id, const UG_BMP* bmp );
 #include "nrf_gfx_ext.h"
 static UG_RESULT _HW_draw_line(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR c);
 static UG_RESULT _HW_fill_frame( UG_S16 x1, UG_S16 y1, UG_S16 x2 , UG_S16 y2 , UG_COLOR c);
+static UG_RESULT _HW_draw_buffer(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, void *p_data, UG_U32 length);
 UG_S16 UG_Init( UG_GUI* g, UG_S16 x, UG_S16 y, const nrf_lcd_t *p_nrf_lcd);
 static void UserSetPixel (UG_S16 x, UG_S16 y, UG_COLOR c);
 static const nrf_lcd_t *p_lcd;

@@ -125,7 +125,13 @@ static const nrf_drv_spi_t spi = NRF_DRV_SPI_INSTANCE(ILI9341_SPI_INSTANCE);
 
 static inline void spi_write(const void * data, size_t size)
 {
-    APP_ERROR_CHECK(nrf_drv_spi_transfer(&spi, data, size, NULL, 0));
+    uint32_t err_code;
+    
+    err_code = nrf_drv_spi_transfer(&spi, data, size, NULL, 0);
+    if(err_code != NRF_SUCCESS)
+    {
+        APP_ERROR_CHECK(err_code);
+    }
 }
 
 static inline void write_command(uint8_t c)
@@ -272,7 +278,7 @@ static ret_code_t hardware_init(void)
     spi_config.sck_pin  = ILI9341_SCK_PIN;
     spi_config.miso_pin = ILI9341_MISO_PIN;
     spi_config.mosi_pin = ILI9341_MOSI_PIN;
-    spi_config.ss_pin   = ILI9341_SS_PIN;
+    spi_config.ss_pin   = NRFX_SPIM_PIN_NOT_USED;
 
     err_code = nrf_drv_spi_init(&spi, &spi_config, NULL, NULL);
     return err_code;
@@ -313,41 +319,55 @@ static void ili9341_pixel_draw(uint16_t x, uint16_t y, uint32_t color)
 
 static void ili9341_rect_draw(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint32_t color)
 {
+    static uint8_t data[32];
+    
     set_addr_window(x, y, x + width - 1, y + height - 1);
 
-    const uint8_t data[2] = {color >> 8, color};
+    for(int i = 0; i < 16; i++)
+    {
+       data[i*2] = color >> 8;
+       data[i*2+1] = color;
+    }
 
     nrf_gpio_pin_set(ILI9341_DC_PIN);
 
-    // Duff's device algorithm for optimizing loop.
-    uint32_t i = (height * width + 7) / 8;
+    uint32_t bytes_left = height * width * 2;
 
-/*lint -save -e525 -e616 -e646 */
-    switch ((height * width) % 8) {
-        case 0:
-            do {
-                spi_write(data, sizeof(data));
-        case 7:
-                spi_write(data, sizeof(data));
-        case 6:
-                spi_write(data, sizeof(data));
-        case 5:
-                spi_write(data, sizeof(data));
-        case 4:
-                spi_write(data, sizeof(data));
-        case 3:
-                spi_write(data, sizeof(data));
-        case 2:
-                spi_write(data, sizeof(data));
-        case 1:
-                spi_write(data, sizeof(data));
-            } while (--i > 0);
-        default:
-            break;
-    }
-/*lint -restore */
+    do
+    {
+        if(bytes_left > 32)
+        {
+            spi_write(data, sizeof(data));
+            bytes_left -= 16;
+        }
+        else
+        {
+           spi_write(data, bytes_left);
+           bytes_left = 0;
+        }
+    
+    }while(bytes_left > 0); 
 
     nrf_gpio_pin_clear(ILI9341_DC_PIN);
+}
+
+static void ili9341_buffer_draw(uint16_t x, uint16_t y, uint16_t width, uint16_t height, void * p_data, uint32_t length)
+{
+    uint32_t spi_max_length, spi_length;
+    
+    set_addr_window(x, y, x + width - 1, y + height - 1);
+
+    nrf_gpio_pin_set(ILI9341_DC_PIN);
+    spi_max_length = 250; //(1 << SPIM0_EASYDMA_MAXCNT_SIZE - 4))
+    do
+    {
+        spi_length = (length > spi_max_length) ? spi_max_length : length;
+        spi_write(p_data, spi_length);
+        length -= spi_length;
+        p_data += spi_length;        
+    }while(length > 0);
+
+    nrf_gpio_pin_clear(ILI9341_DC_PIN);    
 }
 
 static void ili9341_dummy_display(void)
@@ -392,6 +412,7 @@ const nrf_lcd_t nrf_lcd_ili9341 = {
     .lcd_uninit = ili9341_uninit,
     .lcd_pixel_draw = ili9341_pixel_draw,
     .lcd_rect_draw = ili9341_rect_draw,
+    .lcd_buffer_draw = ili9341_buffer_draw,
     .lcd_display = ili9341_dummy_display,
     .lcd_rotation_set = ili9341_rotation_set,
     .lcd_display_invert = ili9341_display_invert,
