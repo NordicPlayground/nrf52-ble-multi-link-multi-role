@@ -95,6 +95,35 @@ static void rect_draw(nrf_lcd_t const * p_instance,
     p_instance->lcd_rect_draw(x, y, width, height, color);
 }
 
+static void buffer_draw(nrf_lcd_t const * p_instance,
+                        uint16_t x,
+                        uint16_t y,
+                        uint16_t width,
+                        uint16_t height,
+                        void *p_data,
+                        uint32_t length)
+{
+    uint16_t lcd_width = nrf_gfx_width_get(p_instance);
+    uint16_t lcd_height = nrf_gfx_height_get(p_instance);
+
+    if ((x >= lcd_width) || (y >= lcd_height))
+    {
+        return;
+    }
+
+    if (width > (lcd_width - x))
+    {
+        width = lcd_width - x;
+    }
+
+    if (height > (lcd_height - y))
+    {
+        height = lcd_height - y;
+    }
+
+    p_instance->lcd_buffer_draw(x, y, width, height, p_data, length);
+}
+
 static void line_draw(nrf_lcd_t const * p_instance,
                       uint16_t x_0,
                       uint16_t y_0,
@@ -446,6 +475,19 @@ ret_code_t nrf_gfx_rect_draw(nrf_lcd_t const * p_instance,
 void nrf_gfx_screen_fill(nrf_lcd_t const * p_instance, uint32_t color)
 {
     rect_draw(p_instance, 0, 0, nrf_gfx_width_get(p_instance), nrf_gfx_height_get(p_instance), color);
+}
+
+ret_code_t nrf_gfx_buffer_draw(nrf_lcd_t const * p_instance,
+                              nrf_gfx_rect_t const * p_rect,
+                              void *p_data, 
+                              uint32_t length)
+{
+    ASSERT(p_instance != NULL);
+    ASSERT(p_instance->p_lcd_cb->state != NRFX_DRV_STATE_UNINITIALIZED);
+    ASSERT(p_rect != NULL);      
+
+    buffer_draw(p_instance, p_rect->x, p_rect->y, p_rect->width, p_rect->height, p_data, length);
+    return NRF_SUCCESS;
 }
 
 ret_code_t nrf_gfx_bmp565_draw(nrf_lcd_t const * p_instance,

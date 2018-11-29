@@ -221,12 +221,6 @@ ret_code_t nrf_gfx_rect_draw(nrf_lcd_t const * p_instance,
                              uint32_t color,
                              bool fill);
 
-
-ret_code_t nrf_gfx_buffer_draw(nrf_lcd_t const * p_instance,
-                              nrf_gfx_rect_t const * p_rect,
-                              void *p_data, 
-                              uint32_t length);
-                              
 /**
  * @brief Function for filling the screen with selected color.
  *
