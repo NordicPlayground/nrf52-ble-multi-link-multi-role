@@ -5,23 +5,34 @@
 
 #include <nrfx.h>
 
-#define WS2812_PIN  3
+#define WS2812_PIN  NRF_GPIO_PIN_MAP(1,7)
 
-#define LED_MATRIX_WIDTH       10
+#define LED_MATRIX_WIDTH       24
 #define LED_MATRIX_HEIGHT      1
+
+typedef enum
+{
+    RED	    = 0x00FF0000,
+    GREEN   = 0x0000FF00,
+    BLUE    = 0x000000FF
+}COLOR;
 
 
 typedef struct
 {
-    uint8_t b;
     uint8_t g;
     uint8_t r;
-}rgb_t;
+    uint8_t b;
+#if defined(NEOPIXEL_RING)
+    uint8_t w;
+#endif
+}rgb_color_t;
+
 
 typedef union
 {
-    uint32_t u;
-    rgb_t    s;
+    uint32_t	    u;
+    rgb_color_t	    s;
 }color_t;
 
 uint32_t drv_ws2812_init(void);

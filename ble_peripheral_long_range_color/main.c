@@ -635,7 +635,7 @@ static void neopixel_init(void)
 
 static void neopixel_stripe_set_color(uint32_t color)
 {
-    static nrf_gfx_line_t l = {0,0,10,0,1};	
+    static nrf_gfx_line_t l = {0,0,LED_MATRIX_WIDTH,0,1};	
     APP_ERROR_CHECK(nrf_gfx_line_draw(&led_matrix, &l, color));
     nrf_gfx_display(&led_matrix);
 }
