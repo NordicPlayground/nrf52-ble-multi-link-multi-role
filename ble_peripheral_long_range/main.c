@@ -367,7 +367,6 @@ static void conn_params_init(void)
 static void advertising_start(void)
 {
     ret_code_t           err_code;
-    
     err_code = sd_ble_gap_adv_start(m_adv_handle, APP_BLE_CONN_CFG_TAG);
     if(err_code == NRF_SUCCESS)
     {
@@ -433,7 +432,7 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             break;
 
         case BLE_GAP_EVT_DISCONNECTED:
-            NRF_LOG_INFO("Disconnected");
+            NRF_LOG_INFO("Disconnected: %i", p_ble_evt->evt.gap_evt.params.disconnected.reason);
             bsp_board_led_off(CONNECTED_LED);
             m_conn_handle = BLE_CONN_HANDLE_INVALID;
             m_application_state.rssi = 0;

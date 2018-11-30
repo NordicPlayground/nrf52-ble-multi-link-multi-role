@@ -2,7 +2,6 @@
 <solution Name="ble_aggregator_pca10056_s140" target="8" version="2">
   <project Name="ble_aggregator_pca10056_s140">
     <configuration
-      Connection="USB 683067600"
       Name="Common"
       arm_architecture="v7EM"
       arm_core_type="Cortex-M4"
@@ -120,8 +119,6 @@
       <file file_name="../../../../../../../components/softdevice/common/nrf_sdh_ble.c" />
       <file file_name="../../../../../../../components/softdevice/common/nrf_sdh_soc.c" />
     </folder>
-    <configuration Connection="USB 683239344" Name="Release" />
-    <configuration Connection="USB 683552393" Name="Debug" />
   </project>
   <configuration
     Name="Release"
@@ -131,4 +128,7 @@
     Name="Debug"
     c_preprocessor_definitions="DEBUG; DEBUG_NRF"
     gcc_optimization_level="None" />
+  <configuration
+    Name="Common"
+    debug_additional_load_file="../../../../../../../components/softdevice/s140/hex/s140_nrf52_6.1.0_softdevice.hex" />
 </solution>
