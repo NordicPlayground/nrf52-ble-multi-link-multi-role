@@ -426,7 +426,7 @@ static void request_phy(uint8_t phy)
     ble_gap_phys_t phy_req;
     phy_req.tx_phys = phy;
     phy_req.rx_phys = phy;
-    sd_ble_gap_phy_update(m_conn_handle[0], &phy_req);
+    sd_ble_gap_phy_update(m_conn_handle[phy == BLE_GAP_PHY_2MBPS ? 2 : 1], &phy_req);
 }
 
 
@@ -445,9 +445,9 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             NRF_LOG_INFO("Connected");
             bsp_board_led_on(CONNECTED_LED);
             bsp_board_led_off(ADVERTISING_LED);
-            m_conn_handle[0] = p_ble_evt->evt.gap_evt.conn_handle;
+            m_conn_handle[p_ble_evt->evt.gap_evt.conn_handle] = p_ble_evt->evt.gap_evt.conn_handle;
             
-            err_code = sd_ble_gap_rssi_start(m_conn_handle[0], 2, 2);
+            err_code = sd_ble_gap_rssi_start(m_conn_handle[p_ble_evt->evt.gap_evt.conn_handle], 2, 2);
             APP_ERROR_CHECK(err_code);
 
             m_lbs_links_active++;
@@ -482,8 +482,8 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
         case BLE_GAP_EVT_DISCONNECTED:
             NRF_LOG_INFO("Disconnected: %i", p_ble_evt->evt.gap_evt.params.disconnected.reason);
             bsp_board_led_off(CONNECTED_LED);
-            m_conn_handle[0] = BLE_CONN_HANDLE_INVALID;
-            m_application_state.rssi = 0;
+            m_conn_handle[p_ble_evt->evt.gap_evt.conn_handle] = BLE_CONN_HANDLE_INVALID;
+            m_application_state.rssi[p_ble_evt->evt.gap_evt.conn_handle] = 0;
 
             if(m_application_state.phy == APP_PHY_MULTI && m_lbs_links_active == 3)
             {
@@ -503,7 +503,7 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
 
         case BLE_GAP_EVT_SEC_PARAMS_REQUEST:
             // Pairing not supported
-            err_code = sd_ble_gap_sec_params_reply(m_conn_handle[0],
+            err_code = sd_ble_gap_sec_params_reply(m_conn_handle[p_ble_evt->evt.gap_evt.conn_handle],
                                                    BLE_GAP_SEC_STATUS_PAIRING_NOT_SUPP,
                                                    NULL,
                                                    NULL);
@@ -567,7 +567,7 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
         } break; // BLE_GATTS_EVT_RW_AUTHORIZE_REQUEST
         
         case BLE_GAP_EVT_RSSI_CHANGED:
-            m_application_state.rssi = p_ble_evt->evt.gap_evt.params.rssi_changed.rssi;
+            m_application_state.rssi[p_ble_evt->evt.gap_evt.conn_handle] = p_ble_evt->evt.gap_evt.params.rssi_changed.rssi;
             display_update();
             break;
             

@@ -152,14 +152,6 @@ void app_display_create_main_screen(app_display_content_t *content)
     UG_TextboxSetBackColor (&window_1 , TXB_ID_5 , FILL_COLOR_TEXT ); 
     UG_TextboxSetAlignment (&window_1 , TXB_ID_5 , ALIGN_CENTER );
 
-    /* Create "dBm" textbox for the RSSI metric (TXB_ID_7) */
-    UG_TextboxCreate(&window_1, &textbox_dbm_label, TXB_ID_7, TXT_ID_7_X_LOCATION, TXT_ID_7_Y_LOCATION, TXT_ID_7_X_LOCATION+TXT_ID_7_WIDTH, TXT_ID_7_Y_LOCATION+TXT_ID_7_HEIGHT);  
-    UG_TextboxSetFont(&window_1, TXB_ID_7, &FONT_8X12);
-    UG_TextboxSetText(&window_1 , TXB_ID_7 , "dBm") ;
-    UG_TextboxSetForeColor (&window_1 , TXB_ID_7 , FONT_COLOR_TEXT ) ;
-    UG_TextboxSetBackColor (&window_1 , TXB_ID_7 , FILL_COLOR_TEXT ); 
-    UG_TextboxSetAlignment (&window_1 , TXB_ID_7 , ALIGN_CENTER );
-
 #if 0
     /* Create "PER" textbox (TXB_ID_4) */
     UG_TextboxCreate(&window_1, &textbox_per_label, TXB_ID_4, TXT_ID_4_X_LOCATION, TXT_ID_4_Y_LOCATION, TXT_ID_4_X_LOCATION+TXT_ID_4_WIDTH, TXT_ID_4_Y_LOCATION+TXT_ID_4_HEIGHT);  
@@ -176,14 +168,7 @@ void app_display_create_main_screen(app_display_content_t *content)
     UG_TextboxSetForeColor (&window_1 , TXB_ID_6 , FONT_COLOR_TEXT ) ;
     UG_TextboxSetBackColor (&window_1 , TXB_ID_6 , FILL_COLOR_TEXT ); 
     UG_TextboxSetAlignment (&window_1 , TXB_ID_6 , ALIGN_CENTER );
-    
-    /* Create "%" textbox for the PER metric (TXB_ID_8) */
-    UG_TextboxCreate(&window_1, &textbox_percentage_label, TXB_ID_8, TXT_ID_8_X_LOCATION, TXT_ID_8_Y_LOCATION, TXT_ID_8_X_LOCATION+TXT_ID_8_WIDTH, TXT_ID_8_Y_LOCATION+TXT_ID_8_HEIGHT);  
-    UG_TextboxSetFont(&window_1, TXB_ID_8, &FONT_8X12);
-    UG_TextboxSetText(&window_1 , TXB_ID_8 , "%") ;
-    UG_TextboxSetForeColor (&window_1 , TXB_ID_8 , FONT_COLOR_TEXT ) ;
-    UG_TextboxSetBackColor (&window_1 , TXB_ID_8 , FILL_COLOR_TEXT ); 
-    UG_TextboxSetAlignment (&window_1 , TXB_ID_8 , ALIGN_CENTER );
+
 #endif 
 
     UG_ImageCreate(&window_1, &image_1, IMG_ID_0, 0, 228, 30, 250);
@@ -218,13 +203,11 @@ void app_display_update_main_screen(app_display_content_t *content)
         {
             UG_TextboxShow(&window_1, TXB_ID_3);
             UG_TextboxShow(&window_1, TXB_ID_5);
-            UG_TextboxShow(&window_1, TXB_ID_7);
         }
         else
         {
             UG_TextboxHide(&window_1, TXB_ID_3);
             UG_TextboxHide(&window_1, TXB_ID_5);
-            UG_TextboxHide(&window_1, TXB_ID_7);            
         }
     }
     if(first_update || content->led_on != content_previous.led_on)
@@ -239,10 +222,10 @@ void app_display_update_main_screen(app_display_content_t *content)
         UG_ButtonSetForeColor(&window_1, BTN_ID_4, display_on_off_font_color[content->button_pressed ? 1 : 0]);
         UG_ButtonSetText(&window_1, BTN_ID_4, display_string_led_state[content->button_pressed ? 1 : 0]); 
     }
-    if(content->rssi != content_previous.rssi)
+    if(content->rssi[0] != content_previous.rssi[0])
     {
-        sprintf(sprintf_buf, "%i", (int)content->rssi);
-        UG_TextboxSetText(&window_1 , TXB_ID_5 , content->rssi != 0 ? sprintf_buf : "-") ;
+        sprintf(sprintf_buf, "%i dBm", (int)content->rssi[0]);
+        UG_TextboxSetText(&window_1 , TXB_ID_5 , content->rssi[0] != 0 ? sprintf_buf : "-") ;
     }
     first_update = false;
     content_previous = *content;

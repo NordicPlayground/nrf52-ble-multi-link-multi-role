@@ -67,8 +67,8 @@
 // RSSI/PER status window
 #define TXT_ID_3_X_LOCATION TXT_ID_0_X_LOCATION 
 #define TXT_ID_3_WIDTH 50
-#define TXT_ID_3_HEIGHT 30 
-#define TXT_ID_3_Y_LOCATION BTN_ID_4_Y_LOCATION + BTN_ID_4_HEIGHT + INTERWIDGET_SPACE
+#define TXT_ID_3_HEIGHT 16 
+#define TXT_ID_3_Y_LOCATION BTN_ID_4_Y_LOCATION + BTN_ID_4_HEIGHT + (INTERWIDGET_SPACE / 2)
 
 #define TXT_ID_4_X_LOCATION TXT_ID_3_X_LOCATION
 #define TXT_ID_4_Y_LOCATION TXT_ID_3_Y_LOCATION+TXT_ID_3_HEIGHT+2
@@ -77,23 +77,13 @@
 
 #define TXT_ID_5_X_LOCATION TXT_ID_3_X_LOCATION + TXT_ID_3_WIDTH + 2
 #define TXT_ID_5_Y_LOCATION TXT_ID_3_Y_LOCATION  
-#define TXT_ID_5_WIDTH 50
+#define TXT_ID_5_WIDTH 70
 #define TXT_ID_5_HEIGHT TXT_ID_3_HEIGHT
 
 #define TXT_ID_6_X_LOCATION TXT_ID_4_X_LOCATION + TXT_ID_4_WIDTH + 2
 #define TXT_ID_6_Y_LOCATION TXT_ID_4_Y_LOCATION  
 #define TXT_ID_6_WIDTH TXT_ID_5_WIDTH
 #define TXT_ID_6_HEIGHT TXT_ID_4_HEIGHT
-
-#define TXT_ID_7_X_LOCATION TXT_ID_5_X_LOCATION + TXT_ID_5_WIDTH + 2
-#define TXT_ID_7_Y_LOCATION TXT_ID_5_Y_LOCATION  
-#define TXT_ID_7_WIDTH 30
-#define TXT_ID_7_HEIGHT TXT_ID_5_HEIGHT
-
-#define TXT_ID_8_X_LOCATION TXT_ID_6_X_LOCATION + TXT_ID_6_WIDTH + 2
-#define TXT_ID_8_Y_LOCATION TXT_ID_6_Y_LOCATION  
-#define TXT_ID_8_WIDTH TXT_ID_7_WIDTH
-#define TXT_ID_8_HEIGHT TXT_ID_7_HEIGHT
 
 #define FONT_COLOR_TEXT         C_WHITE
 #define FILL_COLOR_TEXT         C_DODGER_BLUE
@@ -114,7 +104,7 @@ typedef struct{
     uint32_t app_state;
     bool    led_on;
     bool    button_pressed;
-    int8_t  rssi;
+    int8_t  rssi[3];
 }app_display_content_t;
 
 void app_display_init(app_display_content_t *initial_state);
