@@ -102,11 +102,16 @@
 
 
 BLE_LBS_DEF(m_lbs);                                                             /**< LED Button Service instance. */
+BLE_LBS_DEF(m_lbs2);
+BLE_LBS_DEF(m_lbs3);
+ble_lbs_t *m_lbs_list[] = {&m_lbs, &m_lbs2, &m_lbs3};
+static uint32_t m_lbs_links_active = 0;
+
 NRF_BLE_GATT_DEF(m_gatt);                                                       /**< GATT module instance. */
 
 APP_TIMER_DEF(m_restart_advertising_timer_id);
 
-static uint16_t m_conn_handle = BLE_CONN_HANDLE_INVALID;                        /**< Handle of the current connection. */
+static uint16_t m_conn_handle[3] = {BLE_CONN_HANDLE_INVALID, BLE_CONN_HANDLE_INVALID, BLE_CONN_HANDLE_INVALID};  /**< Handle of the current connections. */
 
 static uint8_t m_adv_handle = BLE_GAP_ADV_SET_HANDLE_NOT_SET;                   /**< Advertising handle used to identify an advertising set. */
 static uint8_t m_enc_advdata[BLE_GAP_ADV_SET_DATA_SIZE_MAX];                    /**< Buffer for storing an encoded advertising set. */
@@ -253,10 +258,19 @@ static void advertising_init(void)
     // Set advertising parameters.
     memset(&adv_params, 0, sizeof(adv_params));
 
-    adv_params.primary_phy     = BLE_GAP_PHY_CODED;
-    adv_params.secondary_phy   = BLE_GAP_PHY_CODED;
+    if(m_application_state.phy == APP_PHY_CODED || m_application_state.phy == APP_PHY_MULTI)
+    {
+        adv_params.primary_phy     = BLE_GAP_PHY_CODED;
+        adv_params.secondary_phy   = BLE_GAP_PHY_CODED;
+        adv_params.properties.type = BLE_GAP_ADV_TYPE_EXTENDED_CONNECTABLE_NONSCANNABLE_UNDIRECTED;
+    }
+    else
+    {
+        adv_params.primary_phy     = BLE_GAP_PHY_1MBPS;
+        adv_params.secondary_phy   = BLE_GAP_PHY_1MBPS;
+        adv_params.properties.type = BLE_GAP_ADV_TYPE_CONNECTABLE_SCANNABLE_UNDIRECTED;
+    }
     adv_params.duration        = APP_ADV_DURATION;
-    adv_params.properties.type = BLE_GAP_ADV_TYPE_EXTENDED_CONNECTABLE_NONSCANNABLE_UNDIRECTED;
     adv_params.p_peer_addr     = NULL;
     adv_params.filter_policy   = BLE_GAP_ADV_FP_ANY;
     adv_params.interval        = APP_ADV_INTERVAL;
@@ -264,7 +278,7 @@ static void advertising_init(void)
     err_code = sd_ble_gap_adv_set_configure(&m_adv_handle, &m_adv_data, &adv_params);
     APP_ERROR_CHECK(err_code);
     
-    err_code = sd_ble_gap_tx_power_set(BLE_GAP_TX_POWER_ROLE_ADV, m_adv_handle, 4);
+    err_code = sd_ble_gap_tx_power_set(BLE_GAP_TX_POWER_ROLE_ADV, m_adv_handle, m_application_state.tx_power * 4);
     APP_ERROR_CHECK(err_code);
 }
 
@@ -323,7 +337,7 @@ static void on_conn_params_evt(ble_conn_params_evt_t * p_evt)
 
     if (p_evt->evt_type == BLE_CONN_PARAMS_EVT_FAILED)
     {
-        err_code = sd_ble_gap_disconnect(m_conn_handle, BLE_HCI_CONN_INTERVAL_UNACCEPTABLE);
+        err_code = sd_ble_gap_disconnect(m_conn_handle[0], BLE_HCI_CONN_INTERVAL_UNACCEPTABLE);
         APP_ERROR_CHECK(err_code);
     }
 }
@@ -393,7 +407,7 @@ static void ble_go_to_idle(void)
             break;
             
         case APP_STATE_CONNECTED:
-            err_code = sd_ble_gap_disconnect(m_conn_handle, BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
+            err_code = sd_ble_gap_disconnect(m_conn_handle[0], BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
             APP_ERROR_CHECK(err_code);
             break;
             
@@ -404,6 +418,15 @@ static void ble_go_to_idle(void)
     }
     m_application_state.app_state = APP_STATE_IDLE;
     display_update();
+}
+
+
+static void request_phy(uint8_t phy)
+{
+    ble_gap_phys_t phy_req;
+    phy_req.tx_phys = phy;
+    phy_req.rx_phys = phy;
+    sd_ble_gap_phy_update(m_conn_handle[0], &phy_req);
 }
 
 
@@ -422,10 +445,35 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             NRF_LOG_INFO("Connected");
             bsp_board_led_on(CONNECTED_LED);
             bsp_board_led_off(ADVERTISING_LED);
-            m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
+            m_conn_handle[0] = p_ble_evt->evt.gap_evt.conn_handle;
             
-            err_code = sd_ble_gap_rssi_start(m_conn_handle, 2, 2);
+            err_code = sd_ble_gap_rssi_start(m_conn_handle[0], 2, 2);
             APP_ERROR_CHECK(err_code);
+
+            m_lbs_links_active++;
+
+            if(m_application_state.phy == APP_PHY_2M)
+            {
+                request_phy(BLE_GAP_PHY_2MBPS);
+            }
+            else if(m_application_state.phy == APP_PHY_MULTI)
+            {
+                switch(p_ble_evt->evt.gap_evt.conn_handle)
+                {
+                    case 1:
+                        request_phy(BLE_GAP_PHY_1MBPS);
+                        break;
+                    case 2:
+                        request_phy(BLE_GAP_PHY_2MBPS);
+                        break;
+                    default:
+                        break;
+                }
+                if(m_lbs_links_active < 3)
+                {
+                    advertising_start();
+                }
+            }
             
             m_application_state.app_state = APP_STATE_CONNECTED;
             display_update();
@@ -434,10 +482,14 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
         case BLE_GAP_EVT_DISCONNECTED:
             NRF_LOG_INFO("Disconnected: %i", p_ble_evt->evt.gap_evt.params.disconnected.reason);
             bsp_board_led_off(CONNECTED_LED);
-            m_conn_handle = BLE_CONN_HANDLE_INVALID;
+            m_conn_handle[0] = BLE_CONN_HANDLE_INVALID;
             m_application_state.rssi = 0;
 
-            if(m_application_state.app_state == APP_STATE_CONNECTED)
+            if(m_application_state.phy == APP_PHY_MULTI && m_lbs_links_active == 3)
+            {
+                advertising_start();
+            }
+            else if(m_application_state.app_state == APP_STATE_CONNECTED)
             {
                 m_application_state.app_state = APP_STATE_DISCONNECTED;
                 display_update();
@@ -445,11 +497,13 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                 err_code = app_timer_start(m_restart_advertising_timer_id, APP_TIMER_TICKS(RESTART_ADVERTISING_TIMEOUT_MS), 0);
                 APP_ERROR_CHECK(err_code);
             }
+
+            m_lbs_links_active--;
             break;
 
         case BLE_GAP_EVT_SEC_PARAMS_REQUEST:
             // Pairing not supported
-            err_code = sd_ble_gap_sec_params_reply(m_conn_handle,
+            err_code = sd_ble_gap_sec_params_reply(m_conn_handle[0],
                                                    BLE_GAP_SEC_STATUS_PAIRING_NOT_SUPP,
                                                    NULL,
                                                    NULL);
@@ -458,7 +512,7 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
 
         case BLE_GATTS_EVT_SYS_ATTR_MISSING:
             // No system attributes have been stored.
-            err_code = sd_ble_gatts_sys_attr_set(m_conn_handle, NULL, 0, 0);
+            err_code = sd_ble_gatts_sys_attr_set(m_conn_handle[0], NULL, 0, 0);
             APP_ERROR_CHECK(err_code);
             break;
 
@@ -563,7 +617,12 @@ static void button_event_handler(uint8_t pin_no, uint8_t button_action)
     switch (pin_no)
     {
         case PHY_BUTTON:
-    
+            if(button_action == APP_BUTTON_PUSH && m_application_state.app_state == APP_STATE_IDLE)
+            {
+                m_application_state.phy = (m_application_state.phy + 1) % APP_PHY_LIST_END;
+                advertising_init();
+                display_update();
+            }
             break;
         
         case TX_POWER_BUTTON:
@@ -573,7 +632,7 @@ static void button_event_handler(uint8_t pin_no, uint8_t button_action)
                 int8_t tx_power = (int8_t)(m_application_state.tx_power * 4);
                 if(m_application_state.app_state == APP_STATE_CONNECTED)
                 {
-                    err_code = sd_ble_gap_tx_power_set(BLE_GAP_TX_POWER_ROLE_CONN, m_conn_handle, tx_power);
+                    err_code = sd_ble_gap_tx_power_set(BLE_GAP_TX_POWER_ROLE_CONN, m_conn_handle[0], tx_power);
                     APP_ERROR_CHECK(err_code);
                 }
                 else
@@ -601,7 +660,7 @@ static void button_event_handler(uint8_t pin_no, uint8_t button_action)
         
         case LEDBUTTON_BUTTON:
             NRF_LOG_INFO("Send button state change.");
-            err_code = ble_lbs_on_button_change(m_conn_handle, &m_lbs, button_action);
+            err_code = ble_lbs_on_button_change(m_conn_handle[0], &m_lbs, button_action);
             if (err_code != NRF_SUCCESS &&
                 err_code != BLE_ERROR_INVALID_CONN_HANDLE &&
                 err_code != NRF_ERROR_INVALID_STATE &&
@@ -697,7 +756,7 @@ int main(void)
     // Start execution.
     NRF_LOG_INFO("Blinky example started.");
     
-    app_display_init();
+    app_display_init(&m_application_state);
     display_update();
 
     err_code = app_button_enable();

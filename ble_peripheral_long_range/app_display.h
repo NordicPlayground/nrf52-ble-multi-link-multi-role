@@ -103,7 +103,9 @@
 #define APP_STATE_FONT_COLORS   {C_BLACK, C_BLACK, C_YELLOW, C_YELLOW}
 #define ON_OFF_COLORS           {C_SILVER, C_MEDIUM_BLUE}
 #define ON_OFF_FONT_COLORS      {C_BLACK, C_YELLOW}
+
 typedef enum {APP_STATE_IDLE, APP_STATE_ADVERTISING, APP_STATE_CONNECTED, APP_STATE_DISCONNECTED} app_state_t;
+typedef enum {APP_PHY_CODED, APP_PHY_1M, APP_PHY_2M, APP_PHY_MULTI, APP_PHY_LIST_END} app_phy_t;
     
 typedef struct{
     char *main_title;
@@ -115,7 +117,7 @@ typedef struct{
     int8_t  rssi;
 }app_display_content_t;
 
-void app_display_init(void);
+void app_display_init(app_display_content_t *initial_state);
 
 void app_display_create_main_screen(app_display_content_t *content);
 

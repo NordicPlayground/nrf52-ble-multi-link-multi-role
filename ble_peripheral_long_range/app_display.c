@@ -10,7 +10,7 @@ char m_summary_string2[64];
 extern const nrf_lcd_t nrf_lcd_ili9341;
 static const nrf_lcd_t * p_lcd = &nrf_lcd_ili9341;
 
-char *display_string_phy[] = {"Coded", "1 Mbps"};
+char *display_string_phy[] = {"Coded", "1 Mbps", "2 Mbps", "MultiPhy"};
 char *display_string_tx_power[] = {"0 dBm", "4 dBm", "8 dBm"}; 
 char *display_string_app_state[] = {"Idle", "Advertising", "Connected", "Disconnected"};
 char *display_string_led_state[] = {"Off", "On"};
@@ -19,7 +19,6 @@ const UG_COLOR display_app_state_button_color[] = APP_STATE_COLORS;
 const UG_COLOR display_app_state_button_font_color[] = APP_STATE_FONT_COLORS;
 const UG_COLOR display_on_off_color[] = ON_OFF_COLORS;
 const UG_COLOR display_on_off_font_color[] = ON_OFF_FONT_COLORS;
-
 
 UG_GUI gui;
 UG_TEXTBOX textbox_toggle_phy;
@@ -45,13 +44,16 @@ UG_IMAGE  image_1;
 
 UG_OBJECT obj_buff_wnd_1[MAX_OBJECTS];
 
+static app_display_content_t content_previous = {0};
+
 void window_1_callback (UG_MESSAGE *msg)
 {
     UNUSED_PARAMETER(msg);    
 }
 
-void app_display_init(void)
+void app_display_init(app_display_content_t *initial_state)
 {
+    content_previous = *initial_state;
     UG_Init(&gui, 240, 320, p_lcd);
 }
 
@@ -198,7 +200,6 @@ static char sprintf_buf[64];
 
 void app_display_update_main_screen(app_display_content_t *content)
 {
-    static app_display_content_t content_previous = {0};
     static bool first_update = true;
     if(first_update || content->phy != content_previous.phy)
     {
