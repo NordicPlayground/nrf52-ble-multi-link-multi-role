@@ -407,8 +407,14 @@ static void ble_go_to_idle(void)
             break;
             
         case APP_STATE_CONNECTED:
-            err_code = sd_ble_gap_disconnect(m_conn_handle[0], BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
-            APP_ERROR_CHECK(err_code);
+            for(int i = 0; i < (m_application_state.phy == APP_PHY_MULTI ? 3 : 1); i++)
+            {
+                if(m_conn_handle[i] != BLE_CONN_HANDLE_INVALID)
+                {
+                    err_code = sd_ble_gap_disconnect(m_conn_handle[i], BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
+                    APP_ERROR_CHECK(err_code);
+                }
+            }
             break;
             
         case APP_STATE_DISCONNECTED:
@@ -421,12 +427,12 @@ static void ble_go_to_idle(void)
 }
 
 
-static void request_phy(uint8_t phy)
+static void request_phy(uint16_t c_handle, uint8_t phy)
 {
     ble_gap_phys_t phy_req;
     phy_req.tx_phys = phy;
     phy_req.rx_phys = phy;
-    sd_ble_gap_phy_update(m_conn_handle[phy == BLE_GAP_PHY_2MBPS ? 2 : 1], &phy_req);
+    sd_ble_gap_phy_update(c_handle, &phy_req);
 }
 
 
@@ -454,17 +460,18 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
 
             if(m_application_state.phy == APP_PHY_2M)
             {
-                request_phy(BLE_GAP_PHY_2MBPS);
+                request_phy(0, BLE_GAP_PHY_2MBPS);
             }
             else if(m_application_state.phy == APP_PHY_MULTI)
             {
+                m_application_state.trip_phy_connected[p_ble_evt->evt.gap_evt.conn_handle] = true;
                 switch(p_ble_evt->evt.gap_evt.conn_handle)
                 {
                     case 1:
-                        request_phy(BLE_GAP_PHY_1MBPS);
+                        request_phy(1, BLE_GAP_PHY_1MBPS);
                         break;
                     case 2:
-                        request_phy(BLE_GAP_PHY_2MBPS);
+                        request_phy(2, BLE_GAP_PHY_2MBPS);
                         break;
                     default:
                         break;
@@ -485,9 +492,13 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             m_conn_handle[p_ble_evt->evt.gap_evt.conn_handle] = BLE_CONN_HANDLE_INVALID;
             m_application_state.rssi[p_ble_evt->evt.gap_evt.conn_handle] = 0;
 
-            if(m_application_state.phy == APP_PHY_MULTI && m_lbs_links_active == 3)
+            if(m_application_state.phy == APP_PHY_MULTI)
             {
-                advertising_start();
+                m_application_state.trip_phy_connected[p_ble_evt->evt.gap_evt.conn_handle] = false;
+                if(m_lbs_links_active == 3 && m_application_state.app_state == APP_STATE_CONNECTED)
+                {
+                    advertising_start();
+                }
             }
             else if(m_application_state.app_state == APP_STATE_CONNECTED)
             {
