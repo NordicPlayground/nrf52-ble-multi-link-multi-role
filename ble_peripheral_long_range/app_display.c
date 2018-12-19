@@ -271,7 +271,7 @@ void app_display_update_main_screen(app_display_content_t *content)
             if(content->rssi[i] != content_previous.rssi[i] || content->trip_phy_connected[i] != content_previous.trip_phy_connected[i])
             {
                 sprintf(sprintf_buf, "%i dBm", (int)content->rssi[i]);
-                UG_TextboxSetText(&window_1, TXB_ID_6 + i, content->trip_phy_connected[i] ? sprintf_buf : "Disconnected") ;
+                UG_TextboxSetText(&window_1, TXB_ID_6 + i, content->trip_phy_connected[i] ? (content->rssi[i] != 0 ? sprintf_buf : "-") : "Disconnected") ;
             }
         }
     }

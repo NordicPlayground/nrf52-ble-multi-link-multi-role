@@ -114,6 +114,8 @@
 
 #define THINGY_RSSI_CONNECT_LIMIT   -55
 
+#define APP_DEFAULT_TX_POWER        0
+
 NRF_BLE_GATT_DEF(m_gatt);                                               /**< GATT module instance. */
 
 BLE_AGG_CFG_SERVICE_DEF(m_agg_cfg_service);                             /**< BLE NUS service instance. */
@@ -286,7 +288,7 @@ static void gap_params_init(void)
     err_code = sd_ble_gap_ppcp_set(&gap_conn_params);
     APP_ERROR_CHECK(err_code);
 
-    err_code = sd_ble_gap_tx_power_set(BLE_GAP_TX_POWER_ROLE_SCAN_INIT, BLE_CONN_HANDLE_INVALID, 4);
+    err_code = sd_ble_gap_tx_power_set(BLE_GAP_TX_POWER_ROLE_SCAN_INIT, BLE_CONN_HANDLE_INVALID, APP_DEFAULT_TX_POWER);
     APP_ERROR_CHECK(err_code);
 }
 
@@ -720,7 +722,7 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                 err_code = sd_ble_gap_rssi_start(p_gap_evt->conn_handle, 5, 4);
                 APP_ERROR_CHECK(err_code);
 
-                err_code = sd_ble_gap_tx_power_set(BLE_GAP_TX_POWER_ROLE_CONN, p_gap_evt->conn_handle, 4);
+                err_code = sd_ble_gap_tx_power_set(BLE_GAP_TX_POWER_ROLE_CONN, p_gap_evt->conn_handle, APP_DEFAULT_TX_POWER);
                 APP_ERROR_CHECK(err_code);
 
                 // Notify the aggregator service

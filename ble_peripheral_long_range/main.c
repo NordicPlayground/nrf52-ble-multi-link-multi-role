@@ -380,7 +380,7 @@ static void conn_params_init(void)
  */
 static void advertising_start(void)
 {
-    ret_code_t           err_code;
+    ret_code_t err_code;
     err_code = sd_ble_gap_adv_start(m_adv_handle, APP_BLE_CONN_CFG_TAG);
     if(err_code == NRF_SUCCESS)
     {
@@ -448,12 +448,12 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
     switch (p_ble_evt->header.evt_id)
     {
         case BLE_GAP_EVT_CONNECTED:
-            NRF_LOG_INFO("Connected");
+            NRF_LOG_INFO("Connected: %i", p_ble_evt->evt.gap_evt.conn_handle);
             bsp_board_led_on(CONNECTED_LED);
             bsp_board_led_off(ADVERTISING_LED);
             m_conn_handle[p_ble_evt->evt.gap_evt.conn_handle] = p_ble_evt->evt.gap_evt.conn_handle;
             
-            err_code = sd_ble_gap_rssi_start(m_conn_handle[p_ble_evt->evt.gap_evt.conn_handle], 2, 2);
+            err_code = sd_ble_gap_rssi_start(m_conn_handle[p_ble_evt->evt.gap_evt.conn_handle], 1, 2);
             APP_ERROR_CHECK(err_code);
 
             m_lbs_links_active++;
@@ -478,7 +478,13 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
                 }
                 if(m_lbs_links_active < 3)
                 {
-                    advertising_start();
+                    //advertising_start();
+                    // Start advertising "silently", without changing application state from connected
+                    err_code = sd_ble_gap_adv_start(m_adv_handle, APP_BLE_CONN_CFG_TAG);
+                    if(err_code == NRF_SUCCESS)
+                    {
+                        bsp_board_led_on(ADVERTISING_LED);
+                    }
                 }
             }
             
@@ -487,7 +493,7 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             break;
 
         case BLE_GAP_EVT_DISCONNECTED:
-            NRF_LOG_INFO("Disconnected: %i", p_ble_evt->evt.gap_evt.params.disconnected.reason);
+            NRF_LOG_INFO("Disconnected: H-%i, Rsn-%i", p_ble_evt->evt.gap_evt.conn_handle, p_ble_evt->evt.gap_evt.params.disconnected.reason);
             bsp_board_led_off(CONNECTED_LED);
             m_conn_handle[p_ble_evt->evt.gap_evt.conn_handle] = BLE_CONN_HANDLE_INVALID;
             m_application_state.rssi[p_ble_evt->evt.gap_evt.conn_handle] = 0;
@@ -495,19 +501,34 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             if(m_application_state.phy == APP_PHY_MULTI)
             {
                 m_application_state.trip_phy_connected[p_ble_evt->evt.gap_evt.conn_handle] = false;
-                if(m_lbs_links_active == 3 && m_application_state.app_state == APP_STATE_CONNECTED)
+                if(m_application_state.app_state == APP_STATE_CONNECTED)
                 {
-                    advertising_start();
+                  switch(m_lbs_links_active)
+                  {
+                      case 3:
+                          //advertising_start();
+                          // Start advertising "silently", without changing application state from connected
+                          err_code = sd_ble_gap_adv_start(m_adv_handle, APP_BLE_CONN_CFG_TAG);
+                          if(err_code == NRF_SUCCESS)
+                          {
+                              bsp_board_led_on(ADVERTISING_LED);
+                          }
+                          break;
+                      case 1:
+                          m_application_state.app_state = APP_STATE_ADVERTISING;
+                          break;
+                  }
                 }
             }
             else if(m_application_state.app_state == APP_STATE_CONNECTED)
             {
                 m_application_state.app_state = APP_STATE_DISCONNECTED;
-                display_update();
             
                 err_code = app_timer_start(m_restart_advertising_timer_id, APP_TIMER_TICKS(RESTART_ADVERTISING_TIMEOUT_MS), 0);
                 APP_ERROR_CHECK(err_code);
             }
+
+            display_update();
 
             m_lbs_links_active--;
             break;
