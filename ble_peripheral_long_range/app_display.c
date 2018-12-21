@@ -11,7 +11,8 @@ extern const nrf_lcd_t nrf_lcd_ili9341;
 static const nrf_lcd_t * p_lcd = &nrf_lcd_ili9341;
 
 char *display_string_phy[] = {"Coded", "1 Mbps", "2 Mbps", "MultiPhy"};
-char *display_string_trip_phy_rssi_label[] = {"RSSI (LR):", "RSSI (1M):", "RSSI (2M):"};
+char *display_string_rssi_label[] = {"RSSI (LR):", "RSSI (1M):", "RSSI (2M):"};
+char *display_string_trip_phy_rssi_label[] = {"LB (LR):", "LB (1M):", "LB (2M):"};
 char *display_string_tx_power[] = {"0 dBm", "4 dBm", "8 dBm"}; 
 char *display_string_app_state[] = {"Idle", "Advertising", "Connected", "Disconnected"};
 char *display_string_led_state[] = {"Off", "On"};
@@ -142,21 +143,21 @@ void app_display_create_main_screen(app_display_content_t *content)
     UG_TextboxSetFont(&window_1, TXB_ID_3, &FONT_8X12);
     UG_TextboxSetText(&window_1 , TXB_ID_3 , display_string_trip_phy_rssi_label[0]) ;
     UG_TextboxSetForeColor (&window_1 , TXB_ID_3 , FONT_COLOR_TEXT ) ;
-    UG_TextboxSetBackColor (&window_1 , TXB_ID_3 , FILL_COLOR_TEXT ); 
+    UG_TextboxSetBackColor (&window_1 , TXB_ID_3 , 0x0000 ); 
     UG_TextboxSetAlignment (&window_1 , TXB_ID_3 , ALIGN_CENTER );
 
     UG_TextboxCreate(&window_1, &textbox_rssi_label[1], TXB_ID_4, TXT_ID_4_X_LOCATION, TXT_ID_4_Y_LOCATION, TXT_ID_4_X_LOCATION+TXT_ID_4_WIDTH, TXT_ID_4_Y_LOCATION+TXT_ID_4_HEIGHT);  
     UG_TextboxSetFont(&window_1, TXB_ID_4, &FONT_8X12);
     UG_TextboxSetText(&window_1 , TXB_ID_4, display_string_trip_phy_rssi_label[1]) ;
     UG_TextboxSetForeColor (&window_1 , TXB_ID_4 , FONT_COLOR_TEXT ) ;
-    UG_TextboxSetBackColor (&window_1 , TXB_ID_4 , FILL_COLOR_TEXT ); 
+    UG_TextboxSetBackColor (&window_1 , TXB_ID_4 , 0x0000 ); 
     UG_TextboxSetAlignment (&window_1 , TXB_ID_4 , ALIGN_CENTER );
 
     UG_TextboxCreate(&window_1, &textbox_rssi_label[2], TXB_ID_5, TXT_ID_5_X_LOCATION, TXT_ID_5_Y_LOCATION, TXT_ID_5_X_LOCATION+TXT_ID_5_WIDTH, TXT_ID_5_Y_LOCATION+TXT_ID_5_HEIGHT);  
     UG_TextboxSetFont(&window_1, TXB_ID_5, &FONT_8X12);
     UG_TextboxSetText(&window_1 , TXB_ID_5, display_string_trip_phy_rssi_label[2]) ;
     UG_TextboxSetForeColor (&window_1 , TXB_ID_5 , FONT_COLOR_TEXT ) ;
-    UG_TextboxSetBackColor (&window_1 , TXB_ID_5 , FILL_COLOR_TEXT ); 
+    UG_TextboxSetBackColor (&window_1 , TXB_ID_5 , 0x0000 ); 
     UG_TextboxSetAlignment (&window_1 , TXB_ID_5 , ALIGN_CENTER );
 
     /* Create "RSSI" textbox for the numbers (TXB_ID_5) */
@@ -164,21 +165,21 @@ void app_display_create_main_screen(app_display_content_t *content)
     UG_TextboxSetFont(&window_1, TXB_ID_6, &FONT_8X12);
     UG_TextboxSetText(&window_1 , TXB_ID_6, "Disconnected") ;
     UG_TextboxSetForeColor (&window_1 , TXB_ID_6 , FONT_COLOR_TEXT ) ;
-    UG_TextboxSetBackColor (&window_1 , TXB_ID_6 , FILL_COLOR_TEXT ); 
+    UG_TextboxSetBackColor (&window_1 , TXB_ID_6 , 0x0000 ); 
     UG_TextboxSetAlignment (&window_1 , TXB_ID_6 , ALIGN_CENTER );
 
     UG_TextboxCreate(&window_1, &textbox_rssi_number[1], TXB_ID_7, TXT_ID_7_X_LOCATION, TXT_ID_7_Y_LOCATION, TXT_ID_7_X_LOCATION+TXT_ID_7_WIDTH, TXT_ID_7_Y_LOCATION+TXT_ID_7_HEIGHT);  
     UG_TextboxSetFont(&window_1, TXB_ID_7, &FONT_8X12);
     UG_TextboxSetText(&window_1 , TXB_ID_7, "Disconnected") ;
     UG_TextboxSetForeColor (&window_1 , TXB_ID_7 , FONT_COLOR_TEXT ) ;
-    UG_TextboxSetBackColor (&window_1 , TXB_ID_7 , FILL_COLOR_TEXT ); 
+    UG_TextboxSetBackColor (&window_1 , TXB_ID_7 , 0x0000 ); 
     UG_TextboxSetAlignment (&window_1 , TXB_ID_7 , ALIGN_CENTER );
 
     UG_TextboxCreate(&window_1, &textbox_rssi_number[2], TXB_ID_8, TXT_ID_8_X_LOCATION, TXT_ID_8_Y_LOCATION, TXT_ID_8_X_LOCATION+TXT_ID_8_WIDTH, TXT_ID_8_Y_LOCATION+TXT_ID_8_HEIGHT);  
     UG_TextboxSetFont(&window_1, TXB_ID_8, &FONT_8X12);
     UG_TextboxSetText(&window_1 , TXB_ID_8, "Disconnected") ;
     UG_TextboxSetForeColor (&window_1 , TXB_ID_8 , FONT_COLOR_TEXT ) ;
-    UG_TextboxSetBackColor (&window_1 , TXB_ID_8 , FILL_COLOR_TEXT ); 
+    UG_TextboxSetBackColor (&window_1 , TXB_ID_8 , 0x0000 ); 
     UG_TextboxSetAlignment (&window_1 , TXB_ID_8 , ALIGN_CENTER );
 
 #if 0
@@ -218,7 +219,17 @@ void app_display_update_main_screen(app_display_content_t *content)
     if(first_update || content->phy != content_previous.phy)
     {
         UG_ButtonSetText(&window_1, BTN_ID_0, display_string_phy[content->phy]);  
-        UG_TextboxSetText(&window_1, TXB_ID_4, display_string_trip_phy_rssi_label[content->phy != APP_PHY_MULTI ? content->phy : APP_PHY_1M]);
+        if(content->phy == APP_PHY_MULTI)
+        {
+            for(int i = 0; i < 3; i++)
+            {
+                UG_TextboxSetText(&window_1, TXB_ID_3 + i, display_string_trip_phy_rssi_label[i]);
+            }
+        }
+        else
+        {
+            UG_TextboxSetText(&window_1, TXB_ID_4, display_string_rssi_label[content->phy != APP_PHY_MULTI ? content->phy : APP_PHY_1M]);
+        }
         UG_TextboxSetText(&window_1, TXB_ID_7, "Disconnected") ;
     }
     if(first_update || content->tx_power != content_previous.tx_power)
@@ -240,6 +251,15 @@ void app_display_update_main_screen(app_display_content_t *content)
                 UG_TextboxShow(&window_1, TXB_ID_5);
                 UG_TextboxShow(&window_1, TXB_ID_6);
                 UG_TextboxShow(&window_1, TXB_ID_8);
+                UG_TextboxSetBackColor(&window_1, TXB_ID_4, 0x0000);
+                UG_TextboxSetBackColor(&window_1, TXB_ID_7, 0x0000);
+                UG_TextboxSetBackColor(&window_1, TXB_ID_5, 0x0000);
+                UG_TextboxSetBackColor(&window_1, TXB_ID_8, 0x0000);
+            }
+            else
+            {
+                UG_TextboxSetBackColor(&window_1, TXB_ID_4, RGB_888_TO_565(0x0ADD00));
+                UG_TextboxSetBackColor(&window_1, TXB_ID_7, RGB_888_TO_565(0x0ADD00));
             }
         }
         else
@@ -264,13 +284,28 @@ void app_display_update_main_screen(app_display_content_t *content)
         UG_ButtonSetForeColor(&window_1, BTN_ID_4, display_on_off_font_color[content->button_pressed ? 1 : 0]);
         UG_ButtonSetText(&window_1, BTN_ID_4, display_string_led_state[content->button_pressed ? 1 : 0]); 
     }
+    static int rx_sensitivity[] = {-103, -95, -92};
+    static uint32_t link_budget_colors[] = {0xEF0000, 0xfe6c00, 0xfdc700, 0xe2e500, 0xc6f700, 0x5ee900, 0x0ADD00};
+    static int link_budget, link_color;
     if(content->phy == APP_PHY_MULTI)
     {
         for(int i = 0; i < 3; i++)
         {
             if(content->rssi[i] != content_previous.rssi[i] || content->trip_phy_connected[i] != content_previous.trip_phy_connected[i])
             {
-                sprintf(sprintf_buf, "%i dBm", (int)content->rssi[i]);
+                link_budget = (int)content->rssi[i] - rx_sensitivity[i];
+                if(link_budget < 0) link_budget = 0;
+                if(content->trip_phy_connected[i])
+                {
+                    link_color = RGB_888_TO_565(link_budget < 35 ? link_budget_colors[link_budget / 5] : 0x0ADD00);
+                }
+                else
+                {
+                    link_color = 0x0000;
+                }
+                sprintf(sprintf_buf, "%i dB", link_budget);
+                UG_TextboxSetBackColor(&window_1, TXB_ID_6 + i, link_color);
+                UG_TextboxSetBackColor(&window_1, TXB_ID_3 + i, link_color);
                 UG_TextboxSetText(&window_1, TXB_ID_6 + i, content->trip_phy_connected[i] ? (content->rssi[i] != 0 ? sprintf_buf : "-") : "Disconnected") ;
             }
         }
@@ -279,7 +314,12 @@ void app_display_update_main_screen(app_display_content_t *content)
     {
         if(first_update || content->rssi[0] != content_previous.rssi[0])
         {
+            link_budget = (int)content->rssi[0] - rx_sensitivity[content->phy];
+            //if(link_budget < 0) link_budget = 0;
+            link_color = RGB_888_TO_565(link_budget < 35 ? link_budget_colors[link_budget / 5] : 0x0ADD00);
             sprintf(sprintf_buf, "%i dBm", (int)content->rssi[0]);
+            UG_TextboxSetBackColor(&window_1, TXB_ID_4, link_color);
+            UG_TextboxSetBackColor(&window_1, TXB_ID_7, link_color);
             UG_TextboxSetText(&window_1, TXB_ID_7, content->rssi[0] != 0 ? sprintf_buf : "-") ;
         }
     }

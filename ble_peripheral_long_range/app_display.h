@@ -9,6 +9,9 @@
 #define INTERWIDGET_SPACE           4
 #define GROUPED_INTERWIDGET_SPACE   2
 
+#define RGB_888_TO_565(a) ((((a) & 0xF80000) >> 8) | (((a) & 0x00FC00) >> 5) | (((a) & 0x0000FC) >> 3))
+
+
 // Phy text/button
 #define TXT_ID_0_X_LOCATION         4
 #define TXT_ID_0_Y_LOCATION         5

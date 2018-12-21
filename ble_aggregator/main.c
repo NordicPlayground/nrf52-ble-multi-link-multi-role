@@ -114,7 +114,7 @@
 
 #define THINGY_RSSI_CONNECT_LIMIT   -55
 
-#define APP_DEFAULT_TX_POWER        0
+#define APP_DEFAULT_TX_POWER        8
 
 NRF_BLE_GATT_DEF(m_gatt);                                               /**< GATT module instance. */
 
