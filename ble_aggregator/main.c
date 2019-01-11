@@ -114,7 +114,11 @@
 
 #define THINGY_RSSI_CONNECT_LIMIT   -55
 
+#ifdef NRF52840_XXAA
 #define APP_DEFAULT_TX_POWER        8
+#else
+#define APP_DEFAULT_TX_POWER        4
+#endif
 
 NRF_BLE_GATT_DEF(m_gatt);                                               /**< GATT module instance. */
 
@@ -392,7 +396,9 @@ static void scan_led_state_set(bool adv_enabled, bool coded_phy)
 static void scan_start(bool coded_phy)
 {
     ret_code_t ret;
-
+#ifndef NRF52840_XXAA
+    coded_phy = false;
+#endif
     //(void) sd_ble_gap_scan_stop();
     if(m_scanning_enabled)
     {

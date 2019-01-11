@@ -103,7 +103,7 @@
         <bEvRecOn>1</bEvRecOn>
         <bSchkAxf>0</bSchkAxf>
         <bTchkAxf>0</bTchkAxf>
-        <nTsel>3</nTsel>
+        <nTsel>4</nTsel>
         <sDll></sDll>
         <sDllPa></sDllPa>
         <sDlgDll></sDlgDll>
@@ -131,10 +131,6 @@
           <Number>0</Number>
           <Key>ARMDBGFLAGS</Key>
           <Name></Name>
-        </SetRegEntry>
-        <SetRegEntry>
-          <Number>0</Number>
-          <Key>DLGUARM</Key>
         </SetRegEntry>
         <SetRegEntry>
           <Number>0</Number>
@@ -199,7 +195,7 @@
   </Target>
 
   <Target>
-    <TargetName>flash_s132_nrf52_6.0.0_softdevice</TargetName>
+    <TargetName>flash_s132_nrf52_6.1.0_softdevice</TargetName>
     <ToolsetNumber>0x4</ToolsetNumber>
     <ToolsetName>ARM-ADS</ToolsetName>
     <TargetOption>
@@ -280,7 +276,7 @@
         <bEvRecOn>1</bEvRecOn>
         <bSchkAxf>0</bSchkAxf>
         <bTchkAxf>0</bTchkAxf>
-        <nTsel>7</nTsel>
+        <nTsel>4</nTsel>
         <sDll></sDll>
         <sDllPa></sDllPa>
         <sDlgDll></sDlgDll>
@@ -552,8 +548,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\..\..\..\..\..\..\components\ble\ble_services\ble_lbs_c\ble_lbs_c.c</PathWithFileName>
-      <FilenameWithoutPath>ble_lbs_c.c</FilenameWithoutPath>
+      <PathWithFileName>..\..\..\ble_aggregator_config_service\ble_agg_config_service.c</PathWithFileName>
+      <FilenameWithoutPath>ble_agg_config_service.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -564,8 +560,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\..\..\ble_aggregator_config_service\ble_agg_config_service.c</PathWithFileName>
-      <FilenameWithoutPath>ble_agg_config_service.c</FilenameWithoutPath>
+      <PathWithFileName>..\..\..\ble_thingy_client\ble_thingy_uis_c.c</PathWithFileName>
+      <FilenameWithoutPath>ble_thingy_uis_c.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -576,8 +572,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\..\..\ble_thingy_client\ble_thingy_uis_c.c</PathWithFileName>
-      <FilenameWithoutPath>ble_thingy_uis_c.c</FilenameWithoutPath>
+      <PathWithFileName>..\..\..\..\common\ble_lbs_extended\ble_lbs_c_extended.c</PathWithFileName>
+      <FilenameWithoutPath>ble_lbs_c_extended.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
