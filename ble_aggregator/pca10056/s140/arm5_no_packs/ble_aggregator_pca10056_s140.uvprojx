@@ -134,11 +134,11 @@
             <RunIndependent>0</RunIndependent>
             <UpdateFlashBeforeDebugging>1</UpdateFlashBeforeDebugging>
             <Capability>1</Capability>
-            <DriverSelection>4099</DriverSelection>
+            <DriverSelection>4100</DriverSelection>
           </Flash1>
           <bUseTDR>1</bUseTDR>
           <Flash2>Segger\JL2CM3.dll</Flash2>
-          <Flash3></Flash3>
+          <Flash3>"" ()</Flash3>
           <Flash4></Flash4>
           <pFcarmOut></pFcarmOut>
           <pFcarmGrp></pFcarmGrp>
@@ -184,6 +184,7 @@
             <hadXRAM>0</hadXRAM>
             <uocXRam>0</uocXRam>
             <RvdsVP>2</RvdsVP>
+            <RvdsMve>0</RvdsMve>
             <hadIRAM2>0</hadIRAM2>
             <hadIROM2>0</hadIROM2>
             <StupSel>8</StupSel>
@@ -298,8 +299,8 @@
               </OCR_RVCT8>
               <OCR_RVCT9>
                 <Type>0</Type>
-                <StartAddress>0x20007fa8</StartAddress>
-                <Size>0x38058</Size>
+                <StartAddress>0x20011268</StartAddress>
+                <Size>0x2ed98</Size>
               </OCR_RVCT9>
               <OCR_RVCT10>
                 <Type>0</Type>
@@ -337,7 +338,7 @@
               <MiscControls>--reduce_paths</MiscControls>
               <Define>BOARD_PCA10056 CONFIG_GPIO_AS_PINRESET FLOAT_ABI_HARD NRF52840_XXAA NRF_SD_BLE_API_VERSION=6 S140 SOFTDEVICE_PRESENT SWI_DISABLE0 __HEAP_SIZE=0 __STACK_SIZE=8192</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\..\config;..\..\..\..\..\..\..\components;..\..\..\..\..\..\..\components\ble\ble_advertising;..\..\..\..\..\..\..\components\ble\ble_db_discovery;..\..\..\..\..\..\..\components\ble\ble_dtm;..\..\..\..\..\..\..\components\ble\ble_racp;..\..\..\..\..\..\..\components\ble\ble_services\ble_ancs_c;..\..\..\..\..\..\..\components\ble\ble_services\ble_ans_c;..\..\..\..\..\..\..\components\ble\ble_services\ble_bas;..\..\..\..\..\..\..\components\ble\ble_services\ble_bas_c;..\..\..\..\..\..\..\components\ble\ble_services\ble_cscs;..\..\..\..\..\..\..\components\ble\ble_services\ble_cts_c;..\..\..\..\..\..\..\components\ble\ble_services\ble_dfu;..\..\..\..\..\..\..\components\ble\ble_services\ble_dis;..\..\..\..\..\..\..\components\ble\ble_services\ble_gls;..\..\..\..\..\..\..\components\ble\ble_services\ble_hids;..\..\..\..\..\..\..\components\ble\ble_services\ble_hrs;..\..\..\..\..\..\..\components\ble\ble_services\ble_hrs_c;..\..\..\..\..\..\..\components\ble\ble_services\ble_hts;..\..\..\..\..\..\..\components\ble\ble_services\ble_ias;..\..\..\..\..\..\..\components\ble\ble_services\ble_ias_c;..\..\..\..\..\..\..\components\ble\ble_services\ble_lbs;..\..\..\..\..\..\..\components\ble\ble_services\ble_lbs_c;..\..\..\..\..\..\..\components\ble\ble_services\ble_lls;..\..\..\..\..\..\..\components\ble\ble_services\ble_nus;..\..\..\..\..\..\..\components\ble\ble_services\ble_nus_c;..\..\..\..\..\..\..\components\ble\ble_services\ble_rscs;..\..\..\..\..\..\..\components\ble\ble_services\ble_rscs_c;..\..\..\..\..\..\..\components\ble\ble_services\ble_tps;..\..\..\..\..\..\..\components\ble\common;..\..\..\..\..\..\..\components\ble\nrf_ble_gatt;..\..\..\..\..\..\..\components\ble\nrf_ble_qwr;..\..\..\..\..\..\..\components\ble\peer_manager;..\..\..\..\..\..\..\components\boards;..\..\..\..\..\..\..\components\drivers_nrf\usbd;..\..\..\..\..\..\..\components\libraries\atomic;..\..\..\..\..\..\..\components\libraries\atomic_fifo;..\..\..\..\..\..\..\components\libraries\atomic_flags;..\..\..\..\..\..\..\components\libraries\balloc;..\..\..\..\..\..\..\components\libraries\bootloader\ble_dfu;..\..\..\..\..\..\..\components\libraries\bsp;..\..\..\..\..\..\..\components\libraries\button;..\..\..\..\..\..\..\components\libraries\cli;..\..\..\..\..\..\..\components\libraries\crc16;..\..\..\..\..\..\..\components\libraries\crc32;..\..\..\..\..\..\..\components\libraries\crypto;..\..\..\..\..\..\..\components\libraries\csense;..\..\..\..\..\..\..\components\libraries\csense_drv;..\..\..\..\..\..\..\components\libraries\delay;..\..\..\..\..\..\..\components\libraries\ecc;..\..\..\..\..\..\..\components\libraries\log;..\..\..\..\..\..\..\components\libraries\log\src;..\..\..\..\..\..\..\components\libraries\memobj;..\..\..\..\..\..\..\components\libraries\mpu;..\..\..\..\..\..\..\components\libraries\ringbuf;..\..\..\..\..\..\..\components\libraries\experimental_section_vars;..\..\..\..\..\..\..\components\libraries\experimental_stack_guard;..\..\..\..\..\..\..\components\libraries\experimental_task_manager;..\..\..\..\..\..\..\components\libraries\fds;..\..\..\..\..\..\..\components\libraries\fstorage;..\..\..\..\..\..\..\components\libraries\gfx;..\..\..\..\..\..\..\components\libraries\gpiote;..\..\..\..\..\..\..\components\libraries\hardfault;..\..\..\..\..\..\..\components\libraries\hci;..\..\..\..\..\..\..\components\libraries\led_softblink;..\..\..\..\..\..\..\components\libraries\low_power_pwm;..\..\..\..\..\..\..\components\libraries\mem_manager;..\..\..\..\..\..\..\components\libraries\mutex;..\..\..\..\..\..\..\components\libraries\pwm;..\..\..\..\..\..\..\components\libraries\pwr_mgmt;..\..\..\..\..\..\..\components\libraries\queue;..\..\..\..\..\..\..\components\libraries\scheduler;..\..\..\..\..\..\..\components\libraries\sdcard;..\..\..\..\..\..\..\components\libraries\slip;..\..\..\..\..\..\..\components\libraries\sortlist;..\..\..\..\..\..\..\components\libraries\spi_mngr;..\..\..\..\..\..\..\components\libraries\strerror;..\..\..\..\..\..\..\components\libraries\timer;..\..\..\..\..\..\..\components\libraries\twi_mngr;..\..\..\..\..\..\..\components\libraries\twi_sensor;..\..\..\..\..\..\..\components\libraries\usbd;..\..\..\..\..\..\..\components\libraries\usbd\class\audio;..\..\..\..\..\..\..\components\libraries\usbd\class\cdc;..\..\..\..\..\..\..\components\libraries\usbd\class\cdc\acm;..\..\..\..\..\..\..\components\libraries\usbd\class\hid;..\..\..\..\..\..\..\components\libraries\usbd\class\hid\generic;..\..\..\..\..\..\..\components\libraries\usbd\class\hid\kbd;..\..\..\..\..\..\..\components\libraries\usbd\class\hid\mouse;..\..\..\..\..\..\..\components\libraries\usbd\class\msc;..\..\..\..\..\..\..\components\libraries\usbd\config;..\..\..\..\..\..\..\components\libraries\util;..\..\..\..\..\..\..\components\nfc\ndef\conn_hand_parser;..\..\..\..\..\..\..\components\nfc\ndef\conn_hand_parser\ac_rec_parser;..\..\..\..\..\..\..\components\nfc\ndef\conn_hand_parser\ble_oob_advdata_parser;..\..\..\..\..\..\..\components\nfc\ndef\conn_hand_parser\le_oob_rec_parser;..\..\..\..\..\..\..\components\nfc\ndef\connection_handover\ac_rec;..\..\..\..\..\..\..\components\nfc\ndef\connection_handover\ble_oob_advdata;..\..\..\..\..\..\..\components\nfc\ndef\connection_handover\ble_pair_lib;..\..\..\..\..\..\..\components\nfc\ndef\connection_handover\ble_pair_msg;..\..\..\..\..\..\..\components\nfc\ndef\connection_handover\common;..\..\..\..\..\..\..\components\nfc\ndef\connection_handover\ep_oob_rec;..\..\..\..\..\..\..\components\nfc\ndef\connection_handover\hs_rec;..\..\..\..\..\..\..\components\nfc\ndef\connection_handover\le_oob_rec;..\..\..\..\..\..\..\components\nfc\ndef\generic\message;..\..\..\..\..\..\..\components\nfc\ndef\generic\record;..\..\..\..\..\..\..\components\nfc\ndef\launchapp;..\..\..\..\..\..\..\components\nfc\ndef\parser\message;..\..\..\..\..\..\..\components\nfc\ndef\parser\record;..\..\..\..\..\..\..\components\nfc\ndef\text;..\..\..\..\..\..\..\components\nfc\ndef\uri;..\..\..\..\..\..\..\components\nfc\t2t_lib;..\..\..\..\..\..\..\components\nfc\t2t_lib\hal_t2t;..\..\..\..\..\..\..\components\nfc\t2t_parser;..\..\..\..\..\..\..\components\nfc\t4t_lib;..\..\..\..\..\..\..\components\nfc\t4t_lib\hal_t4t;..\..\..\..\..\..\..\components\nfc\t4t_parser\apdu;..\..\..\..\..\..\..\components\nfc\t4t_parser\cc_file;..\..\..\..\..\..\..\components\nfc\t4t_parser\hl_detection_procedure;..\..\..\..\..\..\..\components\nfc\t4t_parser\tlv;..\..\..\..\..\..\..\components\softdevice\common;..\..\..\..\..\..\..\components\softdevice\s140\headers;..\..\..\..\..\..\..\components\softdevice\s140\headers\nrf52;..\..\..\..\..\..\..\external\fprintf;..\..\..\..\..\..\..\external\segger_rtt;..\..\..\..\..\..\..\integration\nrfx;..\..\..\..\..\..\..\integration\nrfx\legacy;..\..\..\..\..\..\..\modules\nrfx;..\..\..\..\..\..\..\modules\nrfx\drivers\include;..\..\..\..\..\..\..\modules\nrfx\hal;..\..\..\..\..\..\..\modules\nrfx\mdk;..\config;..\..\..\ble_thingy_client;..\..\..\ble_aggregator_config_service;..\..\..\..\..\..\..\components\libraries\uart;..\..\..\..\..\..\..\components\libraries\fifo</IncludePath>
+              <IncludePath>..\..\..\config;..\..\..\..\..\..\..\components;..\..\..\..\..\..\..\components\ble\ble_advertising;..\..\..\..\..\..\..\components\ble\ble_db_discovery;..\..\..\..\..\..\..\components\ble\ble_dtm;..\..\..\..\..\..\..\components\ble\ble_racp;..\..\..\..\..\..\..\components\ble\ble_services\ble_ancs_c;..\..\..\..\..\..\..\components\ble\ble_services\ble_ans_c;..\..\..\..\..\..\..\components\ble\ble_services\ble_bas;..\..\..\..\..\..\..\components\ble\ble_services\ble_bas_c;..\..\..\..\..\..\..\components\ble\ble_services\ble_cscs;..\..\..\..\..\..\..\components\ble\ble_services\ble_cts_c;..\..\..\..\..\..\..\components\ble\ble_services\ble_dfu;..\..\..\..\..\..\..\components\ble\ble_services\ble_dis;..\..\..\..\..\..\..\components\ble\ble_services\ble_gls;..\..\..\..\..\..\..\components\ble\ble_services\ble_hids;..\..\..\..\..\..\..\components\ble\ble_services\ble_hrs;..\..\..\..\..\..\..\components\ble\ble_services\ble_hrs_c;..\..\..\..\..\..\..\components\ble\ble_services\ble_hts;..\..\..\..\..\..\..\components\ble\ble_services\ble_ias;..\..\..\..\..\..\..\components\ble\ble_services\ble_ias_c;..\..\..\..\..\..\..\components\ble\ble_services\ble_lbs;..\..\..\..\..\..\..\components\ble\ble_services\ble_lbs_c;..\..\..\..\..\..\..\components\ble\ble_services\ble_lls;..\..\..\..\..\..\..\components\ble\ble_services\ble_nus;..\..\..\..\..\..\..\components\ble\ble_services\ble_nus_c;..\..\..\..\..\..\..\components\ble\ble_services\ble_rscs;..\..\..\..\..\..\..\components\ble\ble_services\ble_rscs_c;..\..\..\..\..\..\..\components\ble\ble_services\ble_tps;..\..\..\..\..\..\..\components\ble\common;..\..\..\..\..\..\..\components\ble\nrf_ble_gatt;..\..\..\..\..\..\..\components\ble\nrf_ble_qwr;..\..\..\..\..\..\..\components\ble\peer_manager;..\..\..\..\..\..\..\components\boards;..\..\..\..\..\..\..\components\drivers_nrf\usbd;..\..\..\..\..\..\..\components\libraries\atomic;..\..\..\..\..\..\..\components\libraries\atomic_fifo;..\..\..\..\..\..\..\components\libraries\atomic_flags;..\..\..\..\..\..\..\components\libraries\balloc;..\..\..\..\..\..\..\components\libraries\bootloader\ble_dfu;..\..\..\..\..\..\..\components\libraries\bsp;..\..\..\..\..\..\..\components\libraries\button;..\..\..\..\..\..\..\components\libraries\cli;..\..\..\..\..\..\..\components\libraries\crc16;..\..\..\..\..\..\..\components\libraries\crc32;..\..\..\..\..\..\..\components\libraries\crypto;..\..\..\..\..\..\..\components\libraries\csense;..\..\..\..\..\..\..\components\libraries\csense_drv;..\..\..\..\..\..\..\components\libraries\delay;..\..\..\..\..\..\..\components\libraries\ecc;..\..\..\..\..\..\..\components\libraries\log;..\..\..\..\..\..\..\components\libraries\log\src;..\..\..\..\..\..\..\components\libraries\memobj;..\..\..\..\..\..\..\components\libraries\mpu;..\..\..\..\..\..\..\components\libraries\ringbuf;..\..\..\..\..\..\..\components\libraries\experimental_section_vars;..\..\..\..\..\..\..\components\libraries\experimental_stack_guard;..\..\..\..\..\..\..\components\libraries\experimental_task_manager;..\..\..\..\..\..\..\components\libraries\fds;..\..\..\..\..\..\..\components\libraries\fstorage;..\..\..\..\..\..\..\components\libraries\gfx;..\..\..\..\..\..\..\components\libraries\gpiote;..\..\..\..\..\..\..\components\libraries\hardfault;..\..\..\..\..\..\..\components\libraries\hci;..\..\..\..\..\..\..\components\libraries\led_softblink;..\..\..\..\..\..\..\components\libraries\low_power_pwm;..\..\..\..\..\..\..\components\libraries\mem_manager;..\..\..\..\..\..\..\components\libraries\mutex;..\..\..\..\..\..\..\components\libraries\pwm;..\..\..\..\..\..\..\components\libraries\pwr_mgmt;..\..\..\..\..\..\..\components\libraries\queue;..\..\..\..\..\..\..\components\libraries\scheduler;..\..\..\..\..\..\..\components\libraries\sdcard;..\..\..\..\..\..\..\components\libraries\slip;..\..\..\..\..\..\..\components\libraries\sortlist;..\..\..\..\..\..\..\components\libraries\spi_mngr;..\..\..\..\..\..\..\components\libraries\strerror;..\..\..\..\..\..\..\components\libraries\timer;..\..\..\..\..\..\..\components\libraries\twi_mngr;..\..\..\..\..\..\..\components\libraries\twi_sensor;..\..\..\..\..\..\..\components\libraries\usbd;..\..\..\..\..\..\..\components\libraries\usbd\class\audio;..\..\..\..\..\..\..\components\libraries\usbd\class\cdc;..\..\..\..\..\..\..\components\libraries\usbd\class\cdc\acm;..\..\..\..\..\..\..\components\libraries\usbd\class\hid;..\..\..\..\..\..\..\components\libraries\usbd\class\hid\generic;..\..\..\..\..\..\..\components\libraries\usbd\class\hid\kbd;..\..\..\..\..\..\..\components\libraries\usbd\class\hid\mouse;..\..\..\..\..\..\..\components\libraries\usbd\class\msc;..\..\..\..\..\..\..\components\libraries\usbd\config;..\..\..\..\..\..\..\components\libraries\util;..\..\..\..\..\..\..\components\nfc\ndef\conn_hand_parser;..\..\..\..\..\..\..\components\nfc\ndef\conn_hand_parser\ac_rec_parser;..\..\..\..\..\..\..\components\nfc\ndef\conn_hand_parser\ble_oob_advdata_parser;..\..\..\..\..\..\..\components\nfc\ndef\conn_hand_parser\le_oob_rec_parser;..\..\..\..\..\..\..\components\nfc\ndef\connection_handover\ac_rec;..\..\..\..\..\..\..\components\nfc\ndef\connection_handover\ble_oob_advdata;..\..\..\..\..\..\..\components\nfc\ndef\connection_handover\ble_pair_lib;..\..\..\..\..\..\..\components\nfc\ndef\connection_handover\ble_pair_msg;..\..\..\..\..\..\..\components\nfc\ndef\connection_handover\common;..\..\..\..\..\..\..\components\nfc\ndef\connection_handover\ep_oob_rec;..\..\..\..\..\..\..\components\nfc\ndef\connection_handover\hs_rec;..\..\..\..\..\..\..\components\nfc\ndef\connection_handover\le_oob_rec;..\..\..\..\..\..\..\components\nfc\ndef\generic\message;..\..\..\..\..\..\..\components\nfc\ndef\generic\record;..\..\..\..\..\..\..\components\nfc\ndef\launchapp;..\..\..\..\..\..\..\components\nfc\ndef\parser\message;..\..\..\..\..\..\..\components\nfc\ndef\parser\record;..\..\..\..\..\..\..\components\nfc\ndef\text;..\..\..\..\..\..\..\components\nfc\ndef\uri;..\..\..\..\..\..\..\components\nfc\t2t_lib;..\..\..\..\..\..\..\components\nfc\t2t_lib\hal_t2t;..\..\..\..\..\..\..\components\nfc\t2t_parser;..\..\..\..\..\..\..\components\nfc\t4t_lib;..\..\..\..\..\..\..\components\nfc\t4t_lib\hal_t4t;..\..\..\..\..\..\..\components\nfc\t4t_parser\apdu;..\..\..\..\..\..\..\components\nfc\t4t_parser\cc_file;..\..\..\..\..\..\..\components\nfc\t4t_parser\hl_detection_procedure;..\..\..\..\..\..\..\components\nfc\t4t_parser\tlv;..\..\..\..\..\..\..\components\softdevice\common;..\..\..\..\..\..\..\components\softdevice\s140\headers;..\..\..\..\..\..\..\components\softdevice\s140\headers\nrf52;..\..\..\..\..\..\..\external\fprintf;..\..\..\..\..\..\..\external\segger_rtt;..\..\..\..\..\..\..\integration\nrfx;..\..\..\..\..\..\..\integration\nrfx\legacy;..\..\..\..\..\..\..\modules\nrfx;..\..\..\..\..\..\..\modules\nrfx\drivers\include;..\..\..\..\..\..\..\modules\nrfx\hal;..\..\..\..\..\..\..\modules\nrfx\mdk;..\config;..\..\..\ble_thingy_client;..\..\..\ble_aggregator_config_service;..\..\..\..\..\..\..\components\libraries\uart;..\..\..\..\..\..\..\components\libraries\fifo;..\..\..\..\common\ble_lbs_extended</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -926,62 +927,6 @@
           <GroupName>nRF_BLE_Services</GroupName>
           <Files>
             <File>
-              <FileName>ble_lbs_c.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\..\..\..\..\components\ble\ble_services\ble_lbs_c\ble_lbs_c.c</FilePath>
-              <FileOption>
-                <CommonProperty>
-                  <UseCPPCompiler>0</UseCPPCompiler>
-                  <RVCTCodeConst>0</RVCTCodeConst>
-                  <RVCTZI>0</RVCTZI>
-                  <RVCTOtherData>0</RVCTOtherData>
-                  <ModuleSelection>0</ModuleSelection>
-                  <IncludeInBuild>1</IncludeInBuild>
-                  <AlwaysBuild>2</AlwaysBuild>
-                  <GenerateAssemblyFile>2</GenerateAssemblyFile>
-                  <AssembleAssemblyFile>2</AssembleAssemblyFile>
-                  <PublicsOnly>2</PublicsOnly>
-                  <StopOnExitCode>11</StopOnExitCode>
-                  <CustomArgument></CustomArgument>
-                  <IncludeLibraryModules></IncludeLibraryModules>
-                  <ComprImg>1</ComprImg>
-                </CommonProperty>
-                <FileArmAds>
-                  <Cads>
-                    <interw>2</interw>
-                    <Optim>0</Optim>
-                    <oTime>2</oTime>
-                    <SplitLS>2</SplitLS>
-                    <OneElfS>2</OneElfS>
-                    <Strict>2</Strict>
-                    <EnumInt>2</EnumInt>
-                    <PlainCh>2</PlainCh>
-                    <Ropi>2</Ropi>
-                    <Rwpi>2</Rwpi>
-                    <wLevel>0</wLevel>
-                    <uThumb>2</uThumb>
-                    <uSurpInc>2</uSurpInc>
-                    <uC99>2</uC99>
-                    <uGnu>2</uGnu>
-                    <useXO>2</useXO>
-                    <v6Lang>0</v6Lang>
-                    <v6LangP>0</v6LangP>
-                    <vShortEn>2</vShortEn>
-                    <vShortWch>2</vShortWch>
-                    <v6Lto>2</v6Lto>
-                    <v6WtE>2</v6WtE>
-                    <v6Rtti>2</v6Rtti>
-                    <VariousControls>
-                      <MiscControls></MiscControls>
-                      <Define></Define>
-                      <Undefine></Undefine>
-                      <IncludePath></IncludePath>
-                    </VariousControls>
-                  </Cads>
-                </FileArmAds>
-              </FileOption>
-            </File>
-            <File>
               <FileName>ble_agg_config_service.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\ble_aggregator_config_service\ble_agg_config_service.c</FilePath>
@@ -990,6 +935,11 @@
               <FileName>ble_thingy_uis_c.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\ble_thingy_client\ble_thingy_uis_c.c</FilePath>
+            </File>
+            <File>
+              <FileName>ble_lbs_c_extended.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\common\ble_lbs_extended\ble_lbs_c_extended.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -2989,7 +2939,7 @@
         <TargetCommonOption>
           <Device>nRF52840_xxAA</Device>
           <Vendor>Nordic Semiconductor</Vendor>
-          <PackID>NordicSemiconductor.nRF_DeviceFamilyPack.8.16.0</PackID>
+          <PackID>NordicSemiconductor.nRF_DeviceFamilyPack.8.17.0</PackID>
           <PackURL>http://developer.nordicsemi.com/nRF5_SDK/pieces/nRF_DeviceFamilyPack/</PackURL>
           <Cpu>IROM(0x00000000,0x80000) IRAM(0x20000000,0x10000) CPUTYPE("Cortex-M4") FPU2 CLOCK(64000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
@@ -3006,7 +2956,7 @@
           <SLE66CMisc></SLE66CMisc>
           <SLE66AMisc></SLE66AMisc>
           <SLE66LinkerMisc></SLE66LinkerMisc>
-          <SFDFile></SFDFile>
+          <SFDFile>$$Device:nRF52840_xxAA$SVD\nrf52840.svd</SFDFile>
           <bCustSvd>0</bCustSvd>
           <UseEnv>0</UseEnv>
           <BinPath></BinPath>
@@ -3022,7 +2972,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>..\..\..\..\..\..\..\components\softdevice\s140\hex\</OutputDirectory>
-          <OutputName>s140_nrf52_6.0.0_softdevice.hex</OutputName>
+          <OutputName>s140_nrf52_6.1.0_softdevice.hex</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>1</CreateHexFile>
@@ -3107,11 +3057,11 @@
             <RunIndependent>0</RunIndependent>
             <UpdateFlashBeforeDebugging>1</UpdateFlashBeforeDebugging>
             <Capability>1</Capability>
-            <DriverSelection>4099</DriverSelection>
+            <DriverSelection>4100</DriverSelection>
           </Flash1>
           <bUseTDR>1</bUseTDR>
           <Flash2>Segger\JL2CM3.dll</Flash2>
-          <Flash3></Flash3>
+          <Flash3>"" ()</Flash3>
           <Flash4></Flash4>
           <pFcarmOut></pFcarmOut>
           <pFcarmGrp></pFcarmGrp>
@@ -3157,6 +3107,7 @@
             <hadXRAM>0</hadXRAM>
             <uocXRam>0</uocXRam>
             <RvdsVP>2</RvdsVP>
+            <RvdsMve>0</RvdsMve>
             <hadIRAM2>0</hadIRAM2>
             <hadIROM2>0</hadIROM2>
             <StupSel>8</StupSel>
@@ -3308,7 +3259,7 @@
             <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls>--reduce_paths</MiscControls>
-              <Define> __HEAP_SIZE=0 __STACK_SIZE=8192</Define>
+              <Define>__HEAP_SIZE=0 __STACK_SIZE=8192</Define>
               <Undefine></Undefine>
               <IncludePath>..\..\..\config;..\config</IncludePath>
             </VariousControls>
@@ -3326,7 +3277,7 @@
             <uClangAs>0</uClangAs>
             <VariousControls>
               <MiscControls> --cpreproc_opts=-D__HEAP_SIZE=0,-D__STACK_SIZE=8192</MiscControls>
-              <Define> __HEAP_SIZE=0 __STACK_SIZE=8192</Define>
+              <Define>__HEAP_SIZE=0 __STACK_SIZE=8192</Define>
               <Undefine></Undefine>
               <IncludePath>..\..\..\config;..\config</IncludePath>
             </VariousControls>
@@ -3899,62 +3850,6 @@
           <GroupName>nRF_BLE_Services</GroupName>
           <Files>
             <File>
-              <FileName>ble_lbs_c.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\..\..\..\..\components\ble\ble_services\ble_lbs_c\ble_lbs_c.c</FilePath>
-              <FileOption>
-                <CommonProperty>
-                  <UseCPPCompiler>0</UseCPPCompiler>
-                  <RVCTCodeConst>0</RVCTCodeConst>
-                  <RVCTZI>0</RVCTZI>
-                  <RVCTOtherData>0</RVCTOtherData>
-                  <ModuleSelection>0</ModuleSelection>
-                  <IncludeInBuild>0</IncludeInBuild>
-                  <AlwaysBuild>2</AlwaysBuild>
-                  <GenerateAssemblyFile>2</GenerateAssemblyFile>
-                  <AssembleAssemblyFile>2</AssembleAssemblyFile>
-                  <PublicsOnly>2</PublicsOnly>
-                  <StopOnExitCode>11</StopOnExitCode>
-                  <CustomArgument></CustomArgument>
-                  <IncludeLibraryModules></IncludeLibraryModules>
-                  <ComprImg>1</ComprImg>
-                </CommonProperty>
-                <FileArmAds>
-                  <Cads>
-                    <interw>2</interw>
-                    <Optim>0</Optim>
-                    <oTime>2</oTime>
-                    <SplitLS>2</SplitLS>
-                    <OneElfS>2</OneElfS>
-                    <Strict>2</Strict>
-                    <EnumInt>2</EnumInt>
-                    <PlainCh>2</PlainCh>
-                    <Ropi>2</Ropi>
-                    <Rwpi>2</Rwpi>
-                    <wLevel>0</wLevel>
-                    <uThumb>2</uThumb>
-                    <uSurpInc>2</uSurpInc>
-                    <uC99>2</uC99>
-                    <uGnu>2</uGnu>
-                    <useXO>2</useXO>
-                    <v6Lang>0</v6Lang>
-                    <v6LangP>0</v6LangP>
-                    <vShortEn>2</vShortEn>
-                    <vShortWch>2</vShortWch>
-                    <v6Lto>2</v6Lto>
-                    <v6WtE>2</v6WtE>
-                    <v6Rtti>2</v6Rtti>
-                    <VariousControls>
-                      <MiscControls></MiscControls>
-                      <Define></Define>
-                      <Undefine></Undefine>
-                      <IncludePath></IncludePath>
-                    </VariousControls>
-                  </Cads>
-                </FileArmAds>
-              </FileOption>
-            </File>
-            <File>
               <FileName>ble_agg_config_service.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\ble_aggregator_config_service\ble_agg_config_service.c</FilePath>
@@ -3963,6 +3858,11 @@
               <FileName>ble_thingy_uis_c.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\ble_thingy_client\ble_thingy_uis_c.c</FilePath>
+            </File>
+            <File>
+              <FileName>ble_lbs_c_extended.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\common\ble_lbs_extended\ble_lbs_c_extended.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -6111,18 +6011,28 @@
     </packages>
     <apis/>
     <components>
-      <component Cclass="CMSIS" Cgroup="CORE" Cvendor="ARM" Cversion="4.3.0" condition="CMSIS Core">
-        <package name="CMSIS" url="http://www.keil.com/pack/" vendor="ARM" version="4.5.0"/>
+      <component Cclass="CMSIS" Cgroup="CORE" Cvendor="ARM" Cversion="5.1.2" condition="ARMv6_7_8-M Device">
+        <package name="CMSIS" schemaVersion="1.3" url="http://www.keil.com/pack/" vendor="ARM" version="5.4.0"/>
         <targetInfos>
-          <targetInfo excluded="1" name="flash_s140_nrf52_6.0.0_softdevice"/>
+          <targetInfo excluded="1" name="flash_s140_nrf52_6.0.0_softdevice" versionMatchMode=""/>
+        </targetInfos>
+      </component>
+      <component Cclass="CMSIS" Cgroup="CORE" Cvendor="ARM" Cversion="4.3.0" condition="Cortex-M Device">
+        <package name="CMSIS" schemaVersion="1.3" url="http://www.keil.com/pack/" vendor="ARM" version="4.5.0"/>
+        <targetInfos>
           <targetInfo name="nrf52840_xxaa" versionMatchMode="fixed"/>
         </targetInfos>
       </component>
-      <component Cclass="Device" Cgroup="Startup" Cvendor="NordicSemiconductor" Cversion="8.16.0" condition="nRF5x Series CMSIS Device">
-        <package name="nRF_DeviceFamilyPack" url="http://developer.nordicsemi.com/nRF51_SDK/pieces/nRF_DeviceFamilyPack/" vendor="NordicSemiconductor" version="8.16.0"/>
+      <component Cclass="Device" Cgroup="Startup" Cvendor="NordicSemiconductor" Cversion="8.16.0" condition="nRF52840 Device and CMSIS">
+        <package license="License\license.txt" name="nRF_DeviceFamilyPack" schemaVersion="1.3" url="http://developer.nordicsemi.com/nRF5_SDK/pieces/nRF_DeviceFamilyPack/" vendor="NordicSemiconductor" version="8.16.0"/>
         <targetInfos>
-          <targetInfo excluded="1" name="flash_s140_nrf52_6.0.0_softdevice"/>
           <targetInfo name="nrf52840_xxaa" versionMatchMode="fixed"/>
+        </targetInfos>
+      </component>
+      <component Cclass="Device" Cgroup="Startup" Cvendor="NordicSemiconductor" Cversion="8.17.0" condition="nRF52840 Device and CMSIS">
+        <package license="License\license.txt" name="nRF_DeviceFamilyPack" schemaVersion="1.3" url="http://developer.nordicsemi.com/nRF5_SDK/pieces/nRF_DeviceFamilyPack/" vendor="NordicSemiconductor" version="8.17.0"/>
+        <targetInfos>
+          <targetInfo excluded="1" name="flash_s140_nrf52_6.0.0_softdevice" versionMatchMode=""/>
         </targetInfos>
       </component>
     </components>
