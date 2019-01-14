@@ -14,6 +14,7 @@
   <ProjectSessionItem path="ble_peripheral_pca10040_s132"/>
   <ProjectSessionItem path="ble_peripheral_pca10040_s132;ble_peripheral_pca10040_s132"/>
   <ProjectSessionItem path="ble_peripheral_pca10040_s132;ble_peripheral_pca10040_s132;Application"/>
+  <ProjectSessionItem path="ble_peripheral_pca10040_s132;ble_peripheral_pca10040_s132;nRF_Libraries"/>
  </Project>
  <Register1/>
  <Register2/>
@@ -38,7 +39,7 @@
   <Watches active="0" update="Never"/>
  </Watch4>
  <Files>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="531" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../main.c" selected="1" top="504" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="531" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../main.c" selected="1" top="624" codecName="Default"/>
  </Files>
- <ARMCrossStudioWindow activeProject="ble_app_blinky_pca10040_s132" fileDialogDefaultFilter="*.c" autoConnectTarget="J-Link" buildConfiguration="Release" debugSearchFileMap="" fileDialogInitialDirectory="" debugSearchPath="" autoConnectCapabilities="3199"/>
+ <ARMCrossStudioWindow activeProject="ble_peripheral_pca10040_s132" fileDialogDefaultFilter="" autoConnectTarget="J-Link" buildConfiguration="Release" debugSearchFileMap="" fileDialogInitialDirectory="C:/Nordic_Semiconductor/nRF5_SDK_15.2.0_9412b96/examples/_too/nrf52-ble-multi-link-multi-role/ble_peripheral" debugSearchPath="" autoConnectCapabilities="3199"/>
 </session>
