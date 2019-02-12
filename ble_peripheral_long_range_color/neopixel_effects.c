@@ -4,15 +4,25 @@
 #include "app_timer.h"
 
 APP_TIMER_DEF(m_neopixel_effects_update_timer_id);
+#define COLOR_CH_RED_FLOAT(a) ((float)(((a) >> 0) & 0xFF) / 255.0f)
+#define COLOR_CH_GREEN_FLOAT(a) ((float)(((a) >> 8) & 0xFF) / 255.0f)
+#define COLOR_CH_BLUE_FLOAT(a) ((float)(((a) >> 16) & 0xFF) / 255.0f)
+#define COLOR_INT_FROM_FLOAT_BUF(buf) ((uint32_t)(buf[0] * 255.0f) | (uint32_t)(buf[1] * 255.0f) << 8 | (uint32_t)(buf[2] * 255.0f) << 16)  
 
 static nrf_lcd_t * m_led_matrix_ptr = 0;
 
 static struct
 {
-    uint32_t current_effect_mode;
+    uint32_t current_mode;
+    uint32_t current_color;
+    uint32_t effect_age, effect_duration;
+    uint32_t start_color, end_color;
+    float    start_color_ch[3];
+    float    end_color_ch[3];
+    bool     timer_running;
 } m_effect_state;
 
-static void neopixel_effects_update(void * p)
+static void sinus_effect(void)
 {
     static float xf, yf, center_x = 0.0f, center_y = 0.0f, cx2 = 4.0f, cy2 = 7.0f;
     static float phase = 0.0f, phase2 = 0.0f;
@@ -54,18 +64,77 @@ static void neopixel_effects_update(void * p)
     nrf_gfx_display(m_led_matrix_ptr);   
 }
 
+static void fill_screen_with_color(uint32_t color)
+{
+    static nrf_gfx_rect_t r = {0,0,LED_MATRIX_WIDTH,LED_MATRIX_HEIGHT};
+    nrf_gfx_rect_draw(m_led_matrix_ptr, &r, 1, color, true);    
+    nrf_gfx_display(m_led_matrix_ptr);
+}
+
+static void neopixel_effects_update(void * p)
+{
+    float rel_age;
+    float tmp_color[3];
+    if(m_effect_state.effect_age > m_effect_state.effect_duration)
+    {
+        m_effect_state.effect_age = m_effect_state.effect_duration;
+    }
+    switch(m_effect_state.current_mode)
+    {
+        case NPEFFECT_MODE_FADE_TO_COLOR:
+            rel_age = (float)m_effect_state.effect_age / (float)m_effect_state.effect_duration;
+            for(int i = 0; i < 3; i++)
+            {
+                tmp_color[i] = m_effect_state.start_color_ch[i] * (1.0f - rel_age) + m_effect_state.end_color_ch[i] * rel_age;
+            }
+            m_effect_state.current_color = COLOR_INT_FROM_FLOAT_BUF(tmp_color);
+            fill_screen_with_color(m_effect_state.current_color);
+            break;
+    }
+    m_effect_state.effect_age += LED_UPDATE_INTERVAL_MS;
+    if(m_effect_state.effect_age > m_effect_state.effect_duration)
+    {
+        m_effect_state.current_mode = NPEFFECT_MODE_IDLE;
+    }
+}
+
 
 uint32_t neopixel_effects_init(nrf_lcd_t * led_matrix)
 {
     m_led_matrix_ptr = led_matrix;
     uint32_t err_code = app_timer_create(&m_neopixel_effects_update_timer_id, APP_TIMER_MODE_REPEATED, neopixel_effects_update);
     if(err_code != NRF_SUCCESS) return err_code;
-    
+    m_effect_state.current_mode = NPEFFECT_MODE_IDLE;
+    m_effect_state.timer_running = false;
+    m_effect_state.current_color = 0;
     return NRF_SUCCESS;
 }
 
 uint32_t neopixel_effect_start(neopixel_effect_config_t * effect)
 {
-    uint32_t err_code = app_timer_start(m_neopixel_effects_update_timer_id, APP_TIMER_TICKS(10), 0);
-    return err_code;
+    uint32_t err_code;
+    if(!m_effect_state.timer_running)
+    {
+        err_code = app_timer_start(m_neopixel_effects_update_timer_id, APP_TIMER_TICKS(LED_UPDATE_INTERVAL_MS), 0);
+        m_effect_state.timer_running = true;
+        if(err_code != NRF_SUCCESS) return err_code;
+    }
+
+    switch(effect->effect_mode)
+    {
+        case NPEFFECT_MODE_FADE_TO_COLOR:
+            m_effect_state.current_mode = NPEFFECT_MODE_FADE_TO_COLOR;
+            m_effect_state.effect_age = 0;
+            m_effect_state.effect_duration = effect->effect_duration;
+            m_effect_state.end_color = effect->new_color;
+            m_effect_state.end_color_ch[0] = COLOR_CH_RED_FLOAT(effect->new_color);
+            m_effect_state.end_color_ch[1] = COLOR_CH_GREEN_FLOAT(effect->new_color);
+            m_effect_state.end_color_ch[2] = COLOR_CH_BLUE_FLOAT(effect->new_color);
+            m_effect_state.start_color_ch[0] = COLOR_CH_RED_FLOAT(m_effect_state.current_color);
+            m_effect_state.start_color_ch[1] = COLOR_CH_GREEN_FLOAT(m_effect_state.current_color);
+            m_effect_state.start_color_ch[2] = COLOR_CH_BLUE_FLOAT(m_effect_state.current_color);
+            break;
+    }
+
+    return NRF_SUCCESS;
 }

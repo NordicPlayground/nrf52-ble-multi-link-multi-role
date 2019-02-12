@@ -637,9 +637,11 @@ static void neopixel_init(void)
 
 static void neopixel_stripe_set_color(uint32_t color)
 {
-    static nrf_gfx_rect_t r = {0,0,LED_MATRIX_WIDTH,LED_MATRIX_HEIGHT};
-    APP_ERROR_CHECK(nrf_gfx_rect_draw(&led_matrix, &r, 1, color, true));
-    nrf_gfx_display(&led_matrix);
+    neopixel_effect_config_t effect_config; 
+    effect_config.effect_mode = NPEFFECT_MODE_FADE_TO_COLOR;
+    effect_config.effect_duration = 500;
+    effect_config.new_color = color;
+    neopixel_effect_start(&effect_config);
 }
 
 
@@ -680,11 +682,9 @@ int main(void)
     
     advertising_start();
 
-    neopixel_stripe_set_color(LED_MATRIX_COLOR_IDLE);
-
     neopixel_effects_init(&led_matrix);
 
-    //neopixel_effect_start(0);
+    neopixel_stripe_set_color(LED_MATRIX_COLOR_IDLE);
 
     // Enter main loop.
     for (;;)
