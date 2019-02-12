@@ -73,6 +73,7 @@
   <Watches active="1" update="Never">
    <Watchpoint numelements="0" expression="adv_uuids[0]" evalMode="0" name="adv_uuids[0]" radix="16" linenumber="0" filename="../ses" list=""/>
    <Watchpoint numelements="0" expression="obj" evalMode="1" name="obj" radix="-1" linenumber="7885" filename="../../../../common/adafruit_oled_display/ugui/ugui.c" list=""/>
+   <Watchpoint numelements="0" expression="alpha" evalMode="0" name="alpha" radix="-1" linenumber="664" filename="../../../main.c" list=""/>
   </Watches>
  </Watch1>
  <Watch2>
@@ -85,17 +86,21 @@
   <Watches active="0" update="Never"/>
  </Watch4>
  <Files>
-  <SessionOpenFile windowGroup="DockEditLeft" x="12" y="424" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../main.c" selected="1" top="526" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="14" y="688" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../main.c" selected="0" top="677" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="65" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../common/ble_lbs_extended/ble_lbs_extended.c" selected="0" top="31" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="124" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../common/ble_lbs_extended/ble_lbs_extended.h" selected="0" top="84" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="0" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../common/drv_ws2812/drv_ws2812_gfx_glue_layer.h" selected="0" top="0" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="8" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../common/drv_ws2812/drv_ws2812_gfx_glue_layer.c" selected="0" top="0" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="34" y="72" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../../modules/nrfx/drivers/include/nrfx_pwm.h" selected="0" top="15" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="22" y="4835" useTextEdit="1" useBinaryEdit="0" left="0" path="../config/sdk_config.h" selected="0" top="4784" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="37" y="35" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../common/drv_ws2812/drv_ws2812.c" selected="0" top="9" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="8" y="7" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../common/drv_ws2812/drv_ws2812.h" selected="0" top="0" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="99" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../../components/libraries/util/app_error_weak.c" selected="0" top="62" codecName=""/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="72" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../../modules/nrfx/drivers/include/nrfx_pwm.h" selected="0" top="15" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="4835" useTextEdit="1" useBinaryEdit="0" left="0" path="../config/sdk_config.h" selected="0" top="4784" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="23" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../common/drv_ws2812/drv_ws2812.c" selected="0" top="0" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="9" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../common/drv_ws2812/drv_ws2812.h" selected="0" top="0" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="99" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../../components/libraries/util/app_error_weak.c" selected="0" top="62" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="0" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../common/adafruit_touch_display/gfx_extended/nrf_gfx_ext.c" selected="0" top="27" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="378" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../../components/libraries/gfx/nrf_gfx.c" selected="0" top="343" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="172" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../../components/libraries/gfx/nrf_gfx.h" selected="0" top="147" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="20" y="0" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../neopixel_effects.c" selected="0" top="0" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="4" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../neopixel_effects.h" selected="1" top="0" codecName="Default"/>
  </Files>
- <ARMCrossStudioWindow activeProject="ble_peripheral_lr_pca10056_s140" fileDialogDefaultFilter="" autoConnectTarget="J-Link" buildConfiguration="Debug" debugSearchFileMap="" fileDialogInitialDirectory="C:/Nordic_Semiconductor/nRF5_SDK_15.2.0_9412b96/components/libraries/gfx" debugSearchPath="" autoConnectCapabilities="3711"/>
+ <ARMCrossStudioWindow activeProject="ble_peripheral_lr_cl_pca10056_s140" fileDialogDefaultFilter="" autoConnectTarget="J-Link" buildConfiguration="Debug_Neopixel_Shield" debugSearchFileMap="" fileDialogInitialDirectory="C:/Nordic_Semiconductor/nRF5_SDK_15.2.0_9412b96/examples/_too/nrf52-ble-multi-link-multi-role/ble_peripheral_long_range_color" debugSearchPath="" autoConnectCapabilities="3711"/>
 </session>

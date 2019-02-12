@@ -7,9 +7,6 @@
 
 #define WS2812_PIN  NRF_GPIO_PIN_MAP(1,7)
 
-#define LED_MATRIX_WIDTH       24
-#define LED_MATRIX_HEIGHT      1
-
 typedef enum
 {
     RED	    = 0x00FF0000,

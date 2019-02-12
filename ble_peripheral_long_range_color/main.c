@@ -45,6 +45,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <math.h>
 #include "nordic_common.h"
 #include "nrf.h"
 #include "app_error.h"
@@ -69,6 +70,7 @@
 #include "drv_ws2812.h"
 #include "drv_ws2812_gfx_glue_layer.h"
 #include "nrf_gfx.h"
+#include "neopixel_effects.h"
 
 #define APP_FEATURE_NOT_SUPPORTED       BLE_GATT_STATUS_ATTERR_APP_BEGIN + 2    /**< Reply when unsupported features are requested. */
 
@@ -635,8 +637,8 @@ static void neopixel_init(void)
 
 static void neopixel_stripe_set_color(uint32_t color)
 {
-    static nrf_gfx_line_t l = {0,0,LED_MATRIX_WIDTH,0,1};	
-    APP_ERROR_CHECK(nrf_gfx_line_draw(&led_matrix, &l, color));
+    static nrf_gfx_rect_t r = {0,0,LED_MATRIX_WIDTH,LED_MATRIX_HEIGHT};
+    APP_ERROR_CHECK(nrf_gfx_rect_draw(&led_matrix, &r, 1, color, true));
     nrf_gfx_display(&led_matrix);
 }
 
@@ -670,8 +672,6 @@ int main(void)
     gatt_init();
     conn_params_init();
 
-    neopixel_stripe_set_color(LED_MATRIX_COLOR_IDLE);
-
     // Start execution.
     NRF_LOG_INFO("Blinky color example started.");
     
@@ -679,6 +679,12 @@ int main(void)
     APP_ERROR_CHECK(err_code);
     
     advertising_start();
+
+    neopixel_stripe_set_color(LED_MATRIX_COLOR_IDLE);
+
+    neopixel_effects_init(&led_matrix);
+
+    //neopixel_effect_start(0);
 
     // Enter main loop.
     for (;;)
