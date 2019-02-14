@@ -7,13 +7,19 @@
 
 #define LED_UPDATE_INTERVAL_MS  10
 
-typedef enum {NPEFFECT_MODE_IDLE, NPEFFECT_MODE_FADE_TO_COLOR} neopixel_effect_mode;
+typedef enum {NPEFFECT_MODE_IDLE, 
+              NPEFFECT_MODE_FADE_TO_COLOR, 
+              NPEFFECT_MODE_COLOR_AND_RSSI, 
+              NPEFFECT_MODE_FLASHY, 
+              NPEFFECT_MODE_COLOR_BY_RSSI
+             } neopixel_effect_mode;
 
 typedef struct
 {
     uint32_t effect_mode;
     uint32_t new_color;
     uint32_t effect_duration;
+    int8_t   new_rssi;
 }neopixel_effect_config_t;
 
 uint32_t neopixel_effects_init(nrf_lcd_t * led_matrix);

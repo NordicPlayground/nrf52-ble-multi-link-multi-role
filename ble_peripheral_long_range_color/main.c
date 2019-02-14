@@ -121,7 +121,8 @@ static uint8_t m_enc_advdata[BLE_GAP_ADV_SET_DATA_SIZE_MAX];                    
 static uint8_t m_enc_scan_response_data[BLE_GAP_ADV_SET_DATA_SIZE_MAX];         /**< Buffer for storing an encoded scan data. */
 
 static nrf_lcd_t led_matrix = GFX_LED_DRV_MATRIX;
-static uint32_t m_led_matrix_color = 0x00FFFFFF;
+static uint32_t  m_led_matrix_color = 0x00FFFFFF;
+static bool      m_led_matrix_rssi_mode_enabled = false;
 
 /**@brief Struct that contains pointers to the encoded advertising data. */
 static ble_gap_adv_data_t m_adv_data =
@@ -141,6 +142,8 @@ static ble_gap_adv_data_t m_adv_data =
 
 static void advertising_start(void);
 static void neopixel_stripe_set_color(uint32_t color);
+static void neopixel_stripe_set_rssi(int8_t rssi);
+static void neopixel_flashytime(void);
 
 /**@brief Function for assert macro callback.
  *
@@ -425,7 +428,8 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             bsp_board_led_off(CONNECTED_LED);
             m_conn_handle = BLE_CONN_HANDLE_INVALID;
             advertising_start();
-            neopixel_stripe_set_color(LED_MATRIX_COLOR_IDLE);
+            //neopixel_stripe_set_color(LED_MATRIX_COLOR_IDLE);
+            neopixel_flashytime();
             break;
 
         case BLE_GAP_EVT_SEC_PARAMS_REQUEST:
@@ -494,6 +498,10 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
         } break; // BLE_GATTS_EVT_RW_AUTHORIZE_REQUEST
         
         case BLE_GAP_EVT_RSSI_CHANGED:
+            if(m_led_matrix_rssi_mode_enabled)
+            {
+                neopixel_stripe_set_rssi(p_ble_evt->evt.gap_evt.params.rssi_changed.rssi);
+            }
             break;
             
         default:
@@ -641,7 +649,27 @@ static void neopixel_stripe_set_color(uint32_t color)
     effect_config.effect_mode = NPEFFECT_MODE_FADE_TO_COLOR;
     effect_config.effect_duration = 500;
     effect_config.new_color = color;
+    effect_config.new_rssi = 0;
     neopixel_effect_start(&effect_config);
+}
+
+static void neopixel_stripe_set_rssi(int8_t rssi)
+{
+    neopixel_effect_config_t effect_config; 
+    effect_config.effect_mode = NPEFFECT_MODE_COLOR_BY_RSSI;
+    effect_config.effect_duration = 500;
+    effect_config.new_color = m_led_matrix_color;
+    effect_config.new_rssi = rssi;
+    neopixel_effect_start(&effect_config);    
+}
+
+static void neopixel_flashytime()
+{
+    neopixel_effect_config_t effect_config; 
+    effect_config.effect_mode = NPEFFECT_MODE_FLASHY;
+    effect_config.effect_duration = 500;
+    effect_config.new_color = m_led_matrix_color;
+    neopixel_effect_start(&effect_config);     
 }
 
 
@@ -684,7 +712,9 @@ int main(void)
 
     neopixel_effects_init(&led_matrix);
 
-    neopixel_stripe_set_color(LED_MATRIX_COLOR_IDLE);
+    //neopixel_stripe_set_color(LED_MATRIX_COLOR_IDLE);
+    neopixel_flashytime();
+    m_led_matrix_rssi_mode_enabled = true;
 
     // Enter main loop.
     for (;;)
