@@ -123,6 +123,7 @@ static uint8_t m_enc_scan_response_data[BLE_GAP_ADV_SET_DATA_SIZE_MAX];         
 static nrf_lcd_t led_matrix = GFX_LED_DRV_MATRIX;
 static uint32_t  m_led_matrix_color = 0x00FFFFFF;
 static bool      m_led_matrix_rssi_mode_enabled = false;
+static bool      m_led_short_fade_mode = false;
 
 /**@brief Struct that contains pointers to the encoded advertising data. */
 static ble_gap_adv_data_t m_adv_data =
@@ -596,7 +597,7 @@ static void button_event_handler(uint8_t pin_no, uint8_t button_action)
         case APP_STATE_BUTTON:
             if(button_action == APP_BUTTON_PUSH)
             {
-
+                m_led_short_fade_mode = !m_led_short_fade_mode;
             }
             break;
         
@@ -680,7 +681,7 @@ static void neopixel_stripe_set_color(uint32_t color)
 {
     neopixel_effect_config_t effect_config; 
     effect_config.effect_mode = NPEFFECT_MODE_FADE_TO_COLOR;
-    effect_config.effect_duration = 500;
+    effect_config.effect_duration = m_led_short_fade_mode ? 40 : 500;
     effect_config.new_color = (color != 0xFFFFFFFF) ? color : m_led_matrix_color;
     effect_config.new_rssi = 0;
     neopixel_effect_start(&effect_config);
