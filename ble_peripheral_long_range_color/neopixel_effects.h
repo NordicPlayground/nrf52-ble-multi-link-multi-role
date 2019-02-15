@@ -11,7 +11,8 @@ typedef enum {NPEFFECT_MODE_IDLE,
               NPEFFECT_MODE_FADE_TO_COLOR, 
               NPEFFECT_MODE_COLOR_AND_RSSI, 
               NPEFFECT_MODE_FLASHY, 
-              NPEFFECT_MODE_COLOR_BY_RSSI
+              NPEFFECT_MODE_COLOR_BY_RSSI,
+              NPEFFECT_MODE_RADIAL_TWIST
              } neopixel_effect_mode;
 
 typedef struct

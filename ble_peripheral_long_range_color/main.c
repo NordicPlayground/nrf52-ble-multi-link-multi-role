@@ -143,6 +143,7 @@ static ble_gap_adv_data_t m_adv_data =
 static void advertising_start(void);
 static void neopixel_stripe_set_color(uint32_t color);
 static void neopixel_stripe_set_rssi(int8_t rssi);
+static void neopixel_stripe_set_rssi_and_color(uint32_t color, int8_t rssi);
 static void neopixel_flashytime(void);
 
 /**@brief Function for assert macro callback.
@@ -291,13 +292,27 @@ static void led_write_handler(uint16_t conn_handle, ble_lbs_t * p_lbs, uint8_t l
     if (led_state)
     {
         bsp_board_led_on(LEDBUTTON_LED);
-        neopixel_stripe_set_color(m_led_matrix_color);
+        if(m_led_matrix_rssi_mode_enabled)
+        {
+            neopixel_stripe_set_rssi_and_color(m_led_matrix_color, 0);
+        }
+        else
+        {
+            neopixel_stripe_set_color(m_led_matrix_color);
+        }
         NRF_LOG_INFO("Received LED ON!");
     }
     else
     {
         bsp_board_led_off(LEDBUTTON_LED);
-        neopixel_stripe_set_color(0x00000000);
+        if(m_led_matrix_rssi_mode_enabled)
+        {
+            neopixel_stripe_set_rssi_and_color(0x000000, 0);
+        }
+        else
+        {
+            neopixel_stripe_set_color(0x00000000);
+        }
         NRF_LOG_INFO("Received LED OFF!");
     }
 }
@@ -305,7 +320,14 @@ static void led_write_handler(uint16_t conn_handle, ble_lbs_t * p_lbs, uint8_t l
 static void led_color_write_handler(uint16_t conn_handle, ble_lbs_t * p_lbs, uint32_t color)
 {
     NRF_LOG_INFO("LED Color changed: %i", color);
-    neopixel_stripe_set_color(color);
+    if(m_led_matrix_rssi_mode_enabled)
+    {
+        neopixel_stripe_set_rssi_and_color(color, 0);
+    }
+    else
+    {
+        neopixel_stripe_set_color(color);
+    }
     m_led_matrix_color = color;
 }
 
@@ -550,7 +572,18 @@ static void button_event_handler(uint8_t pin_no, uint8_t button_action)
     switch (pin_no)
     {
         case PHY_BUTTON:
-    
+            if(button_action == APP_BUTTON_PUSH)
+            {
+                m_led_matrix_rssi_mode_enabled = !m_led_matrix_rssi_mode_enabled;
+                if(m_led_matrix_rssi_mode_enabled)
+                {
+                    neopixel_stripe_set_rssi_and_color(m_led_matrix_color, 0);
+                }
+                else
+                {
+                    neopixel_stripe_set_color(0xFFFFFFFF);
+                }
+            }
             break;
         
         case TX_POWER_BUTTON:
@@ -648,7 +681,7 @@ static void neopixel_stripe_set_color(uint32_t color)
     neopixel_effect_config_t effect_config; 
     effect_config.effect_mode = NPEFFECT_MODE_FADE_TO_COLOR;
     effect_config.effect_duration = 500;
-    effect_config.new_color = color;
+    effect_config.new_color = (color != 0xFFFFFFFF) ? color : m_led_matrix_color;
     effect_config.new_rssi = 0;
     neopixel_effect_start(&effect_config);
 }
@@ -657,8 +690,18 @@ static void neopixel_stripe_set_rssi(int8_t rssi)
 {
     neopixel_effect_config_t effect_config; 
     effect_config.effect_mode = NPEFFECT_MODE_COLOR_BY_RSSI;
-    effect_config.effect_duration = 500;
+    effect_config.effect_duration = 0;
     effect_config.new_color = m_led_matrix_color;
+    effect_config.new_rssi = rssi;
+    neopixel_effect_start(&effect_config);    
+}
+
+static void neopixel_stripe_set_rssi_and_color(uint32_t color, int8_t rssi)
+{
+    neopixel_effect_config_t effect_config; 
+    effect_config.effect_mode = NPEFFECT_MODE_COLOR_BY_RSSI;
+    effect_config.effect_duration = 1000;
+    effect_config.new_color = color;
     effect_config.new_rssi = rssi;
     neopixel_effect_start(&effect_config);    
 }
@@ -666,7 +709,7 @@ static void neopixel_stripe_set_rssi(int8_t rssi)
 static void neopixel_flashytime()
 {
     neopixel_effect_config_t effect_config; 
-    effect_config.effect_mode = NPEFFECT_MODE_FLASHY;
+    effect_config.effect_mode = NPEFFECT_MODE_RADIAL_TWIST;
     effect_config.effect_duration = 500;
     effect_config.new_color = m_led_matrix_color;
     neopixel_effect_start(&effect_config);     
@@ -714,7 +757,7 @@ int main(void)
 
     //neopixel_stripe_set_color(LED_MATRIX_COLOR_IDLE);
     neopixel_flashytime();
-    m_led_matrix_rssi_mode_enabled = true;
+    m_led_matrix_rssi_mode_enabled = false;
 
     // Enter main loop.
     for (;;)

@@ -20,6 +20,7 @@ static struct
     uint32_t current_mode;
     uint32_t current_color;
     uint32_t effect_age, effect_duration;
+    float    relative_age;
     uint32_t start_color, end_color;
     float    start_color_ch[3];
     float    end_color_ch[3];
@@ -170,20 +171,65 @@ static void sinus_effect2_rssi(float rel_rssi)
             // Primitive gamma compentasion to make low brightness values darker
             alpha *= alpha;
 
-            // Update pixel
-            nrf_gfx_point_draw(m_led_matrix_ptr, &point, fade_color(rssi_color, (uint32_t)(alpha * 255.0f)));
+            if(m_effect_state.effect_duration > 0)
+            {
+                nrf_gfx_point_draw(m_led_matrix_ptr, &point, fade_color(m_effect_state.start_color, (uint32_t)((1.0f-m_effect_state.relative_age) * 255.0f)) + 
+                                                             fade_color(rssi_color, (uint32_t)(alpha * m_effect_state.relative_age * 255.0f)));
+            }
+            else
+            {
+                // Update pixel
+                nrf_gfx_point_draw(m_led_matrix_ptr, &point, fade_color(rssi_color, (uint32_t)(alpha * 255.0f)));
+            }
         }
     }
     phase -= 0.20f * (rel_rssi + 0.1f);
-    //if(phase > 1.0f) phase -= 1.0f;
+    if(phase > 1.0f) phase -= 1.0f;
     nrf_gfx_display(m_led_matrix_ptr);   
 }
+
+
+static void radial_twist(void)
+{
+    static float xf, yf, alpha, phase = 0.0f;
+    static float center_x = (float)LED_MATRIX_WIDTH / 2.0f - 0.5f;
+    static float center_y = (float)LED_MATRIX_HEIGHT / 2.0f - 0.5f;
+    static float rotation = 0.0f;
+    static float angle_from_center;
+    static nrf_gfx_point_t point;
+    for(int x = 0; x < LED_MATRIX_WIDTH; x++)
+    {
+        xf = (float)x;
+        for(int y = 0; y < LED_MATRIX_HEIGHT; y++)
+        {
+            yf = (float)y;
+            point.x = x;
+            point.y = y;
+            angle_from_center = atan2f(y - center_y, x - center_x);
+
+            alpha = 1.0f - (angle_from_center + 3.141593f) / (3.141593f * 2.0f);
+            alpha += phase;
+            while(alpha > 1.0f) alpha -= 1.0f;
+
+            // Primitive gamma compentasion to make low brightness values darker
+            alpha *= alpha;
+            alpha *= alpha;
+
+            // Update pixel
+            nrf_gfx_point_draw(m_led_matrix_ptr, &point, fade_color(0xFF0000, (uint32_t)(alpha * 255.0f)));
+        }
+    }
+    phase -= 0.012f;
+    if(phase < 0.0f) phase += 1.0f;
+    nrf_gfx_display(m_led_matrix_ptr); 
+}
+
 
 static void fill_screen_with_color(uint32_t color, float rel_rssi)
 {
     static nrf_gfx_rect_t r;
     float modulo;
-    int num_squares =  (int)((float)LED_MATRIX_HEIGHT * rel_rssi);
+    int num_squares = LED_MATRIX_HEIGHT;// (int)((float)LED_MATRIX_HEIGHT * rel_rssi);
     r.x = 0;
     r.y = 0;
     r.width = LED_MATRIX_WIDTH;
@@ -201,6 +247,7 @@ static void fill_screen_with_color(uint32_t color, float rel_rssi)
     //NRF_LOG_INFO("int: %i, modulo: %i", num_squares, (int)(modulo * 1000.0f));
 }
 
+
 static void neopixel_effects_update(void * p)
 {
     float rel_age;
@@ -208,14 +255,15 @@ static void neopixel_effects_update(void * p)
     static float rel_rssi = 1.0f;
     if(rel_rssi < m_effect_state.current_rssi_rel) rel_rssi += 0.001f;
     else rel_rssi -= 0.001f;
-    if(m_effect_state.effect_age > m_effect_state.effect_duration)
-    {
-        m_effect_state.effect_age = m_effect_state.effect_duration;
-    }
+
     switch(m_effect_state.current_mode)
     {
         case NPEFFECT_MODE_FADE_TO_COLOR:
         case NPEFFECT_MODE_COLOR_AND_RSSI:
+            if(m_effect_state.effect_age > m_effect_state.effect_duration)
+            {
+                m_effect_state.effect_age = m_effect_state.effect_duration;
+            }
             rel_age = (float)m_effect_state.effect_age / (float)m_effect_state.effect_duration;
             for(int i = 0; i < 3; i++)
             {
@@ -230,10 +278,26 @@ static void neopixel_effects_update(void * p)
             break;
 
         case NPEFFECT_MODE_COLOR_BY_RSSI:
+            if(m_effect_state.effect_age > m_effect_state.effect_duration)
+            {
+                m_effect_state.effect_duration = 0;
+                m_effect_state.effect_age = 0;
+            }
+            if(m_effect_state.effect_duration > 0)
+            {
+                m_effect_state.relative_age = (float)m_effect_state.effect_age / (float)m_effect_state.effect_duration;
+            }
             sinus_effect2_rssi(rel_rssi);
             break;
+
+        case NPEFFECT_MODE_RADIAL_TWIST:
+            radial_twist();
+            break;
     }
-    m_effect_state.effect_age += LED_UPDATE_INTERVAL_MS;
+    if(m_effect_state.effect_duration != 0) 
+    {
+        m_effect_state.effect_age += LED_UPDATE_INTERVAL_MS;
+    }
     /*if(m_effect_state.effect_age > m_effect_state.effect_duration)
     {
         m_effect_state.current_mode = NPEFFECT_MODE_IDLE;
@@ -253,10 +317,22 @@ uint32_t neopixel_effects_init(nrf_lcd_t * led_matrix)
     return NRF_SUCCESS;
 }
 
+
 static float scale_rssi(int8_t rssi_unscaled)
 {
-
+    float rssi;
+    if(rssi_unscaled != 0)
+    {
+        rssi = ((float)(rssi_unscaled + 100) / 70.0f);
+        if(rssi > 1.0f)
+        {
+            rssi = 1.0f;
+        }
+        return rssi;
+    } 
+    return 1.0f;
 }
+
 
 uint32_t neopixel_effect_start(neopixel_effect_config_t * effect)
 {
@@ -285,14 +361,19 @@ uint32_t neopixel_effect_start(neopixel_effect_config_t * effect)
             break;
 
         case NPEFFECT_MODE_COLOR_AND_RSSI:
-            if(effect->new_rssi != 0)
+            if(effect->new_rssi != 0)   
             {
-                m_effect_state.current_rssi_rel = ((float)(effect->new_rssi + 100) / 70.0f);
-                if(m_effect_state.current_rssi_rel > 1.0f)
-                {
-                    m_effect_state.current_rssi_rel = 1.0f;
-                }
-            }            
+                m_effect_state.current_rssi_rel = scale_rssi(effect->new_rssi);  
+            }
+            if(effect->effect_duration > 0)
+            {
+                m_effect_state.effect_age = 0;
+                m_effect_state.effect_duration = effect->effect_duration;
+                m_effect_state.start_color = effect->new_color;
+                m_effect_state.start_color_ch[0] = COLOR_CH_RED_FLOAT(effect->new_color);
+                m_effect_state.start_color_ch[1] = COLOR_CH_GREEN_FLOAT(effect->new_color);
+                m_effect_state.start_color_ch[2] = COLOR_CH_BLUE_FLOAT(effect->new_color);
+            }
             break;
 
         case NPEFFECT_MODE_FLASHY:
@@ -300,15 +381,24 @@ uint32_t neopixel_effect_start(neopixel_effect_config_t * effect)
             break;
 
         case NPEFFECT_MODE_COLOR_BY_RSSI:
-                    if(effect->new_rssi != 0)
+            if(effect->new_rssi != 0)   
             {
-                m_effect_state.current_rssi_rel = ((float)(effect->new_rssi + 100) / 70.0f);
-                if(m_effect_state.current_rssi_rel > 1.0f)
-                {
-                    m_effect_state.current_rssi_rel = 1.0f;
-                }
-            } 
+                m_effect_state.current_rssi_rel = scale_rssi(effect->new_rssi);  
+            }
+            if(effect->effect_duration > 0)
+            {
+                m_effect_state.effect_age = 0;
+                m_effect_state.effect_duration = effect->effect_duration;
+                m_effect_state.start_color = effect->new_color;
+                m_effect_state.start_color_ch[0] = COLOR_CH_RED_FLOAT(effect->new_color);
+                m_effect_state.start_color_ch[1] = COLOR_CH_GREEN_FLOAT(effect->new_color);
+                m_effect_state.start_color_ch[2] = COLOR_CH_BLUE_FLOAT(effect->new_color);
+            }
             m_effect_state.current_mode = NPEFFECT_MODE_COLOR_BY_RSSI;
+            break;
+
+        case NPEFFECT_MODE_RADIAL_TWIST:
+            m_effect_state.current_mode = NPEFFECT_MODE_RADIAL_TWIST;
             break;
     }
 
