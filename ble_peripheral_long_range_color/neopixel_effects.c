@@ -173,8 +173,8 @@ static void sinus_effect2_rssi(float rel_rssi)
 
             if(m_effect_state.effect_duration > 0)
             {
-                nrf_gfx_point_draw(m_led_matrix_ptr, &point, fade_color(m_effect_state.start_color, (uint32_t)((1.0f-m_effect_state.relative_age) * 255.0f)) + 
-                                                             fade_color(rssi_color, (uint32_t)(alpha * m_effect_state.relative_age * 255.0f)));
+                nrf_gfx_point_draw(m_led_matrix_ptr, &point, fade_color(m_effect_state.start_color, (uint32_t)((1.0f-m_effect_state.relative_age) * (1.0f-m_effect_state.relative_age) * 255.0f)) + 
+                                                             fade_color(rssi_color, (uint32_t)(alpha * (1.0f - (1.0f-m_effect_state.relative_age) * (1.0f-m_effect_state.relative_age)) * m_effect_state.relative_age * 255.0f)));
             }
             else
             {

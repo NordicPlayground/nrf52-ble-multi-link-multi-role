@@ -700,7 +700,7 @@ static void neopixel_stripe_set_rssi_and_color(uint32_t color, int8_t rssi)
 {
     neopixel_effect_config_t effect_config; 
     effect_config.effect_mode = NPEFFECT_MODE_COLOR_BY_RSSI;
-    effect_config.effect_duration = 1000;
+    effect_config.effect_duration = 2000;
     effect_config.new_color = color;
     effect_config.new_rssi = rssi;
     neopixel_effect_start(&effect_config);    
