@@ -126,6 +126,7 @@
     </folder>
     <configuration
       Name="Debug_Neopixel_Shield"
+      build_output_file_name="$(OutDir)/$(ProjectName)npshield$(EXE)"
       c_preprocessor_definitions="NEOPIXEL_SHIELD;LED_MATRIX_WIDTH=5;LED_MATRIX_HEIGHT=8" />
   </project>
   <configuration
