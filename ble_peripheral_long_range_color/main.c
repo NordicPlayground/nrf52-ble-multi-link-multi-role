@@ -78,11 +78,6 @@
 #define CONNECTED_LED                   BSP_BOARD_LED_1                         /**< Is on when device has connected. */
 #define LEDBUTTON_LED                   BSP_BOARD_LED_2                         /**< LED to be toggled with the help of the LED Button Service. */
 
-#define PHY_BUTTON                      BSP_BUTTON_0
-#define TX_POWER_BUTTON                 BSP_BUTTON_1
-#define APP_STATE_BUTTON                BSP_BUTTON_2
-#define LEDBUTTON_BUTTON                BSP_BUTTON_3                            /**< Button that will trigger the notification event with the LED Button Service */
-
 #define LED_MATRIX_COLOR_IDLE           0x003F0000
 #define LED_MATRIX_COLOR_CONNECTED      0x00003F00
 
@@ -572,7 +567,7 @@ static void button_event_handler(uint8_t pin_no, uint8_t button_action)
     
     switch (pin_no)
     {
-        case PHY_BUTTON:
+        case BUTTON_1:
             if(button_action == APP_BUTTON_PUSH)
             {
                 if(m_conn_handle != BLE_CONN_HANDLE_INVALID)
@@ -590,21 +585,21 @@ static void button_event_handler(uint8_t pin_no, uint8_t button_action)
             }
             break;
         
-        case TX_POWER_BUTTON:
-            if(button_action == APP_BUTTON_PUSH)
-            {
-
-            }   
-            break;
-        
-        case APP_STATE_BUTTON:
+        case BUTTON_2:
             if(button_action == APP_BUTTON_PUSH)
             {
                 m_led_short_fade_mode = !m_led_short_fade_mode;
+            }   
+            break;
+        
+        case BUTTON_3:
+            if(button_action == APP_BUTTON_PUSH)
+            {
+
             }
             break;
         
-        case LEDBUTTON_BUTTON:
+        case BUTTON_4:
             NRF_LOG_INFO("Send button state change.");
             err_code = ble_lbs_on_button_change(m_conn_handle, &m_lbs, button_action);
             if (err_code != NRF_SUCCESS &&
@@ -632,10 +627,10 @@ static void buttons_init(void)
     //The array must be static because a pointer to it will be saved in the button handler module.
     static app_button_cfg_t buttons[] =
     {
-        {PHY_BUTTON,       false, BUTTON_PULL, button_event_handler},
-        {TX_POWER_BUTTON,  false, BUTTON_PULL, button_event_handler},
-        {APP_STATE_BUTTON, false, BUTTON_PULL, button_event_handler},
-        {LEDBUTTON_BUTTON, false, BUTTON_PULL, button_event_handler}
+        {BUTTON_1, false, BUTTON_PULL, button_event_handler},
+        {BUTTON_2, false, BUTTON_PULL, button_event_handler},
+        {BUTTON_3, false, BUTTON_PULL, button_event_handler},
+        {BUTTON_4, false, BUTTON_PULL, button_event_handler}
     };
 
     err_code = app_button_init(buttons, sizeof(buttons) / sizeof(buttons[0]),
