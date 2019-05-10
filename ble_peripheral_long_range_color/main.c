@@ -575,14 +575,17 @@ static void button_event_handler(uint8_t pin_no, uint8_t button_action)
         case PHY_BUTTON:
             if(button_action == APP_BUTTON_PUSH)
             {
-                m_led_matrix_rssi_mode_enabled = !m_led_matrix_rssi_mode_enabled;
-                if(m_led_matrix_rssi_mode_enabled)
+                if(m_conn_handle != BLE_CONN_HANDLE_INVALID)
                 {
-                    neopixel_stripe_set_rssi_and_color(m_led_matrix_color, 0);
-                }
-                else
-                {
-                    neopixel_stripe_set_color(0xFFFFFFFF);
+                    m_led_matrix_rssi_mode_enabled = !m_led_matrix_rssi_mode_enabled;
+                    if(m_led_matrix_rssi_mode_enabled)
+                    {
+                        neopixel_stripe_set_rssi_and_color(m_led_matrix_color, 0);
+                    }
+                    else
+                    {
+                        neopixel_stripe_set_color(0xFFFFFFFF);
+                    }
                 }
             }
             break;
