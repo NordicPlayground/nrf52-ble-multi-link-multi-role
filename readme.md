@@ -41,7 +41,7 @@ The aggregator will collect information on all the connected devices, and relay 
 | --- | --------------- | ------ | -------- |
 | 1 | **On:** Advertising | 1 | Toggle between normal mode and range test mode (see description below) |
 | 2 | **On:** Connected   | 2 | Toggle between smooth or fast LED fading when changing LED color |
-| 3 | - | 3 | - |
+| 3 | Shows LED on/off state when set by aggregator | 3 | - |
 | 4 | - | 4 | Send button status to the aggregator | 
 
 *Operation mode:* This demo can be used in two different modes when connected to the aggregator. In normal mode the LED matrix will show a single color, and the color and intensity can be controlled by the aggregator. In long range test mode the color will be set by the link quality. When the link is good the color will be green, and as the link gets poorer the color will fade into yellow and red while the speed of the pulsing will be reduced. This allows the quality of the link to be monitored continuosluy while the kit is moved around. 
