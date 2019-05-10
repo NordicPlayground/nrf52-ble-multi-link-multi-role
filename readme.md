@@ -27,8 +27,9 @@ The aggregator will collect information on all the connected devices, and relay 
 ## Demo usage
 ### Buttons and LED's
 **Aggregator**
-| LED's  |                 | Buttons |
-| ------ | --------------- | ------- |
+
+| LED's  |                 | Buttons |          |
+| ------ | --------------- | ------- | -------- |
 | LED 1  | **Blinking** Advertising, **ON** Connected to phone app | Button 1 | Disconnect phone app |
 | LED 2  | **Fast blink** Scanning for BLE devices in normal 1M mode **Slow blink** Scanning for BLE devices in coded phy (long range) mode | Button 2 | Enable/disable scanning | 
 | LED 3  | Shows incoming button presses from connected long range peripherals | Button 3 | Toggles LED on/off on all connected peripherals | 
